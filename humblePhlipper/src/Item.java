@@ -181,7 +181,6 @@ public class Item {
                         int boughtAt =  (this.bidVol * (this.bid - this.deltaBid) - coinsCollected) / itemsCollected;
                         this.bought += justBought;
                         this.tradeHistory += "\n" + LocalDateTime.now() + "," + justBought + "," + "-" + boughtAt;
-                        Logger.log("Coins collected: " + coinsCollected + ", Items collected: " + itemsCollected + ", Bid vol: " + bidVol + ", Last bid: " + (this.bid - this.deltaBid));
                         Logger.log(this.name + ", q: " + justBought + ", p: " + "-" + boughtAt + ", total bought: " + Math.floor(100 * this.bought / this.targetVol) + "%");
                     }
 
