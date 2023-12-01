@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.Collections;
 
-@ScriptManifest(category = Category.MISC, name = "humblePhlipper", author = "apnasus", version = 1.0)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 1.0)
 public class Main extends AbstractScript {
 
     private static final List<Item> itemList = new ArrayList<>();
