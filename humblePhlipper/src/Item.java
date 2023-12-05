@@ -15,18 +15,14 @@ import java.net.URL;
 import java.time.LocalDateTime;
 
 public class Item {
-    // Constant
-    int SLEEP = 600; // in milliseconds
-
     // Class fields
     String name; // item name
     int id; // item ID
     int targetVol; // target volume, i.e., 4hr GE limit
-    int bidVol; // our current bid-offer amount
     int bought; // total bought
     int sold; // total sold
     int slot; // GE slot 0 to 7 or -1 (not trading)
-    String tradeHistory; // CSV of trades, `<time>,<quantity>,<price>`, where price is negative for bids
+    String tradeHistory; // CSV of trades, `<time>,<name>,<quantity>,<price>`, where price is negative for bids and post-tax for asks
     int bid; // latest bid/low/instasell price
     int deltaBid; // bid_t - bid_{t-1}
     int ask; // latest ask/high/instabuy price
@@ -37,7 +33,6 @@ public class Item {
         this.name = name;
         this.id = id;
         this.targetVol = targetVol;
-        this.bidVol = 0;
         this.bought = 0;
         this.sold = 0;
         this.slot = -1;
@@ -125,112 +120,130 @@ public class Item {
     }
 
     // Check cancel conditions and make cancels
-    public void checkCancel() {
-        if (this.slot != -1) { // Trading
-            if (Widgets.get(465, 7 + this.slot, 16).getText().equals("Buy")) { // Bidding
+    public void checkCancel(Boolean stopBidding) {
+        if (!GrandExchange.isOpen() || this.slot == -1) {
+            return;
+        }
 
-                // If bid price has changed or spread is now unprofitable or progress has been made, cancel
-                if (this.deltaBid != 0 || 0.99 * this.ask - this.bid <= 0 || Widgets.get(465, this.slot + 7, 22).getWidth() > 0) {
-                    GrandExchange.cancelOffer(this.slot);
-                    Sleep.sleep(SLEEP);
-                }
-            } else { // Asking
+        String status = Widgets.get(465, 7 + this.slot, 16).getText(); // Status on main 8-item interface, {'Buy', 'Sell', 'Empty'}
+        int tradeWidth = Widgets.get(465, this.slot + 7, 22).getWidth(); // Trade bar width on main 8-item interface, {0, 1, 2, ..., 104, 105}
 
-                // If ask price has changed, cancel
-                if (this.deltaAsk != 0) {  // || Widgets.get(465, this.slot + 7, 22).getWidth() > 0
-                    GrandExchange.cancelOffer(this.slot);
-                    Sleep.sleep(SLEEP);
-                }
-            }
+        if ((status.equals("Buy") && (this.deltaBid != 0 || 0.99 * this.ask - this.bid <= 0 || tradeWidth > 0 || stopBidding)) ||
+             status.equals("Sell") && (this.deltaAsk != 0)) {
+            GrandExchange.cancelOffer(this.slot);
+            Sleep.sleep(Main.SLEEP);
         }
     }
 
     public void collect() {
-        if (this.slot != -1) { // trading
-            if (Widgets.get(465, this.slot + 7, 22).getWidth() == 105) { // done-trading (progress bar width is 105/105)
+        if (!GrandExchange.isOpen() || this.slot == -1) {
+            return;
+        }
+        int tradeWidth = Widgets.get(465, this.slot + 7, 22).getWidth(); // Trade bar width on main 8-item interface, {0, 1, 2, ..., 104, 105}
+        if (tradeWidth != 105) {
+            return;
+        }
 
-                // Open slot
-                Widgets.get(465, this.slot + 7, 2).interact();
-                Sleep.sleep(SLEEP);
+        // Open slot
+        Widgets.get(465, this.slot + 7, 2).interact();
+        Sleep.sleep(Main.SLEEP);
 
-                // Get number of items and coins to be collected
-                int itemsCollected = 0;
-                int coinsCollected= 0;
+        // Get number of items and coins to be collected
+        int itemsCollected = 0;
+        double coinsCollected= 0; // coins have ID 995
 
-                // 995 is the Item ID of Coins
+        // Check first item slot
+        if (GrandExchange.getOfferFirstItemWidget().getItemId() == this.id) {
+            itemsCollected = GrandExchange.getOfferFirstItemWidget().getItemStack();
+        } else if (GrandExchange.getOfferFirstItemWidget().getItemId() == 995) {
+            coinsCollected = GrandExchange.getOfferFirstItemWidget().getItemStack();
+        }
 
-                // Check first item slot
-                if (GrandExchange.getOfferFirstItemWidget().getItemId() == this.id && !GrandExchange.getOfferFirstItemWidget().isHidden()) {
-                    itemsCollected = GrandExchange.getOfferFirstItemWidget().getItemStack();
-                } else if (GrandExchange.getOfferFirstItemWidget().getItemId() == 995 && !GrandExchange.getOfferFirstItemWidget().isHidden()) {
-                    coinsCollected = GrandExchange.getOfferFirstItemWidget().getItemStack();
-                }
+        // Check second item slot
+        if (GrandExchange.getOfferSecondItemWidget().getItemId() == this.id && !GrandExchange.getOfferSecondItemWidget().isHidden()) {
+            itemsCollected = GrandExchange.getOfferSecondItemWidget().getItemStack();
+        } else if (GrandExchange.getOfferSecondItemWidget().getItemId() == 995 && !GrandExchange.getOfferSecondItemWidget().isHidden()) {
+            coinsCollected = GrandExchange.getOfferSecondItemWidget().getItemStack();
+        }
 
-                // Check second item slot
-                if (GrandExchange.getOfferSecondItemWidget().getItemId() == this.id && !GrandExchange.getOfferSecondItemWidget().isHidden()) {
-                    itemsCollected = GrandExchange.getOfferSecondItemWidget().getItemStack();
-                } else if (GrandExchange.getOfferSecondItemWidget().getItemId() == 995 && !GrandExchange.getOfferSecondItemWidget().isHidden()) {
-                    coinsCollected = GrandExchange.getOfferSecondItemWidget().getItemStack();
-                }
+        // Deduce the number of items bought/sold and average unit prices for this trade
+        int vol = 0;
+        double price = 0;
 
-                // Deduce the number of items bought/sold and unit prices
+        // - Price is a double because in OSRS it is possible for the latest bid-ask spread to go negative (e.g. no
+        // current bid, buy order comes in above current ask, buy order treated as bid instead of market order, ask
+        // offer executes as market order) which means our offers can be partially executed at different prices.
+        // - Bid prices are negative.
+        // - Ask prices are post-tax.
 
-                if (Widgets.get(465, 15, 4).getText().equals("Buy offer")) { // If bidding
-                    int justBought = itemsCollected;
-                    if (justBought != 0) {
-                        int boughtAt =  (this.bidVol * (this.bid - this.deltaBid) - coinsCollected) / itemsCollected;
-                        this.bought += justBought;
-                        this.tradeHistory += "\n" + LocalDateTime.now() + "," + justBought + "," + "-" + boughtAt;
-                        Logger.log(this.name + ", q: " + justBought + ", p: " + "-" + boughtAt + ", total bought: " + Math.floor(100 * this.bought / this.targetVol) + "%");
-                    }
+        if (Widgets.get(465, 15, 4).getText().equals("Buy offer")) {
 
-                } else { // Else if asking
-                    int justSold = (this.bought - this.sold) - itemsCollected;
-                    if (justSold != 0) {
-                        int soldAt = (int) Math.floor(coinsCollected/(justSold*0.99));
-                        this.sold += justSold;
-                        this.tradeHistory += "\n" + LocalDateTime.now() + "," + justSold + "," + soldAt; // or (this.ask - this.deltaAsk)
-                        Logger.log(this.name + ", q: " + justSold + ", p: " + soldAt + ", total sold: " + Math.floor(100 * this.sold / this.targetVol) + "%");
-                    }
-                }
+            // Volume bought is items collected
+            vol = itemsCollected;
 
-                // Set trading as over
-                this.slot = -1;
+            // Find the number of coins offered when making this bid offer
+            String coinsOfferedString = Widgets.get(465,15,29).getText().replaceAll("[^0-9]", "");
+            double coinsOffered = Double.parseDouble(coinsOfferedString);
 
-                // Click coins/items to collect them
-                if (Widgets.get(465, 24, 3).isHidden()) {
-                    Widgets.get(465, 24, 2).interact();
-                } else {
-                    Widgets.get(465, 24, 2).interact();
-                    Sleep.sleep(SLEEP);
-                    Widgets.get(465, 24, 3).interact();
-                }
-                Sleep.sleep(SLEEP);
+            if (vol != 0) {
+                price = -1.0 * (coinsOffered - coinsCollected) / vol;
+                this.bought += vol;
+                Logger.log(this.name + ", q: " + vol + ", p: " + price + ", total bought: " + this.bought + " = " + Math.floor(100 * this.bought / this.targetVol) + "%");
+            }
+
+        } else if (Widgets.get(465, 15, 4).getText().equals("Sell offer")) {
+
+            // Find the number of items offered when making this ask offer
+            String itemsOfferedString = Widgets.get(465,15,18).getText().replaceAll("[^0-9]", "");
+            int itemsOffered = Integer.parseInt(itemsOfferedString);
+
+            // Quantity sold is items offered less items collected
+            vol = itemsOffered - itemsCollected;
+
+            if (vol != 0) {
+                price = coinsCollected / vol;
+                this.sold += vol;
+                Logger.log(this.name + ", q: " + vol + ", p: " + price + ", total sold: " + this.sold + " = " + Math.floor(100 * this.sold / this.targetVol) + "%");
             }
         }
+
+        // Update trade history CSV
+        if (vol != 0) {
+            this.tradeHistory += "\n"+LocalDateTime.now()+","+this.name+","+vol+","+price;
+        }
+
+        // Click coins/items to collect them
+        if (!Widgets.get(465, 24, 3).isHidden()) {
+            Widgets.get(465, 24, 3).interact();
+            Sleep.sleep(Main.SLEEP);
+        }
+        Widgets.get(465, 24, 2).interact();
+        Sleep.sleep(Main.SLEEP);
+
+        // Set trading as over
+        this.slot = -1;
     }
 
     public void makeAsk() {
-        if (this.slot == -1) {
-            int slot = GrandExchange.getFirstOpenSlot();
-            if (GrandExchange.sellItem(this.name, Inventory.count(this.name), this.ask)) {
-                this.slot = slot;
-                Sleep.sleep(SLEEP);
-            }
+        if (!GrandExchange.isOpen() || this.slot != -1 || this.sold >= this.bought){
+            return;
+        }
+        int slot = GrandExchange.getFirstOpenSlot();
+        if (GrandExchange.sellItem(this.name, (this.bought - this.sold), this.ask)) {
+            this.slot = slot;
+            Sleep.sleep(Main.SLEEP);
         }
     }
-    public void makeBid() {
-        if (this.slot == -1 && this.bought < this.targetVol && 0.99 * this.ask - this.bid > 0) {
-            int slot = GrandExchange.getFirstOpenSlot();
 
-            // New bid volume is `Math.min{<maximum we can afford>, <remaining GE buy limit>}`
-            this.bidVol = (int) Math.min(Math.floor(Inventory.count("Coins")) / this.bid, (this.targetVol - this.bought));
-            if (this.bidVol > 0) {
-                if (GrandExchange.buyItem(this.name, bidVol, this.bid)) {
-                    this.slot = slot;
-                    Sleep.sleep(SLEEP);
-                }
-            }
+    public void makeBid(Boolean stopBidding) {
+        if (!GrandExchange.isOpen() || this.slot != -1 || this.bought >= this.targetVol || stopBidding || Inventory.count("Coins") < this.bid || 0.99 * this.ask - this.bid <= 0) {
+            return;
+        }
+        int slot = GrandExchange.getFirstOpenSlot();
+        int bidVol = (int) Math.min(Math.floor(Inventory.count("Coins")) / this.bid, (this.targetVol - this.bought)); // Math.min{<maximum we can afford>, <remaining GE buy limit>}
+        if (GrandExchange.buyItem(this.name, bidVol, this.bid)) {
+            this.slot = slot;
+            Sleep.sleep(Main.SLEEP);
         }
     }
 }
