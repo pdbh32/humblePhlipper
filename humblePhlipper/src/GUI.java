@@ -121,7 +121,7 @@ public class GUI extends JFrame {
 
             paramsList.add("[sysExit:" +  sysExitCheckBox.isSelected() + "]");
             paramsList.add("[timeout:" + timeoutField.getText() + "]");
-            paramsList.add("[maxBidVol:" + timeoutField.getText() + "]");
+            paramsList.add("[maxBidVol:" + maxBidVolField.getText() + "]");
 
             for (int row = 0; row < tableModel.getRowCount(); row++) {
                 String id = tableModel.getValueAt(row, 1).toString();
