@@ -1,6 +1,4 @@
 import org.dreambot.api.Client;
-import org.dreambot.api.methods.container.impl.Inventory;
-import org.dreambot.api.utilities.Logger;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -79,7 +77,7 @@ public class GUI extends JFrame {
         tablePanel.add(scrollPane, BorderLayout.CENTER);
 
         // Reset-table button
-        JButton resetButton = new JButton("Clear item selection");
+        JButton resetButton = new JButton("Clear Item Selection");
         resetButton.addActionListener(e -> tableModel.setRowCount(0));
         tablePanel.add(resetButton, BorderLayout.SOUTH);
 
@@ -100,7 +98,7 @@ public class GUI extends JFrame {
         parameterPanel.add(searchField);
 
         JButton searchButton = new JButton();
-        searchButton.setText("Add by ID or name");
+        searchButton.setText("Add by ID or Name");
         searchButton.addActionListener(l -> addItemRow(tableModel, searchField.getText()));
         parameterPanel.add(searchButton);
 
@@ -131,14 +129,7 @@ public class GUI extends JFrame {
             }
             String[] params = paramsList.toArray(new String[0]);
 
-            // Set parameters
             Main.config.setParams(params);
-
-            if (Client.isLoggedIn()) {
-                Main.startCoins = Inventory.count("Coins");
-                Logger.log("Start coins: " + Main.startCoins);
-            }
-
             Main.isRunning = true;
             frame.dispose();
         });

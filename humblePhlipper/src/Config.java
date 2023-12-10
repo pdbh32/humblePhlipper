@@ -1,5 +1,3 @@
-import org.dreambot.api.utilities.Logger;
-
 import java.util.*;
 public class Config {
 
@@ -34,7 +32,6 @@ public class Config {
         itemList = new ArrayList<>();
 
         for (String param : params) {
-            Logger.log(param);
             if (param.startsWith("[") && param.endsWith("]")) {
                 String[] optionValue = param.substring(1, param.length() - 1).split(":");
                 if (optionValue.length == 2) {
@@ -59,7 +56,6 @@ public class Config {
                             try {
                                 float percentage = Float.parseFloat(value);
                                 if (percentage <= 100 && percentage >= 0) {
-                                    Logger.log(percentage);
                                     maxBidVol = percentage;
                                 }
                             } catch (NumberFormatException e) {
