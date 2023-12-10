@@ -7,10 +7,8 @@ import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 
 // Script functionality
-import org.dreambot.api.randoms.RandomSolver;
 import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
-import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.utilities.Timer;
 
 import javax.swing.*;
@@ -34,15 +32,8 @@ public class Main extends AbstractScript {
     // Variables
     public static Boolean openTheGUI = true;
     public static Boolean isRunning = false;
-    public static int startCoins = -1;
     public static Boolean bidding = true; // if false, close bids and sell remaining inventory
 
-    @Override
-    public void onSolverEnd(RandomSolver solver) {
-        if (startCoins == -1) {
-            onStart();
-        }
-    }
     @Override
     public void onStart(java.lang.String... params) {
         Main.config.setParams(params);
@@ -60,12 +51,7 @@ public class Main extends AbstractScript {
                 openTheGUI = false;
             });
         }
-        if (Client.isLoggedIn()) {
-            startCoins = Inventory.count("Coins");
-            Logger.log("Start coins: " + startCoins);
-        }
     }
-
 
     @Override
     public void onPaint(Graphics g) {
@@ -141,14 +127,13 @@ public class Main extends AbstractScript {
 
     @Override
     public void onExit() {
-        if (startCoins == -1) {
-            return;
+        double profit = 0;
+        for (Item item : config.itemList) {
+            profit += item.profit;
         }
 
-        int endCoins = (Inventory.count("Coins"));
-
         Logger.log("--------------------------------------------------------------------------------------");
-        Logger.log("Trading over with profit of: " + (endCoins - startCoins));
+        Logger.log("Trading over with profit of: " + Math.round(profit));
         Logger.log("Runtime (minutes): " + (timer.elapsed()/60000));
         Logger.log("--------------------------------------------------------------------------------------");
         String tradeHistory = "\ntime,name,vol,price";
