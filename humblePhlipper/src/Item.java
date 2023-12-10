@@ -7,32 +7,30 @@ import org.dreambot.api.utilities.Sleep;
 import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.methods.container.impl.Inventory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.time.LocalDateTime;
 
 public class Item {
     // Class fields
-    String name; // item name
-    int id; // item ID
-    int targetVol; // target volume, i.e., 4hr GE limit
-    int bought; // total bought
-    int sold; // total sold
-    int slot; // GE slot 0 to 7 or -1 (not trading)
-    String tradeHistory; // CSV of trades, `<time>,<name>,<quantity>,<price>`, where price is negative for bids and post-tax for asks
-    int bid; // latest bid/low/instasell price
-    int deltaBid; // bid_t - bid_{t-1}
-    int ask; // latest ask/high/instabuy price
-    int deltaAsk; // ask_t - ask_{t-1}
+    public String name; // item name
+    public int id; // item ID
+    public int targetVol; // target volume, i.e., 4hr GE limit
+    public double lastBuyPrice; // last buy price
+    public double profit; // running profit calculated after each sale
+    public int bought; // total bought
+    public int sold; // total sold
+    public int slot; // GE slot 0 to 7 or -1 (not trading)
+    public String tradeHistory; // CSV of trades, `<time>,<name>,<quantity>,<price>`, where price is negative for bids and post-tax for asks
+    public int bid; // latest bid/low/instasell price
+    public int deltaBid; // bid_t - bid_{t-1}
+    public int ask; // latest ask/high/instabuy price
+    public int deltaAsk; // ask_t - ask_{t-1}
 
     // Constructor method to initialize field values
     public Item(String name, int id, int targetVol) {
         this.name = name;
         this.id = id;
         this.targetVol = targetVol;
+        this.lastBuyPrice = -1;
         this.bought = 0;
         this.sold = 0;
         this.slot = -1;
@@ -45,70 +43,10 @@ public class Item {
 
     // Update prices using OSRS wiki live price API
     public void updatePricesOSRSwiki() {
-        try {
-            // Set the API
-            String url = "https://prices.runescape.wiki/api/v1/osrs/latest?id=" + this.id;
-            URL obj = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-
-            // Set the request method
-            connection.setRequestMethod("GET");
-
-            // Set the header
-            connection.setRequestProperty("User-Agent", "f2p_flipper");
-
-            // Get the response code
-            int responseCode = connection.getResponseCode();
-
-            // Read the response from the API
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-
-                // Parse the JSON response as a string
-                String jsonString = response.toString();
-
-                // `jsonString` looks like:
-                // {"data":{"453":{"high":177,"highTime":1701439802,"low":175,"lowTime":1701439824}}}
-
-                // Extract content within innermost braces
-                int startIdx = jsonString.lastIndexOf("{") + 1;
-                int endIdx = jsonString.indexOf("}", startIdx);
-                String innerContent = jsonString.substring(startIdx, endIdx);
-
-                // `innerContent` looks like:
-                // "high":177,"highTime":1701439802,"low":175,"lowTime":1701439824
-
-                // Split the inner content, extract key-value pairs, and update prices
-                String[] parts = innerContent.split(",");
-                for (String part : parts) {
-                    String[] keyValue = part.split(":");
-                    String key = keyValue[0].trim();
-                    String value = keyValue[1].trim();
-
-                    switch (key) {
-                        case "\"high\"":
-                            this.deltaAsk = Integer.parseInt(value) - this.ask;
-                            this.ask = Integer.parseInt(value);
-                            break;
-                        case "\"low\"":
-                            this.deltaBid = Integer.parseInt(value) - this.bid;
-                            this.bid = Integer.parseInt(value);
-                            break;
-                    }
-                }
-            } else {
-                Logger.log("Error: HTTP request failed with response code " + responseCode);
-            }
-        } catch (IOException e) {
-            Logger.log(e);
-        }
+        this.deltaAsk = Main.api.latestMap.get(this.id).getHigh() - this.ask;
+        this.ask = Main.api.latestMap.get(this.id).getHigh();
+        this.deltaBid = Main.api.latestMap.get(this.id).getLow() - this.bid;
+        this.bid = Main.api.latestMap.get(this.id).getLow();
     }
 
     // Alternatively, update prices using DreamBot's proxy
@@ -120,16 +58,17 @@ public class Item {
     }
 
     // Check cancel conditions and make cancels
-    public void checkCancel(Boolean stopBidding) {
+    public void checkCancel() {
         if (!GrandExchange.isOpen() || this.slot == -1) {
             return;
         }
 
         String status = Widgets.get(465, 7 + this.slot, 16).getText(); // Status on main 8-item interface, {'Buy', 'Sell', 'Empty'}
-        int tradeWidth = Widgets.get(465, this.slot + 7, 22).getWidth(); // Trade bar width on main 8-item interface, {0, 1, 2, ..., 104, 105}
+        int price = Integer.parseInt(Widgets.get(465, 7 + this.slot, 25).getText().replaceAll("[^0-9]", ""));
+        int tradeWidth = Widgets.get(465, 7 + this.slot, 22).getWidth(); // Trade bar width on main 8-item interface, {0, 1, 2, ..., 104, 105}
 
-        if ((status.equals("Buy") && (this.deltaBid != 0 || 0.99 * this.ask - this.bid <= 0 || tradeWidth > 0 || stopBidding)) ||
-             status.equals("Sell") && (this.deltaAsk != 0)) {
+        if ((status.equals("Buy") && (price != this.bid || 0.99 * this.ask - this.bid <= 0 || tradeWidth > 0 || !Main.bidding)) ||
+             status.equals("Sell") && (price != this.ask)) {
             GrandExchange.cancelOffer(this.slot);
             Sleep.sleep(Main.SLEEP);
         }
@@ -189,6 +128,7 @@ public class Item {
                 price = -1.0 * (coinsOffered - coinsCollected) / vol;
                 this.bought += vol;
                 Logger.log(this.name + ", q: " + vol + ", p: " + price + ", total bought: " + this.bought + " = " + Math.floor(100 * this.bought / this.targetVol) + "%");
+                this.lastBuyPrice = -1.0 * price;
             }
 
         } else if (Widgets.get(465, 15, 4).getText().equals("Sell offer")) {
@@ -204,10 +144,11 @@ public class Item {
                 price = coinsCollected / vol;
                 this.sold += vol;
                 Logger.log(this.name + ", q: " + vol + ", p: " + price + ", total sold: " + this.sold + " = " + Math.floor(100 * this.sold / this.targetVol) + "%");
+                this.profit += (price - this.lastBuyPrice) * vol;
             }
         }
 
-        // Update trade history CSV
+        // Update trade history CSV and calculate change in netCoins
         if (vol != 0) {
             this.tradeHistory += "\n"+LocalDateTime.now()+","+this.name+","+vol+","+price;
         }
@@ -235,12 +176,13 @@ public class Item {
         }
     }
 
-    public void makeBid(Boolean stopBidding) {
-        if (!GrandExchange.isOpen() || this.slot != -1 || this.bought >= this.targetVol || stopBidding || Inventory.count("Coins") < this.bid || 0.99 * this.ask - this.bid <= 0) {
+    public void makeBid() {
+        if (!GrandExchange.isOpen() || this.slot != -1 || this.bought >= this.targetVol || !Main.bidding || Inventory.count("Coins") < this.bid || 0.99 * this.ask - this.bid <= 0) {
             return;
         }
         int slot = GrandExchange.getFirstOpenSlot();
         int bidVol = (int) Math.min(Math.floor(Inventory.count("Coins")) / this.bid, (this.targetVol - this.bought)); // Math.min{<maximum we can afford>, <remaining GE buy limit>}
+        bidVol = (int) Math.min(bidVol, Math.floor((double) (Main.config.maxBidVol * this.targetVol) /100));
         if (GrandExchange.buyItem(this.name, bidVol, this.bid)) {
             this.slot = slot;
             Sleep.sleep(Main.SLEEP);
