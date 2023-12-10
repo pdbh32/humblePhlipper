@@ -15,6 +15,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 
+
 @ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 1.1)
 public class Main extends AbstractScript {
 

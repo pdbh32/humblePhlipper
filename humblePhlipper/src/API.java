@@ -1,6 +1,11 @@
-import com.google.gson.Gson;
-import org.dreambot.api.utilities.Logger;
+//API.java
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import org.dreambot.api.utilities.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,9 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class API {
-    private final Gson gson = new Gson();
     public Map<Integer, Latest.Item> latestMap;
-
     public Map<Integer, Mapping> mappingMap;
 
     public API() {
@@ -22,25 +25,120 @@ public class API {
 
     public void updateLatest() {
         String jsonString = GetJSON("https://prices.runescape.wiki/api/v1/osrs/latest");
-        Latest latestList = gson.fromJson(jsonString, Latest.class);
-        latestMap = new HashMap<>();
-        for (Map.Entry<String, Latest.Item> entry : latestList.getData().entrySet()) {
-            String itemId = entry.getKey();
-            Latest.Item item = entry.getValue();
-            int itemIdInt = Integer.parseInt(itemId);
-            latestMap.put(itemIdInt, item);
-        }
+        latestMap = parseLatestJson(jsonString);
     }
 
     public void updateMapping() {
         String jsonString = GetJSON("https://prices.runescape.wiki/api/v1/osrs/mapping");
-        Mapping[] mappingList = gson.fromJson(jsonString, Mapping[].class);
-        mappingMap = new HashMap<>();
-        for (Mapping mapping : mappingList) {
-            mappingMap.put(mapping.getId(), mapping);
+        mappingMap = parseMappingJson(jsonString);
+    }
+
+    private Map<Integer, Latest.Item> parseLatestJson(String jsonString) {
+        Map<Integer, Latest.Item> latestMap = new HashMap<>();
+
+        try {
+            // Parse JSON manually for the latest API
+
+            // Extract data field
+            String dataField = jsonString.substring(jsonString.indexOf("\"data\":") + 7);
+            dataField = dataField.substring(0, dataField.length() - 1);
+
+            // Parse the "data" JSON object
+            JsonObject dataObject = new JsonParser().parse(dataField).getAsJsonObject();
+            for (Map.Entry<String, JsonElement> entry : dataObject.entrySet()) {
+                int itemId = Integer.parseInt(entry.getKey());
+
+                // Parse the nested JSON object for high/low values
+                JsonElement highElement = entry.getValue().getAsJsonObject().get("high");
+                JsonElement lowElement = entry.getValue().getAsJsonObject().get("low");
+
+                // Check for null values before extracting
+                int high = (highElement instanceof JsonNull) ? 0 : highElement.getAsInt();
+                int low = (lowElement instanceof JsonNull) ? 0 : lowElement.getAsInt();
+
+                // Create Latest.Item and put it into the map
+                Latest.Item item = new Latest.Item();
+                item.setHigh(high);
+                item.setLow(low);
+                latestMap.put(itemId, item);
+            }
+        } catch (Exception e) {
+            Logger.log(e);
         }
 
+        return latestMap;
     }
+
+    private Map<Integer, Mapping> parseMappingJson(String jsonString) {
+        Map<Integer, Mapping> mappingMap = new HashMap<>();
+
+        try {
+            // Parse JSON manually for the mapping API
+            // Note: This is a simplified example; you might need to handle more cases in a real-world scenario
+            // For a more robust solution, consider using a JSON parsing library like GSON.
+            // For simplicity, this example assumes the JSON structure is as expected.
+
+            // Convert the JSON array to an array of JSON objects
+            jsonString = jsonString.substring(1, jsonString.length() - 1);
+            String[] entries = jsonString.split("\\},\\{");
+
+            for (String entry : entries) {
+                // Create a Mapping object and put it into the map
+                Mapping mapping = new Mapping();
+
+                // Split the entry into key-value pairs
+                String[] keyValuePairs = entry.split(",");
+
+                for (String pair : keyValuePairs) {
+                    // Split each key-value pair by ":"
+                    String[] keyValue = pair.split(":");
+
+                    if (keyValue.length == 2) { // Check if the pair has both key and value
+                        String key = keyValue[0].replaceAll("[{}\"]", "").trim();
+                        String value = keyValue[1].replaceAll("[{}\"]", "").trim();
+
+                        // Set the corresponding field in the Mapping object
+                        switch (key) {
+                            case "examine":
+                                mapping.setExamine(value);
+                                break;
+                            case "id":
+                                mapping.setId(Integer.parseInt(value));
+                                break;
+                            case "members":
+                                mapping.setMembers(Boolean.parseBoolean(value));
+                                break;
+                            case "lowalch":
+                                mapping.setLowalch(Integer.parseInt(value));
+                                break;
+                            case "limit":
+                                mapping.setLimit(Integer.parseInt(value));
+                                break;
+                            case "value":
+                                mapping.setValue(Integer.parseInt(value));
+                                break;
+                            case "highalch":
+                                mapping.setHighalch(Integer.parseInt(value));
+                                break;
+                            case "icon":
+                                mapping.setIcon(value);
+                                break;
+                            case "name":
+                                mapping.setName(value);
+                                break;
+                        }
+                    }
+                }
+
+                mappingMap.put(mapping.getId(), mapping);
+            }
+        } catch (Exception e) {
+            Logger.log(e);
+        }
+
+        return mappingMap;
+    }
+
 
     private static String GetJSON(String url) {
         try {
@@ -68,7 +166,7 @@ public class API {
                 }
                 in.close();
 
-                // Parse the JSON response as a string
+                // Parse the JSON response manually as a string
                 String jsonString = response.toString();
                 return jsonString;
             } else {
@@ -219,12 +317,12 @@ public class API {
 
     public int getIdFromString(String input) {
         try {
-            API.Mapping mapping = Main.api.mappingMap.get(Integer.parseInt(input));
+            Mapping mapping = Main.api.mappingMap.get(Integer.parseInt(input));
             if (mapping != null) {
                 return mapping.getId();
             }
         } catch (NumberFormatException e) {
-            for (API.Mapping mapping : Main.api.mappingMap.values()) {
+            for (Mapping mapping : Main.api.mappingMap.values()) {
                 if (mapping.getName().equalsIgnoreCase(input)) {
                     return mapping.getId();
                 }
@@ -233,3 +331,4 @@ public class API {
         return -1;
     }
 }
+

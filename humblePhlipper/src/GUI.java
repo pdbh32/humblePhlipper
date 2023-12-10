@@ -1,4 +1,5 @@
 import org.dreambot.api.Client;
+import org.dreambot.api.utilities.Logger;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -124,9 +125,10 @@ public class GUI extends JFrame {
 
             for (int row = 0; row < tableModel.getRowCount(); row++) {
                 String id = tableModel.getValueAt(row, 1).toString();
-                String targetVol = tableModel.getValueAt(row, 4).toString();
+                String targetVol = tableModel.getValueAt(row, 5).toString();
                 paramsList.add("{" + id + ":" + targetVol + "}");
             }
+
             String[] params = paramsList.toArray(new String[0]);
 
             Main.config.setParams(params);
