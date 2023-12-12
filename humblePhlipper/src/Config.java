@@ -1,16 +1,20 @@
-import java.util.*;
+//Config.java
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class Config {
 
     public float timeout;
     public boolean sysExit;
     public float maxBidVol;
-    public List<Item> itemList;
+    Map<Integer, Item> itemMap;
 
     public Config() {
         defaultTimeout();
         defaultSysExit();
         defaultMaxBidVol();
-        defaultItemList();
+        defaultItemMap();
     }
     private void defaultTimeout() {
         timeout = Float.POSITIVE_INFINITY;
@@ -21,15 +25,15 @@ public class Config {
     }
 
     private void defaultMaxBidVol() { maxBidVol = 100; }
-    private void defaultItemList() {
-        itemList = new ArrayList<>();
-        itemList.add(new Item("Logs",1511,15000));
-        itemList.add(new Item("Death rune",560,25000));
+    private void defaultItemMap() {
+        itemMap = new HashMap<>();
+        itemMap.put(1511, new Item("Logs",1511,15000));
+        itemMap.put(560, new Item("Death rune",560,25000));
     }
     public void setParams(String... params) {
         defaultTimeout();
         defaultSysExit();
-        itemList = new ArrayList<>();
+        itemMap = new HashMap<>();
 
         for (String param : params) {
             if (param.startsWith("[") && param.endsWith("]")) {
@@ -73,9 +77,8 @@ public class Config {
                         int ID = Main.api.getIdFromString(itemVol[0].trim());
                         if (ID != -1) {
                             int targetVol = (Integer.parseInt(itemVol[1].trim()) <= 0) ? Main.api.mappingMap.get(ID).getLimit() : Integer.parseInt(itemVol[1].trim());
-                            API.Mapping mapping = Main.api.mappingMap.get(ID);
-                            if (itemList.stream().allMatch(item -> item.id != ID)) {
-                                itemList.add(new Item(Main.api.mappingMap.get(ID).getName(), ID, targetVol));
+                            if (itemMap.values().stream().allMatch(item -> item.id != ID)) {
+                                itemMap.put(ID, new Item(Main.api.mappingMap.get(ID).getName(), ID, targetVol));
                             }
                         }
                     } catch (NumberFormatException e) {
@@ -84,8 +87,8 @@ public class Config {
                 }
             }
         }
-        if (itemList.isEmpty()) {
-            defaultItemList();
+        if (itemMap.isEmpty()) {
+            defaultItemMap();
         }
     }
 }
