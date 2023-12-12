@@ -1,5 +1,6 @@
+//GUI.java
+
 import org.dreambot.api.Client;
-import org.dreambot.api.utilities.Logger;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
