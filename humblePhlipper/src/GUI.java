@@ -21,6 +21,7 @@ public class GUI extends JFrame {
     private JTextField timeoutField;
     private JCheckBox sysExitCheckBox;
     private JTextField maxBidVolField;
+    private JTextField profitCutoffField;
     private DefaultTableModel tableModel;
 
     public GUI() {
@@ -105,6 +106,13 @@ public class GUI extends JFrame {
 
         maxBidVolField = new JTextField();
         parameterPanel.add(maxBidVolField);
+
+        JLabel profitCutoffLabel = new JLabel();
+        profitCutoffLabel.setText("Profit Cutoff");
+        parameterPanel.add(profitCutoffLabel);
+
+        profitCutoffField = new JTextField();
+        parameterPanel.add(profitCutoffField);
 
         JLabel sysExitLabel = new JLabel();
         sysExitLabel.setText("Close Client on Stop");
@@ -206,6 +214,7 @@ public class GUI extends JFrame {
         timeoutField.setText(Float.toString(Main.getTimeout()));
         sysExitCheckBox.setSelected(Main.getSysExit());
         maxBidVolField.setText(Float.toString(Main.getMaxBidVol()));
+        profitCutoffField.setText(Integer.toString(Main.getProfitCutoff()));
         tableModel.setRowCount(0);
         for (Integer id : Main.getItemMap().keySet()) {
             addItemRow(tableModel, String.valueOf(id));
@@ -218,6 +227,7 @@ public class GUI extends JFrame {
         paramsList.add("[sysExit:" +  sysExitCheckBox.isSelected() + "]");
         paramsList.add("[timeout:" + timeoutField.getText() + "]");
         paramsList.add("[maxBidVol:" + maxBidVolField.getText() + "]");
+        paramsList.add("[profitCutoff:" + profitCutoffField.getText() + "]");
 
         for (int row = 0; row < tableModel.getRowCount(); row++) {
             String id = tableModel.getValueAt(row, 1).toString();

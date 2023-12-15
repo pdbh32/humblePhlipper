@@ -20,7 +20,6 @@ public class Paint {
 
         int tableX = 15;
         int tableY = 20;
-        double profit = 0;
 
         // Draw table headers
         g.setColor(Color.white);
@@ -47,25 +46,24 @@ public class Paint {
             g.drawString(String.valueOf(Main.api.latestMap.get(item.id).getLow()), tableX + 150 + 4*90, tableY);
             g.drawString(String.valueOf(Main.api.latestMap.get(item.id).getHigh()), tableX + 150 + 5*90, tableY);
             g.drawString(String.valueOf(Math.ceil(0.99*Main.api.latestMap.get(item.id).getHigh())-Main.api.latestMap.get(item.id).getLow()), tableX + 150 + 6*90, tableY);
-            // Update total profit
-            profit += item.profit;
+
             tableY += 20;
         }
 
         g.setColor(recBg);
         g.fillRect(7,344,506,132);
         g.setColor(Color.WHITE);
-        g.drawString("Profit: " + Math.round(profit), 13, 360);
+        g.drawString("Profit: " + Math.round(Main.getProfit()), 13, 360);
         g.drawString("Runtime: " + Main.timer.formatTime(), 13, 380);
-        g.drawString("Timeout (Minutes): " + Main.getTimeout(),13,400);
-        g.drawString("System Exit: " + Main.getSysExit(),13,420);
-        g.drawString("Max Bid Order (% of Target): " + Main.getMaxBidVol(), 13, 440);
-        g.drawString("Bidding: " + Main.bidding, 13,460);
-        g.drawString("* Trades CSV output to console log" , 260, 360);
-        g.drawString("* Bid prices are negative" , 260, 380);
-        g.drawString("* Ask prices are post tax" , 260, 400);
-        g.drawString("* Press pause + resume to toggle bidding" , 260, 420);
-
+        g.drawString("* Trades CSV output to console log" , 13, 400);
+        g.drawString("* Bid prices are negative" , 13, 420);
+        g.drawString("* Ask prices are post tax" , 13, 440);
+        g.drawString("* Press pause + resume to toggle bidding" , 13, 460);
+        g.drawString("Timeout (Minutes): " + Main.getTimeout(),260,360);
+        g.drawString("System Exit: " + Main.getSysExit(),260,380);
+        g.drawString("Max Bid Order (% of Target): " + Main.getMaxBidVol(), 260, 400);
+        g.drawString("Profit Cutoff: " + Main.getProfitCutoff(), 260,420);
+        g.drawString("Bidding: " + Main.bidding, 260,440);
 
         // Finally, a cumulative profit graph
         g.setColor(recBg);
@@ -76,8 +74,8 @@ public class Paint {
         g.drawLine(567, 445, 567,365); // y-axis
 
         if (!Main.getTimeCumProfitMap().isEmpty()) {
-            Double minX = Main.getTimeCumProfitMap().firstKey();
-            Double maxX = Main.getTimeCumProfitMap().lastKey();
+            Long minX = Main.getTimeCumProfitMap().firstKey();
+            Long maxX = Main.getTimeCumProfitMap().lastKey();
             Double minY = Main.getTimeCumProfitMap().values().stream().min(Double::compareTo).orElse(0.0);
             Double maxY = Main.getTimeCumProfitMap().values().stream().max(Double::compareTo).orElse(0.0);
 
@@ -85,15 +83,15 @@ public class Paint {
                 final double y0 = (0 - minY) * 80 / (maxY - minY);
                 g.drawLine(567, (int) (445 - y0), 567 + 150, (int) (445 - y0)); // y = 0 line
 
-                g.drawString(Math.round(maxX) + "m", 697, 460);
+                g.drawString(Math.round((float) maxX /60000) + "m", 697, 460);
                 g.drawString(String.valueOf(Math.round(minY)), 547 + 10, 460);
                 g.drawString(String.valueOf(Math.round(maxY)), 547 + 10, 360);
 
                 // Map data values to the coordinate system and plot graph,
                 int prevX = 567;
                 int prevY = (int) (445 - y0);
-                for (Map.Entry<Double, Double> entry : Main.getTimeCumProfitMap().entrySet()) {
-                    Double xValue = entry.getKey();
+                for (Map.Entry<Long, Double> entry : Main.getTimeCumProfitMap().entrySet()) {
+                    Long xValue = entry.getKey();
                     Double yValue = entry.getValue();
 
                     int x = (int) (567 + ((xValue - minX) * 150 / (maxX - minX)));
