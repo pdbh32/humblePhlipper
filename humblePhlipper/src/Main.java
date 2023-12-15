@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "Tester", author = "apnasus", version = 1.10)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 1.20)
 public class Main extends AbstractScript {
     private static final Paint paint = new Paint();
     public static Config config = new Config();
