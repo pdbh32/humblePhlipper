@@ -18,46 +18,87 @@ import org.dreambot.api.utilities.Timer;
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
-
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 1.10)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 1.20)
 public class Main extends AbstractScript {
-
-    // Initialise
+    private static final Paint paint = new Paint();
     public static Config config = new Config();
     public static API api = new API();
     public static Timer timer;
-    public static GUI gui;
+    private static GUI gui;
 
-    private static final Paint paint = new Paint();
+    // Declare parameters and itemMap (which is initialised using the idTargetMap parameter)
+
+    private static float timeout;
+    private static boolean sysExit;
+    private static float maxBidVol;
+    private static Map<Integer, Item> itemMap;
+
+    // Setters to set the above from Config.java
+
+    public static void setTimeout(float timeout) {
+        Main.timeout = timeout;
+    }
+
+    public static void setSysExit(boolean sysExit) {
+        Main.sysExit = sysExit;
+    }
+
+    public static void setMaxBidVol(float maxBidVol) {
+        Main.maxBidVol = maxBidVol;
+    }
+
+    public static void setItemMap(Map<Integer, Item> itemMap) {
+        Main.itemMap = new HashMap<>(itemMap);
+    }
+
+    public static float getTimeout() {
+        return timeout;
+    }
+
+    public static boolean getSysExit() {
+        return sysExit;
+    }
+
+    public static float getMaxBidVol() {
+        return maxBidVol;
+    }
+
+    public static Map<Integer, Item> getItemMap() {
+        return itemMap;
+    }
 
     // Constants
     public static final int SLEEP = 1000;
 
     // Variables
-    public static Boolean openTheGUI = true; // false if quickstart
-    public static Boolean isRunning = false; // true if config set up
-    public static Boolean bidding = true; // if false, close bids and sell remaining inventory
+    private static boolean openTheGUI = true; // false if quickstart
+    public static boolean isRunning = false; // true if config set up
+    public static boolean bidding = true; // if false, close bids and sell remaining inventory
 
+    // Time series for drawing graph in Paint.java
+    private static TreeMap<Double, Double> timeCumProfitMap = new TreeMap<>(); // cumulative profit time series
+    public static TreeMap<Double, Double> getTimeCumProfitMap() { // displayed in Paint
+        return timeCumProfitMap;
+    }
     @Override
     public void onStart(java.lang.String... params) {
         Main.config.setParams(params);
+        Main.config.setConfig();
         openTheGUI = false;
         isRunning = true;
+        Main.timer = new Timer();
         onStart();
     }
 
     @Override
     public void onStart() {
-        timer = new Timer();
+        timeCumProfitMap.put(0.0,0.0);
         if (openTheGUI) {
             SwingUtilities.invokeLater(() -> {
                 gui = new GUI();
-                openTheGUI = false;
             });
         }
     }
@@ -99,13 +140,16 @@ public class Main extends AbstractScript {
         GrandExchange.open();
 
         // Recreate itemMap with shuffled values for the sake of randomising order of asks/bids
-        List<Item> itemList = new ArrayList<>(config.itemMap.values());
+        List<Item> itemList = new ArrayList<>(itemMap.values());
         Collections.shuffle(itemList);
-        config.itemMap.clear();
-        itemList.forEach(item -> config.itemMap.put(item.id, item));
+        itemMap.clear();
+        itemList.forEach(item -> itemMap.put(item.id, item));
 
         // Loop through slots and make cancellations
         for (GrandExchangeItem geItem : GrandExchange.getItems()) {
+            if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
+                continue;
+            }
             if ((geItem.isBuyOffer() && (geItem.getPrice() != api.latestMap.get(geItem.getID()).getLow() ||
                     0.99 * api.latestMap.get(geItem.getID()).getHigh() - api.latestMap.get(geItem.getID()).getLow() <= 0 ||
                     Widgets.get(465, 7 + geItem.getSlot(), 22).getWidth() > 0 ||
@@ -163,42 +207,48 @@ public class Main extends AbstractScript {
 
                 if (collectionSuccess && vol != 0) {
                     if (isBuy) {
-                        config.itemMap.get(geItem.getID()).bought += vol;
-                        config.itemMap.get(geItem.getID()).lastBuyPrice = -1 * price;
+                        itemMap.get(geItem.getID()).bought += vol;
+                        itemMap.get(geItem.getID()).lastBuyPrice = -1 * price;
                     }
                     else {
-                        config.itemMap.get(geItem.getID()).sold += vol;
-                        config.itemMap.get(geItem.getID()).profit += (price - config.itemMap.get(geItem.getID()).lastBuyPrice) * vol;
+                        itemMap.get(geItem.getID()).sold += vol;
+                        itemMap.get(geItem.getID()).profit += (price - itemMap.get(geItem.getID()).lastBuyPrice) * vol;
+                        timeCumProfitMap.put((double) (timer.elapsed()/60000), (timeCumProfitMap.lastEntry().getValue() + (price - itemMap.get(geItem.getID()).lastBuyPrice) * vol));
                     }
-                    config.itemMap.get(geItem.getID()).tradeHistory += "\n"+ LocalDateTime.now()+","+geItem.getName()+","+vol+","+price;
+                    itemMap.get(geItem.getID()).tradeHistory += "\n"+ LocalDateTime.now()+","+geItem.getName()+","+vol+","+price;
                     Logger.log("<trade>\n"+ LocalDateTime.now()+","+geItem.getName()+","+vol+","+price+"</trade>");
                 }
             }
         }
 
         // Loop through items and make asks
-        for (Item item : config.itemMap.values()) {
+        for (Item item : itemMap.values()) {
+            if (GrandExchange.getFirstOpenSlot() == -1) {
+                continue;
+            }
             if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getName().equals(item.name))) {
                 continue;
             }
             if (item.sold >= item.bought || Inventory.count(item.name) == 0) {
                 continue;
             }
-
             if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.name, (item.bought - item.sold), api.latestMap.get(item.id).getHigh()), SLEEP)) {
                 Sleep.sleep(SLEEP);
             }
         }
 
         // Loop through items and make bids
-        for (Item item : config.itemMap.values()) {
+        for (Item item : itemMap.values()) {
+            if (GrandExchange.getFirstOpenSlot() == -1) {
+                continue;
+            }
             if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getName().equals(item.name))) {
                 continue;
             }
             if (item.bought >= item.targetVol || !Main.bidding || Inventory.count("Coins") < api.latestMap.get(item.id).getLow() || 0.99 * api.latestMap.get(item.id).getHigh() - api.latestMap.get(item.id).getLow() <= 0) {
                 continue;
             }
-            if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.name, (int) Math.min((int) Math.min(Math.floor((double) Inventory.count("Coins") /api.latestMap.get(item.id).getLow()), (item.targetVol - item.bought)), Math.floor((double) (Main.config.maxBidVol * item.targetVol) /100)), api.latestMap.get(item.id).getLow()), SLEEP)) {
+            if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.name, (int) Math.min((int) Math.min(Math.floor((double) Inventory.count("Coins") /api.latestMap.get(item.id).getLow()), (item.targetVol - item.bought)), Math.floor((double) (maxBidVol * item.targetVol) /100)), api.latestMap.get(item.id).getLow()), SLEEP)) {
                 Sleep.sleep(SLEEP);
             }
         }
@@ -211,7 +261,7 @@ public class Main extends AbstractScript {
         }
 
         // Stop bidding timeout condition
-        if (timer.elapsed()/60000 >= config.timeout) {
+        if (timer.elapsed()/60000 >= timeout) {
             if (bidding) {
                 Logger.log("Timeout reached, cancelling bids...");
             }
@@ -219,7 +269,7 @@ public class Main extends AbstractScript {
         }
 
         // Exit logic
-        if (config.itemMap.values().stream().allMatch(item -> item.sold >= item.targetVol || (!bidding && item.sold >= item.bought && Arrays.stream(GrandExchange.getItems()).noneMatch(geItem -> geItem.getName().equals(item.name))))) {
+        if (itemMap.values().stream().allMatch(item -> (item.sold >= item.targetVol || (!bidding && item.sold >= item.bought)) && Arrays.stream(GrandExchange.getItems()).noneMatch(geItem -> geItem.getName().equals(item.name)))) {
             return -1;
         }
 
@@ -229,7 +279,7 @@ public class Main extends AbstractScript {
     @Override
     public void onExit() {
         double profit = 0;
-        for (Item item : config.itemMap.values()) {
+        for (Item item : itemMap.values()) {
             profit += item.profit;
         }
 
@@ -238,13 +288,13 @@ public class Main extends AbstractScript {
         Logger.log("Runtime (minutes): " + (timer.elapsed()/60000));
         Logger.log("--------------------------------------------------------------------------------------");
         String tradeHistory = "\ntime,name,vol,price";
-        for (Item item : config.itemMap.values()) {
+        for (Item item : itemMap.values()) {
             Logger.log("\"" + item.name + "\": {\"bought\": " + item.bought + ", \"sold\": " + item.sold + ", \"target\": " + item.targetVol + "},");
             tradeHistory += item.tradeHistory;
         }
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("<trades>" + tradeHistory + "\n</trades>");
-        if (config.sysExit) {
+        if (sysExit) {
             System.exit(0);
         }
     }
