@@ -1,6 +1,8 @@
 //GUI.java
 
 import org.dreambot.api.Client;
+import org.dreambot.api.settings.ScriptSettings;
+import org.dreambot.api.utilities.Timer;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -14,9 +16,16 @@ public class GUI extends JFrame {
     // Selection items
     final List<String> availableItemsList = new ArrayList<>();
     final List<Integer> restrictedIdList = new ArrayList<>();
+
+    // Objects to populate with Config data
+    private JTextField timeoutField;
+    private JCheckBox sysExitCheckBox;
+    private JTextField maxBidVolField;
+    private DefaultTableModel tableModel;
+
     public GUI() {
         Collections.addAll(availableItemsList, "Death rune", "Cosmic rune", "Nature rune", "Logs", "Swordfish",
-                "Raw swordfish", "Adamant arrow", "Steel bar", "Gold bar");
+                "Raw swordfish", "Adamant arrow", "Steel bar", "Gold bar", "Law rune", "Gold necklace", "Maple longbow");
 
         Collections.addAll(restrictedIdList, 1521, 1519, 1515, 317, 315, 321, 319, 377, 379, 434, 1761,
                 436, 438, 440, 442, 444, 453, 447, 449, 451, 1739, 229, 227, 1937, 313, 314, 221, 245, 556, 555, 557, 554, 558, 562);
@@ -26,33 +35,56 @@ public class GUI extends JFrame {
         frame.setTitle("humblePhlipper");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLocationRelativeTo(Client.getCanvas());
-        frame.setPreferredSize(new Dimension(400, 400));
+        frame.setPreferredSize(new Dimension(400, 600));
         frame.getContentPane().setLayout(new BorderLayout());
 
         // Parameter panel
         JPanel parameterPanel = new JPanel();
         parameterPanel.setLayout(new GridLayout(0, 2));
 
-        JLabel timeoutLabel = new JLabel();
-        timeoutLabel.setText("Timeout (Minutes)");
-        parameterPanel.add(timeoutLabel);
+        // Load button
+        JButton loadCustom1 = new JButton("Load Custom 1");
+        loadCustom1.addActionListener(l -> {
+            try {
+                Main.config = ScriptSettings.load(Config.class, "humblePhlipper", "Custom1Config.json");
+                Main.config.setConfig();
+                populateFieldsWithParams();
+            } catch (Exception e) {
+                // Config file doesn't exist yet
+            }
+        });
+        parameterPanel.add(loadCustom1);
 
-        JTextField timeoutField = new JTextField();
-        parameterPanel.add(timeoutField);
+        // Save button
+        JButton saveCustom1 = new JButton("Save to Custom 1");
+        saveCustom1.addActionListener(l -> {
+            String[] params = getParamsFromFields();
+            Main.config.setParams(params);
+            ScriptSettings.save(Main.config, "humblePhlipper", "Custom1Config.json");
+        });
+        parameterPanel.add(saveCustom1);
 
-        JLabel maxBidVolLabel = new JLabel();
-        maxBidVolLabel.setText("Max Bid Order (% of Target)");
-        parameterPanel.add(maxBidVolLabel);
+        // Load button
+        JButton loadCustom2 = new JButton("Load Custom 2");
+        loadCustom2.addActionListener(l -> {
+            try {
+                Main.config = ScriptSettings.load(Config.class, "humblePhlipper", "Custom2Config.json");
+                Main.config.setConfig();
+                populateFieldsWithParams();
+            } catch (Exception e) {
+                // Config file doesn't exist yet
+            }
+        });
+        parameterPanel.add(loadCustom2);
 
-        JTextField maxBidVolField = new JTextField();
-        parameterPanel.add(maxBidVolField);
-
-        JLabel sysExitLabel = new JLabel();
-        sysExitLabel.setText("Close Client on Stop");
-        parameterPanel.add(sysExitLabel);
-
-        JCheckBox sysExitCheckBox = new JCheckBox();
-        parameterPanel.add(sysExitCheckBox);
+        // Save button
+        JButton saveCustom2Button = new JButton("Save to Custom 2");
+        saveCustom2Button.addActionListener(l -> {
+            String[] params = getParamsFromFields();
+            Main.config.setParams(params);
+            ScriptSettings.save(Main.config, "humblePhlipper", "Custom2Config.json");
+        });
+        parameterPanel.add(saveCustom2Button);
 
         JLabel vSpace1 = new JLabel();
         parameterPanel.add(vSpace1);
@@ -60,13 +92,40 @@ public class GUI extends JFrame {
         JLabel vSpace2 = new JLabel();
         parameterPanel.add(vSpace2);
 
+        JLabel timeoutLabel = new JLabel();
+        timeoutLabel.setText("Timeout (Minutes)");
+        parameterPanel.add(timeoutLabel);
+
+        timeoutField = new JTextField();
+        parameterPanel.add(timeoutField);
+
+        JLabel maxBidVolLabel = new JLabel();
+        maxBidVolLabel.setText("Max Bid Order (% of Target)");
+        parameterPanel.add(maxBidVolLabel);
+
+        maxBidVolField = new JTextField();
+        parameterPanel.add(maxBidVolField);
+
+        JLabel sysExitLabel = new JLabel();
+        sysExitLabel.setText("Close Client on Stop");
+        parameterPanel.add(sysExitLabel);
+
+        sysExitCheckBox = new JCheckBox();
+        parameterPanel.add(sysExitCheckBox);
+
+        JLabel vSpace3 = new JLabel();
+        parameterPanel.add(vSpace3);
+
+        JLabel vSpace4 = new JLabel();
+        parameterPanel.add(vSpace4);
+
         // Table panel
         JPanel tablePanel = new JPanel();
         tablePanel.setLayout(new BorderLayout());
 
         // Table model, table, and scroll pane
         String[] columnNames = {"Name", "ID", "Members", "Restricted", "Profit", "Target Vol"};
-        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
+        tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 5; // Only allow editing for target vol
@@ -85,7 +144,7 @@ public class GUI extends JFrame {
 
         // Item add-to-table-button panel
         JPanel itemAddPanel = new JPanel();
-        itemAddPanel.setLayout(new GridLayout(4, 3));
+        itemAddPanel.setLayout(new GridLayout(5, 3));
 
         for (String name : availableItemsList) {
             JButton button = new JButton();
@@ -101,14 +160,17 @@ public class GUI extends JFrame {
 
         JButton searchButton = new JButton();
         searchButton.setText("Add by ID or Name");
-        searchButton.addActionListener(l -> addItemRow(tableModel, searchField.getText()));
+        searchButton.addActionListener(l -> {
+            addItemRow(tableModel, searchField.getText());
+            searchField.setText("");
+        });
         parameterPanel.add(searchButton);
 
-        JLabel vSpace3 = new JLabel();
-        parameterPanel.add(vSpace3);
+        JLabel vSpace5 = new JLabel();
+        parameterPanel.add(vSpace5);
 
-        JLabel vSpace4 = new JLabel();
-        parameterPanel.add(vSpace4);
+        JLabel vSpace6 = new JLabel();
+        parameterPanel.add(vSpace6);
 
         // Start button panel
         JPanel buttonPanel = new JPanel();
@@ -118,25 +180,20 @@ public class GUI extends JFrame {
         startButton.setText("Start");
         startButton.addActionListener(l -> {
 
-            List<String> paramsList = new ArrayList<>();
-
-            paramsList.add("[sysExit:" +  sysExitCheckBox.isSelected() + "]");
-            paramsList.add("[timeout:" + timeoutField.getText() + "]");
-            paramsList.add("[maxBidVol:" + maxBidVolField.getText() + "]");
-
-            for (int row = 0; row < tableModel.getRowCount(); row++) {
-                String id = tableModel.getValueAt(row, 1).toString();
-                String targetVol = tableModel.getValueAt(row, 5).toString();
-                paramsList.add("{" + id + ":" + targetVol + "}");
-            }
-
-            String[] params = paramsList.toArray(new String[0]);
+            String[] params = getParamsFromFields();
 
             Main.config.setParams(params);
+            Main.config.setConfig();
             Main.isRunning = true;
+            Main.timer = new Timer();
+
             frame.dispose();
         });
         buttonPanel.add(startButton);
+
+        // Set default config and populate fields
+        Main.config.setConfig();
+        populateFieldsWithParams();
 
         frame.getContentPane().add(parameterPanel, BorderLayout.NORTH);
         frame.getContentPane().add(tablePanel, BorderLayout.CENTER);
@@ -145,18 +202,38 @@ public class GUI extends JFrame {
         frame.pack();
         frame.setVisible(true);
     }
+    private void populateFieldsWithParams() {
+        timeoutField.setText(Float.toString(Main.getTimeout()));
+        sysExitCheckBox.setSelected(Main.getSysExit());
+        maxBidVolField.setText(Float.toString(Main.getMaxBidVol()));
+        tableModel.setRowCount(0);
+        for (Integer id : Main.getItemMap().keySet()) {
+            addItemRow(tableModel, String.valueOf(id));
+        }
+    }
 
-    // One of each item at most
+    private String[] getParamsFromFields() {
+        List<String> paramsList = new ArrayList<>();
+
+        paramsList.add("[sysExit:" +  sysExitCheckBox.isSelected() + "]");
+        paramsList.add("[timeout:" + timeoutField.getText() + "]");
+        paramsList.add("[maxBidVol:" + maxBidVolField.getText() + "]");
+
+        for (int row = 0; row < tableModel.getRowCount(); row++) {
+            String id = tableModel.getValueAt(row, 1).toString();
+            String targetVol = tableModel.getValueAt(row, 5).toString();
+            paramsList.add("{" + id + ":" + targetVol + "}");
+        }
+
+        String[] params = paramsList.toArray(new String[0]);
+        return params;
+    }
+
     private boolean containsName(DefaultTableModel model, String name) {
-        boolean match = false;
         for (int row = 0; row < model.getRowCount(); row++) {
             if (model.getValueAt(row, 0).toString().equalsIgnoreCase(name)) {
-                match = true;
-                break;
+                return true; // Match found, no need to continue checking
             }
-        }
-        if (match) {
-            return true;
         }
         return false; // No matching row found
     }

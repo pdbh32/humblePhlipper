@@ -73,11 +73,6 @@ public class API {
         Map<Integer, Mapping> mappingMap = new HashMap<>();
 
         try {
-            // Parse JSON manually for the mapping API
-            // Note: This is a simplified example; you might need to handle more cases in a real-world scenario
-            // For a more robust solution, consider using a JSON parsing library like GSON.
-            // For simplicity, this example assumes the JSON structure is as expected.
-
             // Convert the JSON array to an array of JSON objects
             jsonString = jsonString.substring(1, jsonString.length() - 1);
             String[] entries = jsonString.split("\\},\\{");
