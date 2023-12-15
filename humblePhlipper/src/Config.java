@@ -23,6 +23,7 @@ public class Config {
         float timeout = Float.POSITIVE_INFINITY;
         boolean sysExit = false;
         float maxBidVol = 100;
+        int profitCutoff = Integer.MAX_VALUE;
         Map<Integer, Integer> idTargetMap = new HashMap<>();
 
         if (this.params != null) {
@@ -55,6 +56,13 @@ public class Config {
                                     }
                                 } catch (NumberFormatException e) {
                                     // maxBidVol left as default
+                                }
+                                break;
+                            case "profitCutoff":
+                                try {
+                                    profitCutoff = Integer.parseInt(value);
+                                } catch (NumberFormatException e) {
+                                    // timeout left at default
                                 }
                                 break;
                         }
@@ -92,6 +100,7 @@ public class Config {
         Main.setTimeout(timeout);
         Main.setSysExit(sysExit);
         Main.setMaxBidVol(maxBidVol);
+        Main.setProfitCutoff(profitCutoff);
         Main.setItemMap(itemMap);
     }
 }

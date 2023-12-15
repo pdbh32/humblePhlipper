@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 1.20)
+@ScriptManifest(category = Category.MONEYMAKING, name = "Tester", author = "apnasus", version = 1.10)
 public class Main extends AbstractScript {
     private static final Paint paint = new Paint();
     public static Config config = new Config();
@@ -34,6 +34,7 @@ public class Main extends AbstractScript {
     private static float timeout;
     private static boolean sysExit;
     private static float maxBidVol;
+    private static int profitCutoff;
     private static Map<Integer, Item> itemMap;
 
     // Setters to set the above from Config.java
@@ -48,6 +49,10 @@ public class Main extends AbstractScript {
 
     public static void setMaxBidVol(float maxBidVol) {
         Main.maxBidVol = maxBidVol;
+    }
+
+    public static void setProfitCutoff(int profitCutoff) {
+        Main.profitCutoff = profitCutoff;
     }
 
     public static void setItemMap(Map<Integer, Item> itemMap) {
@@ -65,6 +70,9 @@ public class Main extends AbstractScript {
     public static float getMaxBidVol() {
         return maxBidVol;
     }
+    public static int getProfitCutoff() {
+        return profitCutoff;
+    }
 
     public static Map<Integer, Item> getItemMap() {
         return itemMap;
@@ -78,9 +86,13 @@ public class Main extends AbstractScript {
     public static boolean isRunning = false; // true if config set up
     public static boolean bidding = true; // if false, close bids and sell remaining inventory
 
+    private static double profit = 0;
+
+    public static double getProfit() { return profit; }
+
     // Time series for drawing graph in Paint.java
-    private static TreeMap<Double, Double> timeCumProfitMap = new TreeMap<>(); // cumulative profit time series
-    public static TreeMap<Double, Double> getTimeCumProfitMap() { // displayed in Paint
+    private static TreeMap<Long, Double> timeCumProfitMap = new TreeMap<>(); // cumulative profit time series
+    public static TreeMap<Long, Double> getTimeCumProfitMap() { // displayed in Paint
         return timeCumProfitMap;
     }
     @Override
@@ -95,7 +107,7 @@ public class Main extends AbstractScript {
 
     @Override
     public void onStart() {
-        timeCumProfitMap.put(0.0,0.0);
+        timeCumProfitMap.put(0L,0.0);
         if (openTheGUI) {
             SwingUtilities.invokeLater(() -> {
                 gui = new GUI();
@@ -213,7 +225,12 @@ public class Main extends AbstractScript {
                     else {
                         itemMap.get(geItem.getID()).sold += vol;
                         itemMap.get(geItem.getID()).profit += (price - itemMap.get(geItem.getID()).lastBuyPrice) * vol;
-                        timeCumProfitMap.put((double) (timer.elapsed()/60000), (timeCumProfitMap.lastEntry().getValue() + (price - itemMap.get(geItem.getID()).lastBuyPrice) * vol));
+                        profit = 0;
+                        for (Item item : itemMap.values()) {
+                            profit += item.profit;
+                        }
+                        timeCumProfitMap.put(timer.elapsed(), profit);
+                        //timeCumProfitMap.put(timer.elapsed(), (timeCumProfitMap.lastEntry().getValue() + (price - itemMap.get(geItem.getID()).lastBuyPrice) * vol));
                     }
                     itemMap.get(geItem.getID()).tradeHistory += "\n"+ LocalDateTime.now()+","+geItem.getName()+","+vol+","+price;
                     Logger.log("<trade>\n"+ LocalDateTime.now()+","+geItem.getName()+","+vol+","+price+"</trade>");
@@ -260,15 +277,14 @@ public class Main extends AbstractScript {
             }
         }
 
-        // Stop bidding timeout condition
-        if (timer.elapsed()/60000 >= timeout) {
+        // Timeout/profit cutoff stop bidding conditions
+        if (timer.elapsed()/60000 >= timeout || profit >= profitCutoff) {
             if (bidding) {
-                Logger.log("Timeout reached, cancelling bids...");
+                Logger.log("Timeout or profit cutoff reached, cancelling bids...");
             }
             bidding = false;
         }
 
-        // Exit logic
         if (itemMap.values().stream().allMatch(item -> (item.sold >= item.targetVol || (!bidding && item.sold >= item.bought)) && Arrays.stream(GrandExchange.getItems()).noneMatch(geItem -> geItem.getName().equals(item.name)))) {
             return -1;
         }
@@ -278,7 +294,7 @@ public class Main extends AbstractScript {
 
     @Override
     public void onExit() {
-        double profit = 0;
+        profit = 0;
         for (Item item : itemMap.values()) {
             profit += item.profit;
         }
