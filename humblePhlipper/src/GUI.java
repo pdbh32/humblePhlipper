@@ -36,7 +36,7 @@ public class GUI extends JFrame {
         frame.setTitle("humblePhlipper");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLocationRelativeTo(Client.getCanvas());
-        frame.setPreferredSize(new Dimension(400, 600));
+        frame.setPreferredSize(new Dimension(500, 600));
         frame.getContentPane().setLayout(new BorderLayout());
 
         // Parameter panel
@@ -132,11 +132,11 @@ public class GUI extends JFrame {
         tablePanel.setLayout(new BorderLayout());
 
         // Table model, table, and scroll pane
-        String[] columnNames = {"Name", "ID", "Members", "Restricted", "Profit", "Target Vol"};
+        String[] columnNames = {"Name", "ID", "Members", "Restricted", "Profit", "1hr Vol", "Target Vol"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 5; // Only allow editing for target vol
+                return column == 6; // Only allow editing for target vol
             }
         };
         addItemRow(tableModel,"Death rune");
@@ -259,6 +259,7 @@ public class GUI extends JFrame {
                         mapping.getMembers(),
                         restrictedIdList.contains(mapping.getId()),
                         Math.ceil(0.99 * Main.api.latestMap.get(mapping.getId()).getHigh() - Main.api.latestMap.get(mapping.getId()).getLow()),
+                        Main.api.oneHrMap.get(mapping.getId()).getHighPriceVolume() + Main.api.oneHrMap.get(mapping.getId()).getLowPriceVolume(),
                         mapping.getLimit()
                 });
             }
