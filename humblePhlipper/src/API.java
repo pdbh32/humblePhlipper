@@ -16,16 +16,24 @@ import java.util.Map;
 
 public class API {
     public Map<Integer, Latest.Item> latestMap;
+
+    public Map<Integer, OneHr.Item> oneHrMap;
     public Map<Integer, Mapping> mappingMap;
 
     public API() {
         updateLatest();
+        updateOneHr();
         updateMapping();
     }
 
     public void updateLatest() {
         String jsonString = GetJSON("https://prices.runescape.wiki/api/v1/osrs/latest");
         latestMap = parseLatestJson(jsonString);
+    }
+
+    public void updateOneHr() {
+        String jsonString = GetJSON("https://prices.runescape.wiki/api/v1/osrs/1h");
+        oneHrMap = parseOneHrJson(jsonString);
     }
 
     public void updateMapping() {
@@ -37,8 +45,6 @@ public class API {
         Map<Integer, Latest.Item> latestMap = new HashMap<>();
 
         try {
-            // Parse JSON manually for the latest API
-
             // Extract data field
             String dataField = jsonString.substring(jsonString.indexOf("\"data\":") + 7);
             dataField = dataField.substring(0, dataField.length() - 1);
@@ -67,6 +73,46 @@ public class API {
         }
 
         return latestMap;
+    }
+
+    private Map<Integer, OneHr.Item> parseOneHrJson(String jsonString) {
+        Map<Integer, OneHr.Item> oneHrMap = new HashMap<>();
+
+        try {
+            // Extract data field
+            String dataField = jsonString.substring(jsonString.indexOf("\"data\":") + 7);
+            dataField = dataField.substring(0, dataField.length() - 24);
+            Logger.log(dataField);
+            // Parse the "data" JSON object
+            JsonObject dataObject = new JsonParser().parse(dataField).getAsJsonObject();
+            for (Map.Entry<String, JsonElement> entry : dataObject.entrySet()) {
+                int itemId = Integer.parseInt(entry.getKey());
+
+                // Parse the nested JSON object for avgHighPrice, highPriceVolume, avgLowPrice, lowPriceVolume
+                JsonElement avgHighPriceElement = entry.getValue().getAsJsonObject().get("avgHighPrice");
+                JsonElement highPriceVolumeElement = entry.getValue().getAsJsonObject().get("highPriceVolume");
+                JsonElement avgLowPriceElement = entry.getValue().getAsJsonObject().get("avgLowPrice");
+                JsonElement lowPriceVolumeElement = entry.getValue().getAsJsonObject().get("lowPriceVolume");
+
+                // Check for null values before extracting
+                int avgHighPrice = (avgHighPriceElement instanceof JsonNull) ? 0 : avgHighPriceElement.getAsInt();
+                long highPriceVolume = (highPriceVolumeElement instanceof JsonNull) ? 0 : highPriceVolumeElement.getAsLong();
+                int avgLowPrice = (avgLowPriceElement instanceof JsonNull) ? 0 : avgLowPriceElement.getAsInt();
+                long lowPriceVolume = (lowPriceVolumeElement instanceof JsonNull) ? 0 : lowPriceVolumeElement.getAsLong();
+
+                // Create OneHr.Item and put it into the map
+                OneHr.Item item = new OneHr.Item();
+                item.setAvgHighPrice(avgHighPrice);
+                item.setHighPriceVolume(highPriceVolume);
+                item.setAvgLowPrice(avgLowPrice);
+                item.setLowPriceVolume(lowPriceVolume);
+                oneHrMap.put(itemId, item);
+            }
+        } catch (Exception e) {
+            Logger.log(e);
+        }
+
+        return oneHrMap;
     }
 
     private Map<Integer, Mapping> parseMappingJson(String jsonString) {
@@ -161,7 +207,7 @@ public class API {
                 }
                 in.close();
 
-                // Parse the JSON response manually as a string
+                // Parse the JSON response as a string
                 String jsonString = response.toString();
                 return jsonString;
             } else {
@@ -221,6 +267,36 @@ public class API {
             public void setLowTime(long lowTime) {
                 this.lowTime = lowTime;
             }
+        }
+    }
+
+    public static class OneHr {
+        private Map<String, Item> data;
+        private long timestamp;
+
+        public Map<String, Item> getData() { return data; }
+        public void setData(Map<String, Item> data) { this.data = data; }
+
+        public long getTimestamp() { return timestamp; }
+        public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
+        public static class Item extends OneHr {
+            private int avgHighPrice;
+            private long highPriceVolume;
+            private int avgLowPrice;
+            private long lowPriceVolume;
+
+            public int getAvgHighPrice() { return avgHighPrice; }
+            public void setAvgHighPrice(int avgHighPrice) { this.avgHighPrice = avgHighPrice; }
+
+            public long getHighPriceVolume() { return highPriceVolume; }
+            public void setHighPriceVolume(long highPriceVolume) { this.highPriceVolume = highPriceVolume; }
+
+            public int getAvgLowPrice() { return avgLowPrice; }
+            public void setAvgLowPrice(int avgLowPrice) { this.avgLowPrice = avgLowPrice; }
+
+            public long getLowPriceVolume() { return lowPriceVolume; }
+            public void setLowPriceVolume(long lowPriceVolume) { this.lowPriceVolume = lowPriceVolume; }
         }
     }
 
