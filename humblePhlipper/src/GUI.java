@@ -231,7 +231,7 @@ public class GUI extends JFrame {
 
         for (int row = 0; row < tableModel.getRowCount(); row++) {
             String id = tableModel.getValueAt(row, 1).toString();
-            String targetVol = tableModel.getValueAt(row, 5).toString();
+            String targetVol = tableModel.getValueAt(row, 6).toString();
             paramsList.add("{" + id + ":" + targetVol + "}");
         }
 
