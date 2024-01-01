@@ -170,9 +170,8 @@ public class Trading {
             item.setBought(item.getBought() + vol);
             item.setLastBuyPrice(-1 * price);
 
-            if (Duration.between(rm.fourHourLimits.get(item.getId()).getRefreshTime(), LocalDateTime.now()).toMinutes() > 240) {
+            if (Duration.between(rm.fourHourLimits.get(item.getId()).getRefreshTime(), LocalDateTime.now()).toMinutes() > 240 || rm.fourHourLimits.get(item.getId()).getUsedLimit() == 0) {
                 rm.fourHourLimits.get(item.getId()).setRefreshTime(LocalDateTime.now());
-                rm.fourHourLimits.get(item.getId()).setUsedLimit(0);
             }
             rm.fourHourLimits.get(item.getId()).incrementUsedLimit(vol);
             rm.saveFourHourLimits();
