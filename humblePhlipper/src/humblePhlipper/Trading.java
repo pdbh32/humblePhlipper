@@ -204,17 +204,13 @@ public class Trading {
 
         if (GrandExchange.getFirstOpenSlot() == -1) {
             return false;
-            //continue;
         }
         if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getName().equals(item.getMapping().getName()))) {
             return false;
-            //continue;
         }
         if (item.getSold() >= item.getBought() || Inventory.count(item.getMapping().getName()) == 0) {
             return false;
-            //continue;
         }
-        //Sleep.sleep(SLEEP);
         return Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getName(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP);
     }
 

@@ -47,7 +47,11 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             item.updateOneHour();
         }
     }
-
+    public void setAllPricing() {
+        for (Items.Item item : this.values()) {
+            item.setPricing();
+        }
+    }
     public void updateAllPricing() {
         for (Items.Item item : this.values()) {
             item.updatePricing();
@@ -80,7 +84,8 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             updateLatest();
             updateFiveMinute();
             updateOneHour();
-            updatePricing();
+
+            setPricing();
 
             updateFourHourLimit();
             updateTargetVol();
@@ -165,9 +170,8 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             }
             this.oneHour = rm.oneHourMap.get(id);
         }
-
-        private void updatePricing() {
-            switch(rm.config.getPricing()) {
+        private void setPricing() {
+            switch (rm.config.getPricing()) {
                 case "latest":
                     this.bid = this.latest.getLow();
                     this.ask = this.latest.getHigh();
@@ -181,20 +185,52 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
                     this.ask = this.oneHour.getAvgHighPrice();
                     break;
                 case "bestOfLatestFiveMinute":
-                    this.bid = Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice());
-                    this.ask = Math.max(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice());
+                    this.bid = (this.latest.getLow() != null && this.fiveMinute.getAvgLowPrice() != null) ? Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) : null;
+                    this.ask = (this.latest.getHigh() != null && this.fiveMinute.getAvgHighPrice() != null) ? Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) : null;
                     break;
                 case "latestPmOne":
-                    this.bid = this.latest.getLow() + 1;
-                    this.ask = this.latest.getHigh() - 1;
+                    this.bid = (this.latest.getLow() != null) ? this.latest.getLow() + 1 : null;
+                    this.ask = (this.latest.getHigh() != null) ? this.latest.getHigh() - 1 : null;
                     break;
                 case "fiveMinutePmOne":
-                    this.bid = this.fiveMinute.getAvgLowPrice() + 1;
-                    this.ask = this.fiveMinute.getAvgHighPrice() - 1;
+                    this.bid = (this.fiveMinute.getAvgLowPrice() != null) ? this.fiveMinute.getAvgLowPrice() + 1 : null;
+                    this.ask = (this.fiveMinute.getAvgHighPrice() != null) ? this.fiveMinute.getAvgHighPrice() - 1 : null;
                     break;
                 case "bestOfLatestPmOneFiveMinutePmOne":
-                    this.bid = Math.min(this.latest.getLow() + 1, this.fiveMinute.getAvgLowPrice() + 1);
-                    this.ask = Math.max(this.latest.getHigh() - 1, this.fiveMinute.getAvgHighPrice() - 1);
+                    this.bid = (this.latest.getLow() != null && this.fiveMinute.getAvgLowPrice() != null) ? Math.min(this.latest.getLow() + 1, this.fiveMinute.getAvgLowPrice() + 1) : null;
+                    this.ask = (this.latest.getHigh() != null && this.fiveMinute.getAvgHighPrice() != null) ? Math.max(this.latest.getHigh() - 1, this.fiveMinute.getAvgHighPrice() - 1) : null;
+                    break;
+            }
+        }
+        private void updatePricing() {
+            switch (rm.config.getPricing()) {
+                case "latest":
+                    this.bid = this.latest.getLow();
+                    this.ask = this.latest.getHigh();
+                    break;
+                case "fiveMinute":
+                    this.bid = (this.fiveMinute.getAvgLowPrice() != null) ? this.fiveMinute.getAvgLowPrice() : this.bid;
+                    this.ask = (this.fiveMinute.getAvgHighPrice() != null) ? this.fiveMinute.getAvgHighPrice() : this.ask;
+                    break;
+                case "oneHour":
+                    this.bid = (this.oneHour.getAvgLowPrice() != null) ? this.oneHour.getAvgLowPrice() : this.bid;
+                    this.ask = (this.oneHour.getAvgHighPrice() != null) ? this.oneHour.getAvgHighPrice() : this.ask;
+                    break;
+                case "bestOfLatestFiveMinute":
+                    try { this.bid = Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()); } catch(Exception ignored) {}
+                    try { this.ask = Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()); } catch(Exception ignored) {}
+                    break;
+                case "latestPmOne":
+                    try { this.bid = this.latest.getLow() + 1; } catch(Exception ignored) {}
+                    try { this.ask = this.latest.getHigh() - 1; } catch(Exception ignored) {}
+                    break;
+                case "fiveMinutePmOne":
+                    try { this.bid = this.fiveMinute.getAvgLowPrice() + 1; } catch(Exception ignored) {}
+                    try { this.ask = this.fiveMinute.getAvgHighPrice() - 1; } catch(Exception ignored) {}
+                    break;
+                case "bestOfLatestPmOneFiveMinutePmOne":
+                    try { this.bid = Math.min(this.latest.getLow() + 1, this.fiveMinute.getAvgLowPrice() + 1); } catch(Exception ignored) {}
+                    try { this.ask = Math.max(this.latest.getHigh() - 1, this.fiveMinute.getAvgHighPrice() - 1); } catch(Exception ignored) {}
                     break;
             }
         }

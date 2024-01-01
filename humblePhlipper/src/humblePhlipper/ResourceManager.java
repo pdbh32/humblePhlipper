@@ -76,7 +76,9 @@ public class ResourceManager {
         // (5) Initialise session
         this.session = new humblePhlipper.Resources.Session();
     }
-    public void disposeApiScheduler() { apiScheduler.shutdownNow(); }
+    public void disposeApiScheduler() {
+        apiScheduler.shutdownNow();
+    }
 
     private void updateMappingMap() {
         updateMap("mapping");
