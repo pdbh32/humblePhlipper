@@ -303,6 +303,7 @@ public class GUI extends JFrame {
             setConfigFromObjects();
             Main.rm.config.setSelections(new LinkedHashSet<Integer>());
             Main.trading.Select();
+            Main.rm.items.updateAllFourLimit();
             setSelectionsTable();
         });
     }
