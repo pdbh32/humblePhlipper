@@ -545,11 +545,20 @@
                         <children>
                           <component id="d1c2f" class="javax.swing.JButton" binding="resetButton" default-binding="true">
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                               <gridbag weightx="1.0" weighty="1.0"/>
                             </constraints>
                             <properties>
                               <text value="Reset"/>
+                            </properties>
+                          </component>
+                          <component id="ca588" class="javax.swing.JButton" binding="addButton">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                              <gridbag weightx="0.0" weighty="0.0"/>
+                            </constraints>
+                            <properties>
+                              <text value="Add by Name or ID"/>
                             </properties>
                           </component>
                         </children>
@@ -562,38 +571,12 @@
                         <properties/>
                         <border type="none"/>
                         <children>
-                          <grid id="b9ef4" layout-manager="GridBagLayout">
-                            <constraints border-constraint="East"/>
-                            <properties/>
-                            <border type="none"/>
-                            <children>
-                              <component id="200e8" class="javax.swing.JButton" binding="addButton" default-binding="true">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-                                  <gridbag weightx="0.0" weighty="0.0"/>
-                                </constraints>
-                                <properties>
-                                  <text value="Add by Id or Name"/>
-                                </properties>
-                              </component>
-                            </children>
-                          </grid>
-                          <grid id="c0cda" layout-manager="BorderLayout" hgap="0" vgap="0">
+                          <component id="67ed" class="javax.swing.JTextField" binding="addItemField">
                             <constraints border-constraint="Center"/>
-                            <properties/>
-                            <border type="none"/>
-                            <children>
-                              <component id="75fee" class="javax.swing.JTextField" binding="addItemField">
-                                <constraints border-constraint="Center"/>
-                                <properties>
-                                  <text value=""/>
-                                </properties>
-                                <clientProperties>
-                                  <caretWidth class="java.lang.Integer" value="100"/>
-                                </clientProperties>
-                              </component>
-                            </children>
-                          </grid>
+                            <properties>
+                              <text value=""/>
+                            </properties>
+                          </component>
                         </children>
                       </grid>
                     </children>

@@ -32,29 +32,22 @@ public class FiveMinute {
     public Integer getAvgHighPrice() {
         return avgHighPrice;
     }
-
     public void setAvgHighPrice(Integer avgHighPrice) {
         this.avgHighPrice = avgHighPrice;
     }
-
     public Integer getHighPriceVolume() {
         return highPriceVolume;
     }
-
     public void setHighPriceVolume(Integer highPriceVolume) {
         this.highPriceVolume = highPriceVolume;
     }
-
     public Integer getAvgLowPrice() {
         return avgLowPrice;
     }
-
     public void setAvgLowPrice(Integer avgLowPrice) {
         this.avgLowPrice = avgLowPrice;
     }
-
     public Integer getLowPriceVolume() { return lowPriceVolume; }
-
     public void setLowPriceVolume(Integer lowPriceVolume) {
         this.lowPriceVolume = lowPriceVolume;
     }

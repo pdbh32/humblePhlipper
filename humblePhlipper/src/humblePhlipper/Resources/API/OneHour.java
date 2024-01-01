@@ -31,11 +31,9 @@ public class OneHour {
     }
 
     public Integer getAvgHighPrice() { return avgHighPrice; }
-
     public void setAvgHighPrice(Integer avgHighPrice) {
         this.avgHighPrice = avgHighPrice;
     }
-
     public Integer getHighPriceVolume() {
         return highPriceVolume;
     }
@@ -43,7 +41,6 @@ public class OneHour {
     public Integer getAvgLowPrice() {
         return avgLowPrice;
     }
-
     public void setAvgLowPrice(Integer avgLowPrice) {
         this.avgLowPrice = avgLowPrice;
     }

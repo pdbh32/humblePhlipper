@@ -52,6 +52,10 @@ public class Main extends AbstractScript {
     @Override
     public void onSolverEnd(RandomSolver solver){
         rm.loadFourHourLimits();
+        if (Main.rm.config.getAuto()) {
+            Main.rm.config.setSelections(new LinkedHashSet<Integer>());
+            Main.trading.Select();
+        }
     }
     @Override
     public void onPaint(Graphics g) {
