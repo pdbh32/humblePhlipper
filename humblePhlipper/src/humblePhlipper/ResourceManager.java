@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.dreambot.api.Client;
 import org.dreambot.api.settings.ScriptSettings;
+import org.dreambot.api.utilities.AccountManager;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -131,7 +132,7 @@ public class ResourceManager {
     }
 
     public void loadFourHourLimits() {
-        String file = Client.getUsername() + ".json";
+        String file = AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "") + ".json";
         fourHourLimits = ScriptSettings.load(humblePhlipper.Resources.SavedData.FourHourLimits.class, "humblePhlipper", "FourHourLimits", file);
 
         // If not empty, update (refresh times) and return, else set default,
@@ -142,15 +143,13 @@ public class ResourceManager {
         for (Integer ID : mappingMap.keySet()) {
             fourHourLimits.put(ID, new humblePhlipper.Resources.SavedData.FourHourLimits.FourHourLimit());
         }
-
-        // If it was empty because this is a new user (not because user hasn't logged in yet), save new file,
-        if (Client.getUsername() != null && Client.getUsername() != "") {
-            saveFourHourLimits();
-        }
     }
-
+    //AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "")
     public void saveFourHourLimits() {
-        String file = Client.getUsername() + ".json";
+        if (AccountManager.getAccountHash() == "") {
+            return;
+        }
+        String file = AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "") + ".json";
         ScriptSettings.save(fourHourLimits, "humblePhlipper", "FourHourLimits", file);
     }
 

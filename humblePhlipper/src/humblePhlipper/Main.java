@@ -158,18 +158,18 @@ public class Main extends AbstractScript {
             }
         }
 
+        Map<String, Object> sessionHistory = new HashMap<>();
+        sessionHistory.put("historyList", historyList);
+        sessionHistory.put("config", rm.config);
+        String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
+        ScriptSettings.save(sessionHistory, "humblePhlipper", "History", fileName);
+
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("<trades>" + historyCSV + "\n</trades>");
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("Trading over with profit of: " + Math.round(rm.session.getProfit()));
         Logger.log("Runtime (minutes): " + (rm.session.getTimer().elapsed()/60000));
         Logger.log("--------------------------------------------------------------------------------------");
-
-        Map<String, Object> sessionHistory = new HashMap<>();
-        sessionHistory.put("historyList", historyList);
-        sessionHistory.put("config", rm.config);
-        String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
-        ScriptSettings.save(sessionHistory, "humblePhlipper", "History", fileName);
 
         if (rm.config.getSysExit()) {
             System.exit(0);
