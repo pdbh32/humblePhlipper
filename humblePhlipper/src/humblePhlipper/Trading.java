@@ -59,27 +59,27 @@ public class Trading {
         Order();
         rm.config.setSelections(rm.config.getSelections().stream().limit(rm.config.getNumToSelect()).collect(Collectors.toCollection(LinkedHashSet::new))); // Keep first N selections
     }
-    private int getProfitMargin(int ID) {
-        return (int) (0.99 * rm.items.get(ID).getAsk() - rm.items.get(ID).getBid());
+    private double getProfitMargin(int ID) {
+        return 0.99 * rm.items.get(ID).getAsk() - rm.items.get(ID).getBid();
     }
-    private int getVol(int ID) {
+    private double getVol(int ID) {
         return rm.items.get(ID).getOneHour().getLowPriceVolume() + rm.items.get(ID).getOneHour().getHighPriceVolume();
     }
-    private int getCapitalBinding(int ID) {
-        return ((long) -1 * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() > Integer.MIN_VALUE) ? -1 * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() : Integer.MIN_VALUE;
+    private long getCapitalBinding(int ID) {
+        return -1L * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol();
     }
     public void Order() {
         List<Integer> profitOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        profitOrderedSelection.sort(Comparator.comparingInt(this::getProfitMargin));
+        profitOrderedSelection.sort(Comparator.comparingDouble(this::getProfitMargin));
 
         List<Integer> volOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        volOrderedSelection.sort(Comparator.comparingInt(this::getVol));
+        volOrderedSelection.sort(Comparator.comparingDouble(this::getVol));
 
         List<Integer> capitalBindingOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        capitalBindingOrderedSelection.sort(Comparator.comparingInt(this::getCapitalBinding));
+        capitalBindingOrderedSelection.sort(Comparator.comparingLong(this::getCapitalBinding));
 
         List<Integer> orderedSelections = new ArrayList<>(rm.config.getSelections());
-        orderedSelections.sort(Comparator.comparingDouble(id -> {
+        orderedSelections.sort(Comparator.comparingInt(id -> {
             int profitIndex = profitOrderedSelection.indexOf(id);
             int volIndex = volOrderedSelection.indexOf(id);
             int capitalBindingIndex = capitalBindingOrderedSelection.indexOf(id);
