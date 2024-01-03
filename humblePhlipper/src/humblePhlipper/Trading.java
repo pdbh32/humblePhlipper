@@ -66,7 +66,7 @@ public class Trading {
         return rm.items.get(ID).getOneHour().getLowPriceVolume() + rm.items.get(ID).getOneHour().getHighPriceVolume();
     }
     private int getCapitalBinding(int ID) {
-        return ((long) -1 * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() > Integer.MIN_VALUE) ? rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() : Integer.MIN_VALUE;
+        return ((long) -1 * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() > Integer.MIN_VALUE) ? -1 * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() : Integer.MIN_VALUE;
     }
     public void Order() {
         List<Integer> profitOrderedSelection = new ArrayList<>(rm.config.getSelections());
