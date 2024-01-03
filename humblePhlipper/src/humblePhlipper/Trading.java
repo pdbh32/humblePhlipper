@@ -59,31 +59,34 @@ public class Trading {
         Order();
         rm.config.setSelections(rm.config.getSelections().stream().limit(rm.config.getNumToSelect()).collect(Collectors.toCollection(LinkedHashSet::new))); // Keep first N selections
     }
+    private int getProfitMargin(int ID) {
+        return (int) (0.99 * rm.items.get(ID).getAsk() - rm.items.get(ID).getBid());
+    }
+    private int getVol(int ID) {
+        return rm.items.get(ID).getOneHour().getLowPriceVolume() + rm.items.get(ID).getOneHour().getHighPriceVolume();
+    }
+    private int getCapitalBinding(int ID) {
+        return ((long) -1 * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() > Integer.MIN_VALUE) ? rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol() : Integer.MIN_VALUE;
+    }
     public void Order() {
-        Comparator<Integer> customComparator = new Comparator<Integer>() {
-            @Override
-            public int compare(Integer int1, Integer int2) {
-                // Get Items for comparison
-                humblePhlipper.Resources.Items.Item item1 = rm.items.get(int1);
-                humblePhlipper.Resources.Items.Item item2 = rm.items.get(int2);
+        List<Integer> profitOrderedSelection = new ArrayList<>(rm.config.getSelections());
+        profitOrderedSelection.sort(Comparator.comparingInt(this::getProfitMargin));
 
-                // Compare long values using Long.compare()
-                int comparisonProfit = Double.compare(0.99 * item1.getAsk() - item1.getBid(), (0.99 * item2.getAsk() - item2.getBid()));
-                int comparisonVol = Double.compare((double) item1.getOneHour().getLowPriceVolume() + item1.getOneHour().getLowPriceVolume(), (double) item2.getOneHour().getLowPriceVolume() + item2.getOneHour().getHighPriceVolume());
-                int comparisonCapitalBinding = Double.compare(-1.0 * item1.getBid() * item1.getTargetVol(), -1.0 * item2.getBid() * item2.getTargetVol());
+        List<Integer> volOrderedSelection = new ArrayList<>(rm.config.getSelections());
+        volOrderedSelection.sort(Comparator.comparingInt(this::getVol));
 
-                // Calculate weighted combination using config weights
-                double weightedCombination = (double) rm.config.getPriorityProfit() * comparisonProfit +
-                        rm.config.getPriorityVol() * comparisonVol +
-                        rm.config.getPriorityCapitalBinding() * comparisonCapitalBinding;
-
-                // Return the result as int
-                return Double.compare(0, weightedCombination);
-            }
-        };
+        List<Integer> capitalBindingOrderedSelection = new ArrayList<>(rm.config.getSelections());
+        capitalBindingOrderedSelection.sort(Comparator.comparingInt(this::getCapitalBinding));
 
         List<Integer> orderedSelections = new ArrayList<>(rm.config.getSelections());
-        orderedSelections.sort(customComparator);
+        orderedSelections.sort(Comparator.comparingDouble(id -> {
+            int profitIndex = profitOrderedSelection.indexOf(id);
+            int volIndex = volOrderedSelection.indexOf(id);
+            int capitalBindingIndex = capitalBindingOrderedSelection.indexOf(id);
+
+            // Calculate the average of the indices
+            return -1 * (rm.config.getPriorityProfit() * profitIndex + rm.config.getPriorityVol()* volIndex + rm.config.getPriorityCapitalBinding() * capitalBindingIndex);
+        }));
         rm.config.setSelections(new LinkedHashSet<>(orderedSelections));
     }
 
