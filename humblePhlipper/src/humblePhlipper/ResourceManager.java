@@ -3,10 +3,12 @@
 package humblePhlipper;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.dreambot.api.Client;
 import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.AccountManager;
+import org.dreambot.api.utilities.Logger;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -47,7 +49,7 @@ public class ResourceManager {
     public humblePhlipper.Resources.Session session;
 
     public ResourceManager() {
-        gson = new Gson();
+         this.gson = new GsonBuilder().setPrettyPrinting().create();
 
         // (1) Set API maps and thread,
         updateMappingMap(); // We only need to set this once
@@ -176,6 +178,10 @@ public class ResourceManager {
             return;
         }
         config = gson.fromJson(params[0], humblePhlipper.Resources.SavedData.Config.class);
+    }
+
+    public String getConfigString() {
+        return gson.toJson(config);
     }
 
     public int getIdFromString(String input) {

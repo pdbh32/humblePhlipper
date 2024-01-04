@@ -66,6 +66,9 @@ public class Config {
     @SerializedName("tradeRestricted")
     @Expose
     private Boolean tradeRestricted;
+    @SerializedName("members")
+    @Expose
+    private Boolean members;
     @SerializedName("numToSelect")
     @Expose
     private Integer numToSelect;
@@ -98,6 +101,7 @@ public class Config {
         this.maxBidPrice = 20000;
         this.maxBidAskVolRatio = 3.0f;
         this.tradeRestricted = false;
+        this.members = false;
         this.numToSelect = 64;
     }
 
@@ -156,6 +160,8 @@ public class Config {
 
     public Boolean getTradeRestricted() { return tradeRestricted; }
 
+    public Boolean getMembers() { return members; }
+
     public Integer getNumToSelect() { return numToSelect; }
 
     // Miscellaneous Setters
@@ -198,5 +204,6 @@ public class Config {
     public void setMinMargin(Integer minMargin) { this.minMargin = minMargin; }
     public void setMaxBidPrice(Integer maxBidPrice) { this.maxBidPrice = maxBidPrice; }
     public void setTradeRestricted(Boolean tradeRestricted) { this.tradeRestricted = tradeRestricted; }
+    public void setMembers(Boolean members) { this.members = members; }
     public void setNumToSelect(Integer numToSelect) { this.numToSelect = numToSelect; }
 }

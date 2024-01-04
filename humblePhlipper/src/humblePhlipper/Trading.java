@@ -22,6 +22,7 @@ public class Trading {
     private static final Integer SLEEP = 1000;
     private static final Set<Integer> restrictedIdSet = new HashSet<>(Arrays.asList(1521, 1519, 1515, 317, 315, 321, 319, 377, 379, 434, 1761, 436, 438, 440, 442, 444, 453, 447, 449, 451, 1739, 229, 227, 1937, 313, 314, 221, 245, 556, 555, 557, 554, 558, 562));
     public Trading(ResourceManager rm) {
+
         this.rm = rm;
     }
     public static Set<Integer> getRestrictedIdSet() {
@@ -51,7 +52,7 @@ public class Trading {
             if (rm.config.getTradeRestricted() && restrictedIdSet.contains(item.getId())) {
                 continue;
             }
-            if (!Client.isMembers() && item.getMapping().getMembers()) {
+            if (!rm.config.getMembers() && item.getMapping().getMembers()) {
                 continue;
             }
             rm.config.incrementSelections(item.getId());
@@ -89,8 +90,6 @@ public class Trading {
         }));
         rm.config.setSelections(new LinkedHashSet<>(orderedSelections));
     }
-
-
     public void Cancel(GrandExchangeItem geItem) {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
             return;

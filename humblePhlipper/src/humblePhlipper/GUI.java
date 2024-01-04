@@ -62,6 +62,7 @@ public class GUI extends JFrame {
     private JPanel miscellaneousPanel;
     private JButton generateButton;
     private JPanel savePanel;
+    private JCheckBox membersCheckBox;
 
     public GUI() {
         // Set action listeners
@@ -116,6 +117,7 @@ public class GUI extends JFrame {
         Main.rm.config.setMinMargin(Integer.parseInt(minMarginField.getText()));
         Main.rm.config.setMaxBidPrice(Integer.parseInt(maxBidPriceField.getText()));
         Main.rm.config.setMaxBidAskVolRatio(Float.parseFloat(maxBidAskVolRatioField.getText()));
+        Main.rm.config.setMembers(membersCheckBox.isSelected());
         Main.rm.config.setTradeRestricted(tradeRestrictedCheckBox.isSelected());
         Main.rm.config.setNumToSelect((Integer) numToSelectSpinner.getValue());
     }
@@ -198,6 +200,7 @@ public class GUI extends JFrame {
         minMarginField.setText(String.valueOf(Main.rm.config.getMinMargin()));
         maxBidPriceField.setText(String.valueOf(Main.rm.config.getMaxBidPrice()));
         maxBidAskVolRatioField.setText(String.valueOf(Main.rm.config.getMaxBidAskVolRatio()));
+        membersCheckBox.setSelected(Main.rm.config.getMembers());
         tradeRestrictedCheckBox.setSelected(Main.rm.config.getTradeRestricted());
         numToSelectSpinner.setValue(Main.rm.config.getNumToSelect());
     }
@@ -949,7 +952,7 @@ public class GUI extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel35.add(minMarginField, gbc);
         final JPanel panel36 = new JPanel();
-        panel36.setLayout(new GridBagLayout());
+        panel36.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -957,16 +960,13 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel33.add(panel36, gbc);
-        panel36.setBorder(BorderFactory.createTitledBorder(null, "Trade Restricted Account", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel36.setBorder(BorderFactory.createTitledBorder(null, "Restrictions", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        membersCheckBox = new JCheckBox();
+        membersCheckBox.setText("Members Account");
+        panel36.add(membersCheckBox, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         tradeRestrictedCheckBox = new JCheckBox();
-        tradeRestrictedCheckBox.setText("True");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel36.add(tradeRestrictedCheckBox, gbc);
+        tradeRestrictedCheckBox.setText("Trade Restricted");
+        panel36.add(tradeRestrictedCheckBox, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         selectionsTableScrollPane = new JScrollPane();
         selectionsPanel.add(selectionsTableScrollPane, BorderLayout.CENTER);
         selectionsTable = new JTable();

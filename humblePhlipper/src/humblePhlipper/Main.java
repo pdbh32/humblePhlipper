@@ -3,7 +3,10 @@
 package humblePhlipper;
 
 // Script architecture
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.dreambot.api.Client;
+import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.grandexchange.GrandExchangeItem;
 import org.dreambot.api.randoms.RandomSolver;
 import org.dreambot.api.script.AbstractScript;
@@ -15,6 +18,8 @@ import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
 import org.dreambot.api.utilities.Sleep;
+import org.dreambot.api.utilities.Timer;
+import org.dreambot.api.wrappers.items.Item;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,13 +27,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.0)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.1)
 public class Main extends AbstractScript {
-
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
     private static final Paint paint = new Paint(rm);
     private static GUI gui;
+    private static EndGUI endGui;
 
     // Constants
     public static final int SLEEP = 1000;
@@ -56,6 +61,8 @@ public class Main extends AbstractScript {
             Main.rm.config.setSelections(new LinkedHashSet<Integer>());
             Main.trading.Select();
         }
+        rm.session.setStartingGp(Inventory.count("Coins"));
+        rm.session.setTimer(new Timer());
     }
     @Override
     public void onPaint(Graphics g) {
@@ -144,28 +151,29 @@ public class Main extends AbstractScript {
 
     @Override
     public void onExit() {
-        gui.Dispose();
+        if (gui != null) {
+            gui.Dispose();
+        }
         rm.disposeApiScheduler();
         rm.saveFourHourLimits();
 
-        String historyCSV = "\ntime,name,vol,price";
         List<humblePhlipper.Resources.SavedData.History> historyList = new ArrayList<>();
 
         for (Integer ID : rm.config.getSelections()) {
             for (humblePhlipper.Resources.SavedData.History history : rm.items.get(ID).getHistoryList()) {
-                historyCSV += "\n" + history.getCSV();
+                rm.session.incrementHistoryCSV("\n" + history.getCSV());
                 historyList.add(history);
             }
         }
 
-        Map<String, Object> sessionHistory = new HashMap<>();
-        sessionHistory.put("historyList", historyList);
-        sessionHistory.put("config", rm.config);
+        Map<String, String> sessionHistory = new HashMap<>();
+        sessionHistory.put("historyCSV", rm.session.getHistoryCSV());
+        sessionHistory.put("configJson", rm.getConfigString());
         String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
         ScriptSettings.save(sessionHistory, "humblePhlipper", "History", fileName);
 
         Logger.log("--------------------------------------------------------------------------------------");
-        Logger.log("<trades>" + historyCSV + "\n</trades>");
+        Logger.log("<trades>" + rm.session.getHistoryCSV() + "\n</trades>");
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("Trading over with profit of: " + Math.round(rm.session.getProfit()));
         Logger.log("Runtime (minutes): " + (rm.session.getTimer().elapsed()/60000));
@@ -174,5 +182,8 @@ public class Main extends AbstractScript {
         if (rm.config.getSysExit()) {
             System.exit(0);
         }
+        SwingUtilities.invokeLater(() -> {
+            endGui = new EndGUI();
+        });
     }
 }

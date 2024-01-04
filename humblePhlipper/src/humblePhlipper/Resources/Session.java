@@ -2,8 +2,10 @@
 
 package humblePhlipper.Resources;
 
+import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.utilities.Timer;
 
+import java.time.LocalDateTime;
 import java.util.TreeMap;
 
 public class Session {
@@ -11,6 +13,8 @@ public class Session {
     private boolean running; // true if config set up
     private boolean bidding; // if false, close bids and sell remaining inventory
     private double profit;
+    private Integer startingGp;
+    private String historyCSV;
     private TreeMap<Long, Double> timeCumProfitMap; // cumulative profit time series
 
     public Session() {
@@ -18,6 +22,8 @@ public class Session {
         this.running = false;
         this.bidding = true;
         this.profit = 0;
+        try { this.startingGp = Inventory.count("Coins"); } catch (Exception ignored) {} // Not logged in
+        this.historyCSV = "time,name,vol,price";
         this.timeCumProfitMap = new TreeMap<>();
         this.timeCumProfitMap.put(0L, 0.0);
     }
@@ -57,9 +63,16 @@ public class Session {
         this.profit += amount;
     }
 
+    public Integer getStartingGp() { return startingGp; }
+    public void setStartingGp(Integer startingGp) { this.startingGp = startingGp; }
+
     public TreeMap<Long, Double> getTimeCumProfitMap() {
         return timeCumProfitMap;
     }
     public void setTimeCumProfitMap(TreeMap<Long, Double> timeCumProfitMap) { this.timeCumProfitMap = timeCumProfitMap; }
     public void incrementTimeCumProfitMap(Long time, double amount) { this.timeCumProfitMap.merge(time, amount, Double::sum); }
+
+    public String getHistoryCSV() { return historyCSV; }
+    public void setHistoryCSV(String historyCSV) { this.historyCSV = historyCSV; };
+    public void incrementHistoryCSV(String historyCSV) { this.historyCSV += historyCSV; }
 }
