@@ -67,7 +67,7 @@ public class EndGUI extends JFrame {
         long maxTime = Main.rm.session.getTimeCumProfitMap().lastKey();
 
         XYPlot plot = (XYPlot) chart.getPlot();
-        plot.setDomainAxis(new NumberAxis());
+        plot.setDomainAxis(new NumberAxis("Minutes"));
         plot.getDomainAxis().setRange(0, ((double) Main.rm.session.getTimeCumProfitMap().lastKey() / 60000 != 0) ? (double) Main.rm.session.getTimeCumProfitMap().lastKey() / 60000 : 1.0);
         plot.setRangeAxis(new NumberAxis());
         plot.getRangeAxis().setRange(Collections.min(Main.rm.session.getTimeCumProfitMap().values()), (Collections.max(Main.rm.session.getTimeCumProfitMap().values()) != 0) ? Collections.max(Main.rm.session.getTimeCumProfitMap().values()) : 1.0);
