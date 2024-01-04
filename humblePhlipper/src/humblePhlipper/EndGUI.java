@@ -1,7 +1,6 @@
 package humblePhlipper;
 
 import org.dreambot.api.Client;
-import org.dreambot.api.utilities.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -69,9 +68,9 @@ public class EndGUI extends JFrame {
 
         XYPlot plot = (XYPlot) chart.getPlot();
         plot.setDomainAxis(new NumberAxis());
-        plot.getDomainAxis().setRange(0, (double) Main.rm.session.getTimeCumProfitMap().lastKey() / 60000);
+        plot.getDomainAxis().setRange(0, ((double) Main.rm.session.getTimeCumProfitMap().lastKey() / 60000 != 0) ? (double) Main.rm.session.getTimeCumProfitMap().lastKey() / 60000 : 1.0);
         plot.setRangeAxis(new NumberAxis());
-        plot.getRangeAxis().setRange(Collections.min(Main.rm.session.getTimeCumProfitMap().values()), Collections.max(Main.rm.session.getTimeCumProfitMap().values()));
+        plot.getRangeAxis().setRange(Collections.min(Main.rm.session.getTimeCumProfitMap().values()), (Collections.max(Main.rm.session.getTimeCumProfitMap().values()) != 0) ? Collections.max(Main.rm.session.getTimeCumProfitMap().values()) : 1.0);
 
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         plot.setRenderer(renderer);
@@ -79,7 +78,7 @@ public class EndGUI extends JFrame {
         chart.getLegend().setVisible(false);
 
         ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new Dimension(400, 300));
+        //chartPanel.setPreferredSize(new Dimension(400, 300));
 
         return chartPanel;
     }
@@ -89,7 +88,6 @@ public class EndGUI extends JFrame {
         for (Integer ID : Main.rm.config.getSelections()) {
             itemProfitMap.put(Main.rm.items.get(ID).getMapping().getName(), (int) Main.rm.items.get(ID).getProfit());
         }
-        Logger.log(itemProfitMap);
 
         // Create a list of entries and sort it based on values
         List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(itemProfitMap.entrySet());
@@ -114,7 +112,7 @@ public class EndGUI extends JFrame {
         CategoryPlot plot = chart.getCategoryPlot();
         plot.setDomainAxis(new CategoryAxis());
         plot.setRangeAxis(new NumberAxis());
-        plot.getRangeAxis().setRange(Collections.min(itemProfitMap.values()), Collections.max(itemProfitMap.values()));
+        plot.getRangeAxis().setRange(Collections.min(itemProfitMap.values()), (Collections.max(itemProfitMap.values()) != 0) ? Collections.max(itemProfitMap.values()) : 1);
 
         BarRenderer renderer = new BarRenderer() {
             @Override
@@ -126,7 +124,7 @@ public class EndGUI extends JFrame {
         plot.setRenderer(renderer);
 
         ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new Dimension(300, 400));
+        chartPanel.setPreferredSize(new Dimension(getWidth(), chartPanel.getPreferredSize().height));
 
         return chartPanel;
     }
@@ -134,6 +132,8 @@ public class EndGUI extends JFrame {
     private void configureUI() {
         setTitle("humblePhlipper");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        contentPanel.setPreferredSize(new Dimension(500, 500)); // Adjust the values according to your preference
+        setContentPane(contentPanel);
         setContentPane(contentPanel);
         pack();
         setLocationRelativeTo(Client.getCanvas());
