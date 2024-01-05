@@ -2,10 +2,10 @@
 
 package humblePhlipper.Resources;
 
-import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.utilities.Timer;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class Session {
@@ -13,19 +13,19 @@ public class Session {
     private boolean running; // true if config set up
     private boolean bidding; // if false, close bids and sell remaining inventory
     private double profit;
-    private Integer startingGp;
-    private String historyCSV;
+    private String tradesCSV;
     private TreeMap<Long, Double> timeCumProfitMap; // cumulative profit time series
+    Map<String, String> sessionHistory; // to save down history
 
     public Session() {
         this.timer = new Timer();
         this.running = false;
         this.bidding = true;
         this.profit = 0;
-        try { this.startingGp = Inventory.count("Coins"); } catch (Exception ignored) {} // Not logged in
-        this.historyCSV = "time,name,vol,price";
+        this.tradesCSV = "time,name,vol,price";
         this.timeCumProfitMap = new TreeMap<>();
         this.timeCumProfitMap.put(0L, 0.0);
+        this.sessionHistory = new HashMap<>();
     }
 
     // Getter and setter for 'timer'
@@ -63,16 +63,17 @@ public class Session {
         this.profit += amount;
     }
 
-    public Integer getStartingGp() { return startingGp; }
-    public void setStartingGp(Integer startingGp) { this.startingGp = startingGp; }
-
     public TreeMap<Long, Double> getTimeCumProfitMap() {
         return timeCumProfitMap;
     }
     public void setTimeCumProfitMap(TreeMap<Long, Double> timeCumProfitMap) { this.timeCumProfitMap = timeCumProfitMap; }
     public void incrementTimeCumProfitMap(Long time, double amount) { this.timeCumProfitMap.merge(time, amount, Double::sum); }
 
-    public String getHistoryCSV() { return historyCSV; }
-    public void setHistoryCSV(String historyCSV) { this.historyCSV = historyCSV; };
-    public void incrementHistoryCSV(String historyCSV) { this.historyCSV += historyCSV; }
+    public String getTradesCSV() { return tradesCSV; }
+    public void setTradesCSV(String tradesCSV) { this.tradesCSV = tradesCSV; };
+    public void incrementTradesCSV(String tradesCSV) { this.tradesCSV += tradesCSV; }
+
+    public Map<String, String> getSessionHistory() { return sessionHistory; }
+    public void setSessionHistory(Map<String, String> sessionHistory) { this.sessionHistory = sessionHistory; }
+    public void incrementSessionHistory(String key, String value) { this.sessionHistory.put(key, value); }
 }

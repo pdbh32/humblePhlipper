@@ -2,6 +2,7 @@
 
 package humblePhlipper;
 
+import humblePhlipper.Resources.SavedData.Trade;
 import org.dreambot.api.Client;
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
@@ -35,6 +36,9 @@ public class Trading {
                 continue;
             }
             if (item.getTargetVol() == Integer.MAX_VALUE) {
+                continue;
+            }
+            if (item.getId() == 13190) {
                 continue;
             }
             if (item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume() < rm.config.getMinVol()) {
@@ -191,9 +195,9 @@ public class Trading {
             rm.session.incrementTimeCumProfitMap(rm.session.getTimer().elapsed(), rm.session.getProfit());
         }
 
-        humblePhlipper.Resources.SavedData.History history = new humblePhlipper.Resources.SavedData.History(LocalDateTime.now(), geItem.getName(), vol, price);
-        item.incrementHistoryList(history);
-        Logger.log("<trade>\n" + history.getCSV() + "</trade>");
+        Trade trade = new Trade(LocalDateTime.now(), geItem.getName(), vol, price);
+        item.incrementTradeList(trade);
+        Logger.log("<trade>\n" + trade.getCSV() + "</trade>");
     }
 
     public Boolean MakeAsk(Integer ID) {

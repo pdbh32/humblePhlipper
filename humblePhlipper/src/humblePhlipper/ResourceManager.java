@@ -15,6 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +37,14 @@ Classes Resources.SavedData.* DO match the structure of their local json source 
 */
 
 public class ResourceManager {
-    private final Gson gson;
-    private final ScheduledExecutorService apiScheduler;
+    public final Gson gson;
     public Map<Integer, humblePhlipper.Resources.API.Mapping> mappingMap;
     public Map<Integer, humblePhlipper.Resources.API.Latest> latestMap;
     public Map<Integer, humblePhlipper.Resources.API.FiveMinute> fiveMinuteMap;
     public Map<Integer, humblePhlipper.Resources.API.OneHour> oneHourMap;
+    private ScheduledExecutorService latestApiScheduler;
+    private ScheduledExecutorService fiveMinuteApiScheduler;
+    private ScheduledExecutorService oneHourApiScheduler;
     public humblePhlipper.Resources.SavedData.FourHourLimits fourHourLimits;
     public humblePhlipper.Resources.SavedData.Config config;
 
@@ -49,7 +52,7 @@ public class ResourceManager {
     public humblePhlipper.Resources.Session session;
 
     public ResourceManager() {
-         this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
 
         // (1) Set API maps and thread,
         updateMappingMap(); // We only need to set this once
@@ -64,23 +67,76 @@ public class ResourceManager {
         // (3) Initialise items
         this.items = new humblePhlipper.Resources.Items(this);
 
-        // (4) Set thread to update API data and Items.Item fields
-        apiScheduler = Executors.newSingleThreadScheduledExecutor();
-        apiScheduler.scheduleAtFixedRate(() -> {
-            updateLatestMap();
-            updateFiveMinuteMap();
-            updateOneHourMap();
-            items.updateAllLatest();
-            items.updateAllFiveMinute();
-            items.updateAllOneHour();
-            items.updateAllPricing();
-        }, 1, 1, TimeUnit.SECONDS);
-
-        // (5) Initialise session
+        // (4) Initialise session
         this.session = new humblePhlipper.Resources.Session();
     }
-    public void disposeApiScheduler() {
-        apiScheduler.shutdownNow();
+
+    public void setApiSchedulers() {
+        setOneHourApiScheduler(); // we need this for volume irrespective of pricing
+        switch (config.getPricing()) {
+            case "latest":
+                setLatestApiScheduler();
+                break;
+            case "fiveMinute":
+                setFiveMinuteApiScheduler();
+                break;
+            case "bestOfLatestFiveMinute":
+            case "worstOfLatestFiveMinute":
+                setLatestApiScheduler();
+                setFiveMinuteApiScheduler();
+                break;
+        }
+    }
+
+    private void setLatestApiScheduler() {
+        latestApiScheduler = Executors.newSingleThreadScheduledExecutor();
+        latestApiScheduler.scheduleAtFixedRate(() -> {
+            updateLatestMap();
+            items.updateAllLatest();
+            items.updateAllPricing();
+        }, config.getApiInterval(), config.getApiInterval(), TimeUnit.SECONDS);
+    }
+
+    private void setFiveMinuteApiScheduler() {
+        fiveMinuteApiScheduler = Executors.newSingleThreadScheduledExecutor();
+        fiveMinuteApiScheduler.scheduleAtFixedRate(() -> {
+            updateFiveMinuteMap();
+            items.updateAllFiveMinute();
+            items.updateAllPricing();
+        }, initialDelay(300), 300, TimeUnit.SECONDS);
+    }
+
+    private void setOneHourApiScheduler() {
+        oneHourApiScheduler = Executors.newSingleThreadScheduledExecutor();
+        oneHourApiScheduler.scheduleAtFixedRate(() -> {
+            updateOneHourMap();
+            items.updateAllOneHour();
+            items.updateAllPricing();
+        }, initialDelay(3600), 3600, TimeUnit.SECONDS);
+    }
+
+    private long initialDelay(int interval) {
+        long currentTime = Instant.now().getEpochSecond();
+        long nextUpdateTime = ((currentTime / interval) + 1) * interval + 3; // 3 second delay as a precaution
+        return nextUpdateTime - currentTime;
+    }
+
+    public void disposeApiSchedulers() {
+        disposeLatestApiScheduler();
+        disposeFiveMinuteApiScheduler();
+        disposeOneHourApiScheduler();
+    }
+    private void disposeLatestApiScheduler() {
+        if (latestApiScheduler == null) { return; }
+        latestApiScheduler.shutdownNow();
+    }
+    private void disposeFiveMinuteApiScheduler() {
+        if (fiveMinuteApiScheduler == null) { return; }
+        fiveMinuteApiScheduler.shutdownNow();
+    }
+    private void disposeOneHourApiScheduler() {
+        if (oneHourApiScheduler == null) { return; }
+        oneHourApiScheduler.shutdownNow();
     }
 
     private void updateMappingMap() {
@@ -182,6 +238,14 @@ public class ResourceManager {
 
     public String getConfigString() {
         return gson.toJson(config);
+    }
+
+    public void setSelectionCSV() {
+        String selectionsCSV = "name,bid,ask,bidVol,askVol,target";
+        for (Integer ID : config.getSelections()) {
+            selectionsCSV += "\n" + items.get(ID).getMapping().getName() + "," + items.get(ID).getBid() + "," + items.get(ID).getAsk() + "," + items.get(ID).getOneHour().getLowPriceVolume() + "," + items.get(ID).getOneHour().getHighPriceVolume() + "," + items.get(ID).getTargetVol();
+        }
+        session.incrementSessionHistory("selectionsCSV", selectionsCSV);
     }
 
     public int getIdFromString(String input) {

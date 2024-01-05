@@ -3,10 +3,8 @@
 package humblePhlipper;
 
 // Script architecture
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import humblePhlipper.Resources.SavedData.Trade;
 import org.dreambot.api.Client;
-import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.grandexchange.GrandExchangeItem;
 import org.dreambot.api.randoms.RandomSolver;
 import org.dreambot.api.script.AbstractScript;
@@ -19,7 +17,6 @@ import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
 import org.dreambot.api.utilities.Sleep;
 import org.dreambot.api.utilities.Timer;
-import org.dreambot.api.wrappers.items.Item;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,7 +41,10 @@ public class Main extends AbstractScript {
         if (rm.config.getAuto()) {
             trading.Select();
         }
+        rm.setApiSchedulers();
+        rm.setSelectionCSV();
         rm.session.setRunning(true);
+        rm.session.setTimer(new Timer());
     }
 
     @Override
@@ -61,7 +61,6 @@ public class Main extends AbstractScript {
             Main.rm.config.setSelections(new LinkedHashSet<Integer>());
             Main.trading.Select();
         }
-        rm.session.setStartingGp(Inventory.count("Coins"));
         rm.session.setTimer(new Timer());
     }
     @Override
@@ -154,26 +153,25 @@ public class Main extends AbstractScript {
         if (gui != null) {
             gui.Dispose();
         }
-        rm.disposeApiScheduler();
+        rm.disposeApiSchedulers();
         rm.saveFourHourLimits();
 
-        List<humblePhlipper.Resources.SavedData.History> historyList = new ArrayList<>();
+        List<Trade> tradeList = new ArrayList<>();
 
         for (Integer ID : rm.config.getSelections()) {
-            for (humblePhlipper.Resources.SavedData.History history : rm.items.get(ID).getHistoryList()) {
-                rm.session.incrementHistoryCSV("\n" + history.getCSV());
-                historyList.add(history);
+            for (Trade trade : rm.items.get(ID).getTradeList()) {
+                rm.session.incrementTradesCSV("\n" + trade.getCSV());
+                tradeList.add(trade);
             }
         }
 
-        Map<String, String> sessionHistory = new HashMap<>();
-        sessionHistory.put("historyCSV", rm.session.getHistoryCSV());
-        sessionHistory.put("configJson", rm.getConfigString());
+        rm.session.incrementSessionHistory("tradesCSV", rm.session.getTradesCSV());
+        rm.session.incrementSessionHistory("configJSON", rm.getConfigString());
         String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
-        ScriptSettings.save(sessionHistory, "humblePhlipper", "History", fileName);
+        ScriptSettings.save(rm.session.getSessionHistory(), "humblePhlipper", "History", fileName);
 
         Logger.log("--------------------------------------------------------------------------------------");
-        Logger.log("<trades>" + rm.session.getHistoryCSV() + "\n</trades>");
+        Logger.log("<trades>" + rm.session.getTradesCSV() + "\n</trades>");
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("Trading over with profit of: " + Math.round(rm.session.getProfit()));
         Logger.log("Runtime (minutes): " + (rm.session.getTimer().elapsed()/60000));
