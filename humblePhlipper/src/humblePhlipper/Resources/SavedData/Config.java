@@ -41,6 +41,12 @@ public class Config {
     @SerializedName("pricing")
     @Expose
     private String pricing;
+    @SerializedName("pricingOffset")
+    @Expose
+    private Integer pricingOffset;
+    @SerializedName("apiInterval")
+    @Expose
+    private Integer apiInterval;
 
     // Selections
     @SerializedName("selections")
@@ -57,7 +63,7 @@ public class Config {
     @SerializedName("maxBidAskVolRatio")
     @Expose
     private Float maxBidAskVolRatio;
-    @SerializedName("mingMargin")
+    @SerializedName("minMargin")
     @Expose
     private Integer minMargin;
     @SerializedName("maxBidPrice")
@@ -88,6 +94,8 @@ public class Config {
 
         // Pricing
         this.pricing = "latest";
+        this.pricingOffset = 0;
+        this.apiInterval = 1;
 
         // Selections
         this.selections = new LinkedHashSet<>();
@@ -134,6 +142,12 @@ public class Config {
     // Pricing Getters
     public String getPricing() {
         return pricing;
+    }
+    public Integer getPricingOffset() {
+        return pricingOffset;
+    }
+    public Integer getApiInterval() {
+        return apiInterval;
     }
 
     // Selections Getters
@@ -192,10 +206,19 @@ public class Config {
     public void setPricing(String pricing) {
         this.pricing = pricing;
     }
+    public void setPricingOffset(Integer pricingOffset) {
+        this.pricingOffset = pricingOffset;
+    }
+    public void setApiInterval(Integer apiInterval) {
+        if (apiInterval >= 1 && apiInterval <= 300) {
+            this.apiInterval = apiInterval;
+        }
+    }
 
     // Selections Setters
     public void setSelections(Set<Integer> selections) { this.selections = selections; }
     public void incrementSelections(int itemId) { selections.add(itemId); }
+    public void removeFromSelections(int itemId) { selections.remove(itemId); }
 
     // Auto Selections Setters
     public void setAuto(Boolean auto) { this.auto = auto; }

@@ -5,6 +5,7 @@ package humblePhlipper;
 import humblePhlipper.Resources.Items;
 import humblePhlipper.Resources.SavedData.Config;
 import org.dreambot.api.Client;
+import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.utilities.Timer;
 
 import javax.swing.*;
@@ -63,6 +64,13 @@ public class GUI extends JFrame {
     private JButton generateButton;
     private JPanel savePanel;
     private JCheckBox membersCheckBox;
+    private JTextField basePricingTextField;
+    private JTextField pricingOffsetTextField;
+    private JTextField minAPICallIntervalTextField;
+    private JSpinner apiIntervalSpinner;
+    private JSpinner pricingOffsetSpinner;
+    private JButton removeButton;
+    private JTextField removeItemField;
 
     public GUI() {
         // Set action listeners
@@ -79,6 +87,7 @@ public class GUI extends JFrame {
         setResetButton();
         setSelectionsTable();
         setGenerateButton();
+        setRemoveButton();
 
         // startButton
         setStartButton();
@@ -107,7 +116,27 @@ public class GUI extends JFrame {
         Main.rm.config.setPriorityVol(priorityVolSlider.getValue());
         Main.rm.config.setPriorityCapitalBinding(priorityCapitalBindingSlider.getValue());
 
-        // Pricing set by event listener since it affects Selections (i.e. before `saveButton` or `startButton` are clicked
+        // Pricing
+        String selectionString = (String) pricingComboBox.getSelectedItem();
+        switch (selectionString) {
+            case "Latest":
+                Main.rm.config.setPricing("latest");
+                break;
+            case "5 Minute Average":
+                Main.rm.config.setPricing("fiveMinute");
+                break;
+            case "1 Hour Average":
+                Main.rm.config.setPricing("oneHour");
+                break;
+            case "Best of Latest and 5 Minute Average":
+                Main.rm.config.setPricing("bestOfLatestFiveMinute");
+                break;
+            case "Worst of Latest and 5 Minute Average":
+                Main.rm.config.setPricing("worstOfLatestFiveMinute");
+                break;
+        }
+        Main.rm.config.setPricingOffset((Integer) pricingOffsetSpinner.getValue());
+        Main.rm.config.setApiInterval((Integer) apiIntervalSpinner.getValue());
 
         // Selections set by `addButton` and `generateButton`
 
@@ -180,16 +209,12 @@ public class GUI extends JFrame {
             case "bestOfLatestFiveMinute":
                 pricingComboBox.setSelectedItem("Best of Latest and 5 Minute Average");
                 break;
-            case "latestPmOne":
-                pricingComboBox.setSelectedItem("Latest Bid Plus 1, Latest Ask Minus 1");
-                break;
-            case "fiveMinutePmOne":
-                pricingComboBox.setSelectedItem("5 Minute Average Bid Plus 1, 5 Minute Average Ask Minus 1");
-                break;
-            case "bestOfLatestPmOneFiveMinutePmOne":
-                pricingComboBox.setSelectedItem("Best of Latest ±1 and 5 Minute Average ±1");
+            case "worstOfLatestFiveMinute":
+                pricingComboBox.setSelectedItem("Worst of Latest and 5 Minute Average");
                 break;
         }
+        pricingOffsetSpinner.setValue(Main.rm.config.getPricingOffset());
+        apiIntervalSpinner.setValue(Main.rm.config.getApiInterval());
 
         // Selections
         setSelectionsTable();
@@ -220,42 +245,8 @@ public class GUI extends JFrame {
         comboBoxModel.addElement("5 Minute Average");
         comboBoxModel.addElement("1 Hour Average");
         comboBoxModel.addElement("Best of Latest and 5 Minute Average");
-        comboBoxModel.addElement("Latest Bid Plus 1, Latest Ask Minus 1");
-        comboBoxModel.addElement("5 Minute Average Bid Plus 1, 5 Minute Average Ask Minus 1");
-        comboBoxModel.addElement("Best of Latest ±1 and 5 Minute Average ±1");
+        comboBoxModel.addElement("Worst of Latest and 5 Minute Average");
         pricingComboBox.setModel(comboBoxModel);
-        pricingComboBox.addActionListener(e -> {
-            String selectionString = (String) pricingComboBox.getSelectedItem();
-            switch (selectionString) {
-                case "Latest":
-                    Main.rm.config.setPricing("latest");
-                    break;
-                case "5 Minute Average":
-                    Main.rm.config.setPricing("fiveMinute");
-                    break;
-                case "1 Hour Average":
-                    Main.rm.config.setPricing("oneHour");
-                    break;
-                case "Best of Latest and 5 Minute Average":
-                    Main.rm.config.setPricing("bestOfLatestFiveMinute");
-                    break;
-                case "Latest Bid Plus 1, Latest Ask Minus 1":
-                    Main.rm.config.setPricing("latestPmOne");
-                    break;
-                case "5 Minute Average Bid Plus 1, 5 Minute Average Ask Minus 1":
-                    Main.rm.config.setPricing("fiveMinutePmOne");
-                    break;
-                case "Best of Latest ±1 and 5 Minute Average ±1":
-                    Main.rm.config.setPricing("bestOfLatestPmOneFiveMinutePmOne");
-                    break;
-            }
-            Main.rm.items.setAllPricing();
-            if (Main.rm.config.getAuto()) {
-                Main.rm.config.setSelections(new LinkedHashSet<Integer>());
-                Main.trading.Select();
-            }
-            setSelectionsTable();
-        });
     }
 
     private void setSelectionsTable() {
@@ -268,6 +259,9 @@ public class GUI extends JFrame {
         };
         for (int ID : Main.rm.config.getSelections()) {
             Items.Item item = Main.rm.items.get(ID);
+            if (item.getBid() == null | item.getAsk() == null) {
+                Main.rm.config.removeFromSelections(ID);
+            }
             tableModel.addRow(new Object[]{
                     item.getMapping().getName(),
                     item.getId(),
@@ -285,18 +279,35 @@ public class GUI extends JFrame {
 
     private void setAddButton() {
         addButton.addActionListener(e -> {
+            setConfigFromObjects();
+            Main.rm.items.setAllPricing();
             int ID = Main.rm.getIdFromString(addItemField.getText());
             if (ID != -1) {
                 Main.rm.config.incrementSelections(ID);
                 addItemField.setText("");
-                setSelectionsTable();
             }
+            setSelectionsTable();
         });
     }
 
     private void setResetButton() {
         resetButton.addActionListener(e -> {
+            setConfigFromObjects();
+            Main.rm.items.setAllPricing();
             Main.rm.config.setSelections(new LinkedHashSet<Integer>());
+            setSelectionsTable();
+        });
+    }
+
+    private void setRemoveButton() {
+        removeButton.addActionListener(e -> {
+            setConfigFromObjects();
+            Main.rm.items.setAllPricing();
+            int ID = Main.rm.getIdFromString(removeItemField.getText());
+            if (ID != -1) {
+                Main.rm.config.removeFromSelections(ID);
+                removeItemField.setText("");
+            }
             setSelectionsTable();
         });
     }
@@ -304,9 +315,9 @@ public class GUI extends JFrame {
     private void setGenerateButton() {
         generateButton.addActionListener(e -> {
             setConfigFromObjects();
+            Main.rm.items.setAllPricing();
             Main.rm.config.setSelections(new LinkedHashSet<Integer>());
             Main.trading.Select();
-            Main.rm.items.updateAllFourLimit();
             setSelectionsTable();
         });
     }
@@ -314,10 +325,14 @@ public class GUI extends JFrame {
     private void setStartButton() {
         startButton.addActionListener(e -> {
             setConfigFromObjects();
+            Main.rm.setApiSchedulers();
+            Main.rm.setSelectionCSV();
             Main.rm.session.setRunning(true);
             Main.rm.session.setTimer(new Timer());
             dispose();
         });
+        startButton.setPreferredSize(new Dimension(getWidth(), 50));
+        startButton.setBackground(Color.GREEN);
     }
 
     private void configureUI() {
@@ -328,7 +343,6 @@ public class GUI extends JFrame {
         setLocationRelativeTo(Client.getCanvas());
         setVisible(true);
     }
-
 
     {
 // GUI initializer generated by IntelliJ IDEA GUI Designer
@@ -600,25 +614,15 @@ public class GUI extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         paramsPanel.add(panel13, gbc);
         panel13.setBorder(BorderFactory.createTitledBorder(null, "Pricing", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        pricingComboBox = new JComboBox();
+        final JPanel panel14 = new JPanel();
+        panel14.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel13.add(pricingComboBox, gbc);
-        final JPanel panel14 = new JPanel();
-        panel14.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        paramsPanel.add(panel14, gbc);
-        panel14.setBorder(BorderFactory.createTitledBorder(null, "Bid Priority", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel13.add(panel14, gbc);
         final JPanel panel15 = new JPanel();
         panel15.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
@@ -628,93 +632,228 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel14.add(panel15, gbc);
+        basePricingTextField = new JTextField();
+        basePricingTextField.setEditable(false);
+        basePricingTextField.setText("Base Pricing");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel15.add(basePricingTextField, gbc);
         final JPanel panel16 = new JPanel();
         panel16.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel15.add(panel16, gbc);
-        final JPanel panel17 = new JPanel();
-        panel17.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel16.add(panel17, gbc);
-        final JPanel panel18 = new JPanel();
-        panel18.setLayout(new BorderLayout(0, 0));
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel17.add(panel18, gbc);
-        priorityCapitalBindingSlider = new JSlider();
-        priorityCapitalBindingSlider.setValue(50);
-        panel18.add(priorityCapitalBindingSlider, BorderLayout.CENTER);
-        final JPanel panel19 = new JPanel();
-        panel19.setLayout(new BorderLayout(0, 0));
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel17.add(panel19, gbc);
-        final JLabel label1 = new JLabel();
-        label1.setHorizontalAlignment(0);
-        label1.setText("Weight");
-        label1.setVerticalAlignment(0);
-        label1.setVerticalTextPosition(0);
-        panel19.add(label1, BorderLayout.CENTER);
-        final JPanel panel20 = new JPanel();
-        panel20.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel17.add(panel20, gbc);
-        priorityVolSlider = new JSlider();
-        priorityVolSlider.setValue(50);
-        panel20.add(priorityVolSlider, BorderLayout.CENTER);
-        final JPanel panel21 = new JPanel();
-        panel21.setLayout(new BorderLayout(0, 0));
+        panel14.add(panel16, gbc);
+        minAPICallIntervalTextField = new JTextField();
+        minAPICallIntervalTextField.setEditable(false);
+        minAPICallIntervalTextField.setText("Min API Call Interval in Seconds");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel16.add(minAPICallIntervalTextField, gbc);
+        final JPanel panel17 = new JPanel();
+        panel17.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel17.add(panel21, gbc);
-        priorityProfitSlider = new JSlider();
-        priorityProfitSlider.setValue(50);
-        panel21.add(priorityProfitSlider, BorderLayout.CENTER);
-        final JPanel panel22 = new JPanel();
-        panel22.setLayout(new GridBagLayout());
+        panel14.add(panel17, gbc);
+        pricingOffsetTextField = new JTextField();
+        pricingOffsetTextField.setEditable(false);
+        pricingOffsetTextField.setText("Pricing Offset");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel17.add(pricingOffsetTextField, gbc);
+        final JPanel panel18 = new JPanel();
+        panel18.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel13.add(panel18, gbc);
+        final JPanel panel19 = new JPanel();
+        panel19.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel16.add(panel22, gbc);
+        panel18.add(panel19, gbc);
+        pricingComboBox = new JComboBox();
+        final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+        pricingComboBox.setModel(defaultComboBoxModel1);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel19.add(pricingComboBox, gbc);
+        final JPanel panel20 = new JPanel();
+        panel20.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel18.add(panel20, gbc);
+        apiIntervalSpinner = new JSpinner();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel20.add(apiIntervalSpinner, gbc);
+        final JPanel panel21 = new JPanel();
+        panel21.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel18.add(panel21, gbc);
+        pricingOffsetSpinner = new JSpinner();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel21.add(pricingOffsetSpinner, gbc);
+        final JPanel panel22 = new JPanel();
+        panel22.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        paramsPanel.add(panel22, gbc);
+        panel22.setBorder(BorderFactory.createTitledBorder(null, "Bid Priority", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         final JPanel panel23 = new JPanel();
         panel23.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel22.add(panel23, gbc);
+        final JPanel panel24 = new JPanel();
+        panel24.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel23.add(panel24, gbc);
+        final JPanel panel25 = new JPanel();
+        panel25.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel24.add(panel25, gbc);
+        final JPanel panel26 = new JPanel();
+        panel26.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel22.add(panel23, gbc);
+        panel25.add(panel26, gbc);
+        priorityCapitalBindingSlider = new JSlider();
+        priorityCapitalBindingSlider.setValue(50);
+        panel26.add(priorityCapitalBindingSlider, BorderLayout.CENTER);
+        final JPanel panel27 = new JPanel();
+        panel27.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel25.add(panel27, gbc);
+        final JLabel label1 = new JLabel();
+        label1.setHorizontalAlignment(0);
+        label1.setText("Weight");
+        label1.setVerticalAlignment(0);
+        label1.setVerticalTextPosition(0);
+        panel27.add(label1, BorderLayout.CENTER);
+        final JPanel panel28 = new JPanel();
+        panel28.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel25.add(panel28, gbc);
+        priorityVolSlider = new JSlider();
+        priorityVolSlider.setValue(50);
+        panel28.add(priorityVolSlider, BorderLayout.CENTER);
+        final JPanel panel29 = new JPanel();
+        panel29.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel25.add(panel29, gbc);
+        priorityProfitSlider = new JSlider();
+        priorityProfitSlider.setValue(50);
+        panel29.add(priorityProfitSlider, BorderLayout.CENTER);
+        final JPanel panel30 = new JPanel();
+        panel30.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel24.add(panel30, gbc);
+        final JPanel panel31 = new JPanel();
+        panel31.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel30.add(panel31, gbc);
         capitalBindingVeTextField = new JTextField();
         capitalBindingVeTextField.setEditable(false);
         capitalBindingVeTextField.setText("Capital Binding (-ve)");
@@ -725,29 +864,29 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel23.add(capitalBindingVeTextField, gbc);
-        final JPanel panel24 = new JPanel();
-        panel24.setLayout(new CardLayout(0, 0));
+        panel31.add(capitalBindingVeTextField, gbc);
+        final JPanel panel32 = new JPanel();
+        panel32.setLayout(new CardLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel22.add(panel24, gbc);
+        panel30.add(panel32, gbc);
         final JLabel label2 = new JLabel();
         label2.setHorizontalAlignment(0);
         label2.setText("Ordinal Ranking");
-        panel24.add(label2, "Card1");
-        final JPanel panel25 = new JPanel();
-        panel25.setLayout(new GridBagLayout());
+        panel32.add(label2, "Card1");
+        final JPanel panel33 = new JPanel();
+        panel33.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel22.add(panel25, gbc);
+        panel30.add(panel33, gbc);
         a1HourVolumeVeTextField = new JTextField();
         a1HourVolumeVeTextField.setEditable(false);
         a1HourVolumeVeTextField.setText("1 Hour Volume (+ve)");
@@ -758,16 +897,16 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel25.add(a1HourVolumeVeTextField, gbc);
-        final JPanel panel26 = new JPanel();
-        panel26.setLayout(new GridBagLayout());
+        panel33.add(a1HourVolumeVeTextField, gbc);
+        final JPanel panel34 = new JPanel();
+        panel34.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel22.add(panel26, gbc);
+        panel30.add(panel34, gbc);
         profitMarginVeTextField = new JTextField();
         profitMarginVeTextField.setEditable(false);
         profitMarginVeTextField.setText("Profit Margin (+ve)");
@@ -778,7 +917,7 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel26.add(profitMarginVeTextField, gbc);
+        panel34.add(profitMarginVeTextField, gbc);
         selectionsPanel = new JPanel();
         selectionsPanel.setLayout(new BorderLayout(0, 0));
         mainPane.addTab("Selections", selectionsPanel);
@@ -789,149 +928,6 @@ public class GUI extends JFrame {
         manualPanel.setLayout(new GridBagLayout());
         selectionsPane.addTab("Manual", manualPanel);
         manualPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        final JPanel panel27 = new JPanel();
-        panel27.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        manualPanel.add(panel27, gbc);
-        resetButton = new JButton();
-        resetButton.setText("Reset");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel27.add(resetButton, gbc);
-        addButton = new JButton();
-        addButton.setText("Add by Name or ID");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel27.add(addButton, gbc);
-        final JPanel panel28 = new JPanel();
-        panel28.setLayout(new BorderLayout(0, 0));
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        manualPanel.add(panel28, gbc);
-        addItemField = new JTextField();
-        addItemField.setText("");
-        panel28.add(addItemField, BorderLayout.CENTER);
-        autoPanel = new JPanel();
-        autoPanel.setLayout(new GridBagLayout());
-        selectionsPane.addTab("Auto", autoPanel);
-        final JPanel panel29 = new JPanel();
-        panel29.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        autoPanel.add(panel29, gbc);
-        final JPanel panel30 = new JPanel();
-        panel30.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel29.add(panel30, gbc);
-        panel30.setBorder(BorderFactory.createTitledBorder(null, "Max 1 Hour Bid/Vol Volume Ratio", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        maxBidAskVolRatioField = new JTextField();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel30.add(maxBidAskVolRatioField, gbc);
-        final JPanel panel31 = new JPanel();
-        panel31.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel29.add(panel31, gbc);
-        panel31.setBorder(BorderFactory.createTitledBorder(null, "Number of Items to Select", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        numToSelectSpinner = new JSpinner();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel31.add(numToSelectSpinner, gbc);
-        generateButton = new JButton();
-        generateButton.setText("Generate");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel31.add(generateButton, gbc);
-        final JPanel panel32 = new JPanel();
-        panel32.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel29.add(panel32, gbc);
-        panel32.setBorder(BorderFactory.createTitledBorder(null, "Max Bid Price", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        maxBidPriceField = new JTextField();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel32.add(maxBidPriceField, gbc);
-        final JPanel panel33 = new JPanel();
-        panel33.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        autoPanel.add(panel33, gbc);
-        final JPanel panel34 = new JPanel();
-        panel34.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel33.add(panel34, gbc);
-        panel34.setBorder(BorderFactory.createTitledBorder(null, "Min 1 Hour Volume", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        minVolField = new JTextField();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel34.add(minVolField, gbc);
         final JPanel panel35 = new JPanel();
         panel35.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
@@ -940,8 +936,151 @@ public class GUI extends JFrame {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel33.add(panel35, gbc);
-        panel35.setBorder(BorderFactory.createTitledBorder(null, "Min Margin", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        manualPanel.add(panel35, gbc);
+        resetButton = new JButton();
+        resetButton.setText("Reset");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel35.add(resetButton, gbc);
+        addButton = new JButton();
+        addButton.setText("Add by Name or ID");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel35.add(addButton, gbc);
+        final JPanel panel36 = new JPanel();
+        panel36.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        manualPanel.add(panel36, gbc);
+        addItemField = new JTextField();
+        addItemField.setText("");
+        panel36.add(addItemField, BorderLayout.CENTER);
+        autoPanel = new JPanel();
+        autoPanel.setLayout(new GridBagLayout());
+        selectionsPane.addTab("Auto", autoPanel);
+        final JPanel panel37 = new JPanel();
+        panel37.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        autoPanel.add(panel37, gbc);
+        final JPanel panel38 = new JPanel();
+        panel38.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel37.add(panel38, gbc);
+        panel38.setBorder(BorderFactory.createTitledBorder(null, "Max 1 Hour Bid/Vol Volume Ratio", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        maxBidAskVolRatioField = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel38.add(maxBidAskVolRatioField, gbc);
+        final JPanel panel39 = new JPanel();
+        panel39.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel37.add(panel39, gbc);
+        panel39.setBorder(BorderFactory.createTitledBorder(null, "Number of Items to Select", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        numToSelectSpinner = new JSpinner();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel39.add(numToSelectSpinner, gbc);
+        generateButton = new JButton();
+        generateButton.setText("Generate");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel39.add(generateButton, gbc);
+        final JPanel panel40 = new JPanel();
+        panel40.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel37.add(panel40, gbc);
+        panel40.setBorder(BorderFactory.createTitledBorder(null, "Max Bid Price", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        maxBidPriceField = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel40.add(maxBidPriceField, gbc);
+        final JPanel panel41 = new JPanel();
+        panel41.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        autoPanel.add(panel41, gbc);
+        final JPanel panel42 = new JPanel();
+        panel42.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel41.add(panel42, gbc);
+        panel42.setBorder(BorderFactory.createTitledBorder(null, "Min 1 Hour Volume", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        minVolField = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel42.add(minVolField, gbc);
+        final JPanel panel43 = new JPanel();
+        panel43.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel41.add(panel43, gbc);
+        panel43.setBorder(BorderFactory.createTitledBorder(null, "Min Margin", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         minMarginField = new JTextField();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -950,17 +1089,17 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel35.add(minMarginField, gbc);
-        final JPanel panel36 = new JPanel();
-        panel36.setLayout(new GridBagLayout());
+        panel43.add(minMarginField, gbc);
+        final JPanel panel44 = new JPanel();
+        panel44.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel33.add(panel36, gbc);
-        panel36.setBorder(BorderFactory.createTitledBorder(null, "Restrictions", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel41.add(panel44, gbc);
+        panel44.setBorder(BorderFactory.createTitledBorder(null, "Restrictions", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         membersCheckBox = new JCheckBox();
         membersCheckBox.setText("Members Account");
         gbc = new GridBagConstraints();
@@ -969,7 +1108,7 @@ public class GUI extends JFrame {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
-        panel36.add(membersCheckBox, gbc);
+        panel44.add(membersCheckBox, gbc);
         tradeRestrictedCheckBox = new JCheckBox();
         tradeRestrictedCheckBox.setText("Trade Restricted");
         gbc = new GridBagConstraints();
@@ -978,11 +1117,37 @@ public class GUI extends JFrame {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
-        panel36.add(tradeRestrictedCheckBox, gbc);
+        panel44.add(tradeRestrictedCheckBox, gbc);
         selectionsTableScrollPane = new JScrollPane();
         selectionsPanel.add(selectionsTableScrollPane, BorderLayout.CENTER);
         selectionsTable = new JTable();
         selectionsTableScrollPane.setViewportView(selectionsTable);
+        final JPanel panel45 = new JPanel();
+        panel45.setLayout(new GridBagLayout());
+        selectionsPanel.add(panel45, BorderLayout.SOUTH);
+        final JPanel panel46 = new JPanel();
+        panel46.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel45.add(panel46, gbc);
+        removeItemField = new JTextField();
+        panel46.add(removeItemField, BorderLayout.CENTER);
+        final JPanel panel47 = new JPanel();
+        panel47.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel45.add(panel47, gbc);
+        removeButton = new JButton();
+        removeButton.setText("Remove by ID");
+        panel47.add(removeButton, BorderLayout.CENTER);
         savePanel = new JPanel();
         savePanel.setLayout(new BorderLayout(0, 0));
         contentPanel.add(savePanel, BorderLayout.SOUTH);
