@@ -151,6 +151,12 @@ public class Main extends AbstractScript {
         }
         rm.disposeApiSchedulers();
         rm.saveFourHourLimits();
+		
+		for (humblePhlipper.Resources.Items.Item item : rm.items.values()) {
+            for (humblePhlipper.Resources.SavedData.Trade trade : item.getTradeList()) {
+                rm.session.incrementTradesCSV("\n" + trade.getCSV());
+            }
+        }
 
         rm.session.incrementSessionHistory("tradesCSV", rm.session.getTradesCSV());
         rm.session.incrementSessionHistory("configJSON", rm.getConfigString());
