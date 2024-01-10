@@ -4,7 +4,6 @@ import humblePhlipper.Resources.SavedData.Config;
 import humblePhlipper.Resources.SavedData.Trade;
 import org.dreambot.api.Client;
 import org.dreambot.api.settings.ScriptSettings;
-import org.dreambot.api.utilities.Logger;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;

@@ -29,7 +29,6 @@ public class Trade {
         return time + "," + name + "," + vol + "," + price;
     }
 
-
    public LocalDateTime getTime() { return time; }
 
     public String getName() { return name; }

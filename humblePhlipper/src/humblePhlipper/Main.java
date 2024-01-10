@@ -3,7 +3,6 @@
 package humblePhlipper;
 
 // Script architecture
-import humblePhlipper.Resources.SavedData.Trade;
 import org.dreambot.api.Client;
 import org.dreambot.api.methods.grandexchange.GrandExchangeItem;
 import org.dreambot.api.randoms.RandomSolver;
@@ -22,7 +21,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.List;
 
 @ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.1)
 public class Main extends AbstractScript {
@@ -30,9 +28,7 @@ public class Main extends AbstractScript {
     public static final Trading trading = new Trading(rm);
     private static final Paint paint = new Paint(rm);
     private static GUI gui;
-    private static EndGUI endGui;
 
-    // Constants
     public static final int SLEEP = 1000;
 
     @Override
@@ -57,12 +53,12 @@ public class Main extends AbstractScript {
     @Override
     public void onSolverEnd(RandomSolver solver){
         rm.loadFourHourLimits();
-        if (Main.rm.config.getAuto()) {
+        if (Main.rm.config.getAuto() && Main.rm.session.getProfit() == 0) {
             Main.rm.config.setSelections(new LinkedHashSet<Integer>());
             Main.trading.Select();
         }
-        rm.session.setTimer(new Timer());
     }
+
     @Override
     public void onPaint(Graphics g) {
         if (rm.session.getRunning()) {
@@ -156,15 +152,6 @@ public class Main extends AbstractScript {
         rm.disposeApiSchedulers();
         rm.saveFourHourLimits();
 
-        List<Trade> tradeList = new ArrayList<>();
-
-        for (Integer ID : rm.config.getSelections()) {
-            for (Trade trade : rm.items.get(ID).getTradeList()) {
-                rm.session.incrementTradesCSV("\n" + trade.getCSV());
-                tradeList.add(trade);
-            }
-        }
-
         rm.session.incrementSessionHistory("tradesCSV", rm.session.getTradesCSV());
         rm.session.incrementSessionHistory("configJSON", rm.getConfigString());
         String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
@@ -180,8 +167,9 @@ public class Main extends AbstractScript {
         if (rm.config.getSysExit()) {
             System.exit(0);
         }
+		
         SwingUtilities.invokeLater(() -> {
-            endGui = new EndGUI();
+            EndGUI endGui = new EndGUI();
         });
     }
 }
