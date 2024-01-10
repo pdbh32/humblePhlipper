@@ -5,10 +5,8 @@ package humblePhlipper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import org.dreambot.api.Client;
 import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.AccountManager;
-import org.dreambot.api.utilities.Logger;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -193,7 +191,7 @@ public class ResourceManager {
         String file = AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "") + ".json";
         fourHourLimits = ScriptSettings.load(humblePhlipper.Resources.SavedData.FourHourLimits.class, "humblePhlipper", "FourHourLimits", file);
 
-        // If not empty, update (refresh times) and return, else set default,
+        // If not empty, update refresh times and return, else set default,
         if (!fourHourLimits.isEmpty()) {
             updateFourHourLimits();
             return;
@@ -202,7 +200,7 @@ public class ResourceManager {
             fourHourLimits.put(ID, new humblePhlipper.Resources.SavedData.FourHourLimits.FourHourLimit());
         }
     }
-    //AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "")
+
     public void saveFourHourLimits() {
         if (AccountManager.getAccountHash() == "") {
             return;
@@ -233,7 +231,11 @@ public class ResourceManager {
         if (params == null || params.length != 1) {
             return;
         }
-        config = gson.fromJson(params[0], humblePhlipper.Resources.SavedData.Config.class);
+        if (params[0].startsWith("<") && params[0].endsWith(">")) {
+            loadConfig(params[0].substring(1, params[0].length() - 1));
+        } else {
+            config = gson.fromJson(params[0], humblePhlipper.Resources.SavedData.Config.class);
+        }
     }
 
     public String getConfigString() {

@@ -23,7 +23,6 @@ public class Trading {
     private static final Integer SLEEP = 1000;
     private static final Set<Integer> restrictedIdSet = new HashSet<>(Arrays.asList(1521, 1519, 1515, 317, 315, 321, 319, 377, 379, 434, 1761, 436, 438, 440, 442, 444, 453, 447, 449, 451, 1739, 229, 227, 1937, 313, 314, 221, 245, 556, 555, 557, 554, 558, 562));
     public Trading(ResourceManager rm) {
-
         this.rm = rm;
     }
     public static Set<Integer> getRestrictedIdSet() {
@@ -90,7 +89,7 @@ public class Trading {
             int capitalBindingIndex = capitalBindingOrderedSelection.indexOf(id);
 
             // Calculate the average of the indices
-            return -1 * (rm.config.getPriorityProfit() * profitIndex + rm.config.getPriorityVol()* volIndex + rm.config.getPriorityCapitalBinding() * capitalBindingIndex);
+            return -1 * (rm.config.getPriorityProfit() * profitIndex + rm.config.getPriorityVol() * volIndex + rm.config.getPriorityCapitalBinding() * capitalBindingIndex);
         }));
         rm.config.setSelections(new LinkedHashSet<>(orderedSelections));
     }
@@ -130,27 +129,17 @@ public class Trading {
         }
 
         boolean collectionSuccess = false;
-        boolean isBuy = geItem.isBuyOffer();
         int vol = geItem.getTransferredAmount();
-        double price = 0;
+        double price;
 
-        if (isBuy) {
+        if (geItem.isBuyOffer()) {
             price = (double) -1 * geItem.getTransferredValue() / vol;
         } else {
             // getTransferredValue() is pre-tax for Asks, so we use regex with a widget
             Pattern pattern = Pattern.compile("for\\s<col=ffb83f>([,\\d]+)</col>\\scoins");
             Matcher matcher = pattern.matcher(Widgets.get(465, 23, 1).getText());
-            if (matcher.find()) {
-                price = (double) Integer.parseInt(matcher.group(1).replaceAll(",", "")) / vol;
-            }
-            // getTransferredValue() is pre-tax for Asks, so we check collection item widgets
-            /*double coinsCollected= 0;
-            if (GrandExchange.getOfferSecondItemWidget().getItemId() == 995 && !GrandExchange.getOfferSecondItemWidget().isHidden()) {
-                coinsCollected = GrandExchange.getOfferSecondItemWidget().getItemStack();
-            } else if (GrandExchange.getOfferFirstItemWidget().getItemId() == 995) {
-                coinsCollected = GrandExchange.getOfferFirstItemWidget().getItemStack();
-            }
-            price = coinsCollected/vol;*/
+            matcher.find();
+            price = (double) Integer.parseInt(matcher.group(1).replaceAll(",", "")) / vol;
         }
 
         if (!GrandExchange.getOfferSecondItemWidget().isHidden()) {
@@ -168,11 +157,15 @@ public class Trading {
             }
         }
 
+        if (Inventory.count(geItem.getName()) > 0) {
+            collectionSuccess = true;
+        }
+
         if (!collectionSuccess || vol == 0) {
             return;
         }
 
-        if (isBuy) {
+        if (geItem.isBuyOffer()) {
             item.setBought(item.getBought() + vol);
             item.setLastBuyPrice(-1 * price);
 

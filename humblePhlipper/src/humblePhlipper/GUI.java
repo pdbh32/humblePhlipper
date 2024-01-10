@@ -5,7 +5,6 @@ package humblePhlipper;
 import humblePhlipper.Resources.Items;
 import humblePhlipper.Resources.SavedData.Config;
 import org.dreambot.api.Client;
-import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.utilities.Timer;
 
 import javax.swing.*;
@@ -30,7 +29,7 @@ public class GUI extends JFrame {
     private JTable selectionsTable;
 
 
-    // Other (IntelliJ IDEA GUI3 Designer generated) fields
+    // Other (IntelliJ IDEA GUI Designer generated) fields
     private JPanel contentPanel;
     private JTabbedPane mainPane;
     private JButton startButton;
