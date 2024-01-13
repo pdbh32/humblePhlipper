@@ -1,6 +1,6 @@
 // Resources\SavedData\FourHourLimits.java
 
-package humblePhlipper.Resources.SavedData;
+package humblePhlipper.resources.savedData;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

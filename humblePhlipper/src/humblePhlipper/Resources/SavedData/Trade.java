@@ -1,6 +1,6 @@
 // Resource\SavedData\Trade.java
 
-package humblePhlipper.Resources.SavedData;
+package humblePhlipper.resources.savedData;
 
 import java.time.LocalDateTime;
 

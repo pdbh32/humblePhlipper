@@ -1,6 +1,6 @@
 // Resources\Items.java
 
-package humblePhlipper.Resources;
+package humblePhlipper.resources;
 
 import org.dreambot.api.utilities.Timer;
 

@@ -2,8 +2,8 @@
 
 package humblePhlipper;
 
-import humblePhlipper.Resources.Items;
-import humblePhlipper.Resources.SavedData.Config;
+import humblePhlipper.resources.Items;
+import humblePhlipper.resources.savedData.Config;
 import org.dreambot.api.Client;
 import org.dreambot.api.utilities.Timer;
 
@@ -253,7 +253,7 @@ public class GUI extends JFrame {
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Only allow editing for target vol
+                return false;
             }
         };
         for (int ID : Main.rm.config.getSelections()) {

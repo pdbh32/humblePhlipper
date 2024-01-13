@@ -151,9 +151,9 @@ public class Main extends AbstractScript {
         }
         rm.disposeApiSchedulers();
         rm.saveFourHourLimits();
-		
-		for (humblePhlipper.Resources.Items.Item item : rm.items.values()) {
-            for (humblePhlipper.Resources.SavedData.Trade trade : item.getTradeList()) {
+
+        for (humblePhlipper.resources.Items.Item item : rm.items.values()) {
+            for (humblePhlipper.resources.savedData.Trade trade : item.getTradeList()) {
                 rm.session.incrementTradesCSV("\n" + trade.getCSV());
             }
         }
@@ -173,7 +173,7 @@ public class Main extends AbstractScript {
         if (rm.config.getSysExit()) {
             System.exit(0);
         }
-		
+
         SwingUtilities.invokeLater(() -> {
             EndGUI endGui = new EndGUI();
         });

@@ -36,18 +36,18 @@ Classes Resources.SavedData.* DO match the structure of their local json source 
 
 public class ResourceManager {
     public final Gson gson;
-    public Map<Integer, humblePhlipper.Resources.API.Mapping> mappingMap;
-    public Map<Integer, humblePhlipper.Resources.API.Latest> latestMap;
-    public Map<Integer, humblePhlipper.Resources.API.FiveMinute> fiveMinuteMap;
-    public Map<Integer, humblePhlipper.Resources.API.OneHour> oneHourMap;
+    public Map<Integer, humblePhlipper.resources.api.Mapping> mappingMap;
+    public Map<Integer, humblePhlipper.resources.api.Latest> latestMap;
+    public Map<Integer, humblePhlipper.resources.api.FiveMinute> fiveMinuteMap;
+    public Map<Integer, humblePhlipper.resources.api.OneHour> oneHourMap;
     private ScheduledExecutorService latestApiScheduler;
     private ScheduledExecutorService fiveMinuteApiScheduler;
     private ScheduledExecutorService oneHourApiScheduler;
-    public humblePhlipper.Resources.SavedData.FourHourLimits fourHourLimits;
-    public humblePhlipper.Resources.SavedData.Config config;
+    public humblePhlipper.resources.savedData.FourHourLimits fourHourLimits;
+    public humblePhlipper.resources.savedData.Config config;
 
-    public humblePhlipper.Resources.Items items;
-    public humblePhlipper.Resources.Session session;
+    public humblePhlipper.resources.Items items;
+    public humblePhlipper.resources.Session session;
 
     public ResourceManager() {
         this.gson = new GsonBuilder().setPrettyPrinting().create();
@@ -60,13 +60,13 @@ public class ResourceManager {
 
         // (2) Load and set four hour limits and set default config,
         loadFourHourLimits();
-        this.config = new humblePhlipper.Resources.SavedData.Config(); // Custom config is loaded and set by GUI3/CLI
+        this.config = new humblePhlipper.resources.savedData.Config(); // Custom config is loaded and set by GUI3/CLI
 
         // (3) Initialise items
-        this.items = new humblePhlipper.Resources.Items(this);
+        this.items = new humblePhlipper.resources.Items(this);
 
         // (4) Initialise session
-        this.session = new humblePhlipper.Resources.Session();
+        this.session = new humblePhlipper.resources.Session();
     }
 
     public void setApiSchedulers() {
@@ -162,22 +162,22 @@ public class ResourceManager {
             try (InputStreamReader reader = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
                 switch (urlRoute) {
                     case "mapping":
-                        List<humblePhlipper.Resources.API.Mapping> mappingList = gson.fromJson(reader, new TypeToken<List<humblePhlipper.Resources.API.Mapping>>() {}.getType());
-                        mappingMap = mappingList.stream().collect(Collectors.toMap(humblePhlipper.Resources.API.Mapping::getId, Function.identity()));
+                        List<humblePhlipper.resources.api.Mapping> mappingList = gson.fromJson(reader, new TypeToken<List<humblePhlipper.resources.api.Mapping>>() {}.getType());
+                        mappingMap = mappingList.stream().collect(Collectors.toMap(humblePhlipper.resources.api.Mapping::getId, Function.identity()));
                         break;
                     case "latest":
-                        Map<String, Map<Integer, humblePhlipper.Resources.API.Latest>> latestMapData = gson.fromJson(reader, new TypeToken<Map<String, Map<Integer, humblePhlipper.Resources.API.Latest>>>() {}.getType());
+                        Map<String, Map<Integer, humblePhlipper.resources.api.Latest>> latestMapData = gson.fromJson(reader, new TypeToken<Map<String, Map<Integer, humblePhlipper.resources.api.Latest>>>() {}.getType());
                         latestMap = latestMapData.get("data");
                         break;
                     case "5m":
                         Map fiveMinuteMapData = gson.fromJson(reader, Map.class);
                         String fiveMinuteJson = gson.toJson(fiveMinuteMapData.get("data"));
-                        fiveMinuteMap = gson.fromJson(fiveMinuteJson, new TypeToken<Map<Integer, humblePhlipper.Resources.API.FiveMinute>>() {}.getType());
+                        fiveMinuteMap = gson.fromJson(fiveMinuteJson, new TypeToken<Map<Integer, humblePhlipper.resources.api.FiveMinute>>() {}.getType());
                         break;
                     case "1h":
                         Map oneHourMapData = gson.fromJson(reader, Map.class);
                         String oneHourJson = gson.toJson(oneHourMapData.get("data"));
-                        oneHourMap = gson.fromJson(oneHourJson, new TypeToken<Map<Integer, humblePhlipper.Resources.API.OneHour>>() {}.getType());
+                        oneHourMap = gson.fromJson(oneHourJson, new TypeToken<Map<Integer, humblePhlipper.resources.api.OneHour>>() {}.getType());
                         break;
                 }
             }
@@ -189,7 +189,7 @@ public class ResourceManager {
 
     public void loadFourHourLimits() {
         String file = AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "") + ".json";
-        fourHourLimits = ScriptSettings.load(humblePhlipper.Resources.SavedData.FourHourLimits.class, "humblePhlipper", "FourHourLimits", file);
+        fourHourLimits = ScriptSettings.load(humblePhlipper.resources.savedData.FourHourLimits.class, "humblePhlipper", "FourHourLimits", file);
 
         // If not empty, update refresh times and return, else set default,
         if (!fourHourLimits.isEmpty()) {
@@ -197,7 +197,7 @@ public class ResourceManager {
             return;
         }
         for (Integer ID : mappingMap.keySet()) {
-            fourHourLimits.put(ID, new humblePhlipper.Resources.SavedData.FourHourLimits.FourHourLimit());
+            fourHourLimits.put(ID, new humblePhlipper.resources.savedData.FourHourLimits.FourHourLimit());
         }
     }
 
@@ -219,7 +219,7 @@ public class ResourceManager {
 
     public void loadConfig(String fileName) {
         String file = fileName + ".json";
-        config = ScriptSettings.load(humblePhlipper.Resources.SavedData.Config.class, "humblePhlipper", "Config", file);
+        config = ScriptSettings.load(humblePhlipper.resources.savedData.Config.class, "humblePhlipper", "Config", file);
     }
 
     public void saveConfig(String fileName) {
@@ -234,7 +234,7 @@ public class ResourceManager {
         if (params[0].startsWith("<") && params[0].endsWith(">")) {
             loadConfig(params[0].substring(1, params[0].length() - 1));
         } else {
-            config = gson.fromJson(params[0], humblePhlipper.Resources.SavedData.Config.class);
+            config = gson.fromJson(params[0], humblePhlipper.resources.savedData.Config.class);
         }
     }
 
@@ -252,12 +252,12 @@ public class ResourceManager {
 
     public int getIdFromString(String input) {
         try {
-            humblePhlipper.Resources.API.Mapping mapping = mappingMap.get(Integer.parseInt(input));
+            humblePhlipper.resources.api.Mapping mapping = mappingMap.get(Integer.parseInt(input));
             if (mapping != null) {
                 return mapping.getId();
             }
         } catch (NumberFormatException e) {
-            for (humblePhlipper.Resources.API.Mapping mapping : mappingMap.values()) {
+            for (humblePhlipper.resources.api.Mapping mapping : mappingMap.values()) {
                 if (mapping.getName().equalsIgnoreCase(input)) {
                     return mapping.getId();
                 }

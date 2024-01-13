@@ -38,7 +38,7 @@ public class Paint {
         tableY += 20;
 
         for (Integer ID : rm.config.getSelections()) {
-            humblePhlipper.Resources.Items.Item item = rm.items.get(ID);
+            humblePhlipper.resources.Items.Item item = rm.items.get(ID);
             if (tableY > 20 + 15*20) {
                 break;
             }
