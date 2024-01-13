@@ -1,6 +1,6 @@
 // Resources\API\OneHour.java
 
-package humblePhlipper.Resources.API;
+package humblePhlipper.resources.api;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

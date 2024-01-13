@@ -172,7 +172,241 @@
             </constraints>
             <properties/>
             <border type="none"/>
-            <children/>
+            <children>
+              <grid id="92fc" layout-manager="GridBagLayout">
+                <constraints border-constraint="North"/>
+                <properties>
+                  <enabled value="true"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <grid id="daa56" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none" title="Profit"/>
+                    <children>
+                      <component id="2e89f" class="javax.swing.JTextField" binding="totalProfitTextField">
+                        <constraints border-constraint="Center"/>
+                        <properties>
+                          <editable value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                  <grid id="7901a" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none" title="Number of Sessions"/>
+                    <children>
+                      <component id="d1d8e" class="javax.swing.JTextField" binding="numberOfSessionsTextField">
+                        <constraints border-constraint="Center"/>
+                        <properties>
+                          <editable value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                  <grid id="dcbf3" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none" title="Runtime (Hours)"/>
+                    <children>
+                      <component id="920a1" class="javax.swing.JTextField" binding="totalRuntimeTextField">
+                        <constraints border-constraint="Center"/>
+                        <properties>
+                          <editable value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                  <grid id="bf657" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none" title="Profit per Hour"/>
+                    <children>
+                      <component id="d03bc" class="javax.swing.JTextField" binding="totalProfitPerHourTextField">
+                        <constraints border-constraint="Center"/>
+                        <properties>
+                          <editable value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
+              <grid id="5798" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <tabbedpane id="3fa01" binding="tabbedPane3" default-binding="true">
+                    <constraints border-constraint="Center"/>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <grid id="47b54" layout-manager="BorderLayout" hgap="0" vgap="0">
+                        <constraints>
+                          <tabbedpane title="Regression"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <grid id="84b16" layout-manager="GridBagLayout">
+                            <constraints border-constraint="North"/>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <grid id="f9f6e" layout-manager="BorderLayout" hgap="0" vgap="0">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                                  <gridbag weightx="1.0" weighty="1.0"/>
+                                </constraints>
+                                <properties/>
+                                <border type="none" title="Model"/>
+                                <children>
+                                  <component id="df37b" class="javax.swing.JTextField" binding="OLSTextField" default-binding="true">
+                                    <constraints border-constraint="Center"/>
+                                    <properties>
+                                      <editable value="false"/>
+                                      <text value="OLS"/>
+                                    </properties>
+                                  </component>
+                                </children>
+                              </grid>
+                              <grid id="8978e" layout-manager="BorderLayout" hgap="0" vgap="0">
+                                <constraints>
+                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                                  <gridbag weightx="1.0" weighty="1.0"/>
+                                </constraints>
+                                <properties/>
+                                <border type="none" title="Finite Sample Correction"/>
+                                <children>
+                                  <component id="53207" class="javax.swing.JCheckBox" binding="finiteCorrectionCheckbox">
+                                    <constraints border-constraint="Center"/>
+                                    <properties>
+                                      <text value="True"/>
+                                    </properties>
+                                  </component>
+                                </children>
+                              </grid>
+                              <grid id="1b134" layout-manager="BorderLayout" hgap="0" vgap="0">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                                  <gridbag weightx="1.0" weighty="1.0"/>
+                                </constraints>
+                                <properties/>
+                                <border type="none" title="Standard Errors"/>
+                                <children>
+                                  <component id="bf828" class="javax.swing.JComboBox" binding="seComboBox">
+                                    <constraints border-constraint="Center"/>
+                                    <properties/>
+                                  </component>
+                                </children>
+                              </grid>
+                            </children>
+                          </grid>
+                          <component id="4e636" class="javax.swing.JTable" binding="regressionTable">
+                            <constraints border-constraint="Center"/>
+                            <properties/>
+                          </component>
+                        </children>
+                      </grid>
+                      <tabbedpane id="66afd" binding="tabbedPane2" default-binding="true">
+                        <constraints>
+                          <tabbedpane title="Inputs"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <scrollpane id="c62c7">
+                            <constraints>
+                              <tabbedpane title="Y CSV"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="fed27" class="javax.swing.JTextArea" binding="yTextArea">
+                                <constraints/>
+                                <properties>
+                                  <editable value="false"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </scrollpane>
+                          <scrollpane id="9b3c1">
+                            <constraints>
+                              <tabbedpane title="X CSV"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="75a7f" class="javax.swing.JTextArea" binding="xTextArea">
+                                <constraints/>
+                                <properties>
+                                  <editable value="false"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </scrollpane>
+                        </children>
+                      </tabbedpane>
+                      <tabbedpane id="1edd8" binding="tabbedPane4" default-binding="true">
+                        <constraints>
+                          <tabbedpane title="Replication"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <scrollpane id="e3f95">
+                            <constraints>
+                              <tabbedpane title="R (4.2.2) Code"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="416d2" class="javax.swing.JTextArea" binding="rCodeTextArea">
+                                <constraints/>
+                                <properties>
+                                  <editable value="false"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </scrollpane>
+                          <grid id="e1374" layout-manager="BorderLayout" hgap="0" vgap="0">
+                            <constraints>
+                              <tabbedpane title="Stata (13) Code"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="1ddb4" class="javax.swing.JTextArea" binding="stataCodeTextArea">
+                                <constraints border-constraint="Center"/>
+                                <properties>
+                                  <editable value="false"/>
+                                  <text value=""/>
+                                </properties>
+                              </component>
+                            </children>
+                          </grid>
+                        </children>
+                      </tabbedpane>
+                    </children>
+                  </tabbedpane>
+                </children>
+              </grid>
+            </children>
           </grid>
         </children>
       </tabbedpane>

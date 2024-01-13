@@ -2,7 +2,6 @@
 
 package humblePhlipper;
 
-import humblePhlipper.Resources.SavedData.Trade;
 import org.dreambot.api.Client;
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
@@ -30,7 +29,7 @@ public class Trading {
     }
     public void Select() {
         for (Integer ID : rm.items.keySet()) {
-            humblePhlipper.Resources.Items.Item item = rm.items.get(ID);
+            humblePhlipper.resources.Items.Item item = rm.items.get(ID);
             if (item.getAsk() == null || item.getBid() == null) {
                 continue;
             }
@@ -97,7 +96,7 @@ public class Trading {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
             return;
         }
-        humblePhlipper.Resources.Items.Item item = rm.items.get(geItem.getID());
+        humblePhlipper.resources.Items.Item item = rm.items.get(geItem.getID());
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
             return;
         }
@@ -117,7 +116,7 @@ public class Trading {
             return;
         }
 
-        humblePhlipper.Resources.Items.Item item = rm.items.get(geItem.getID());
+        humblePhlipper.resources.Items.Item item = rm.items.get(geItem.getID());
 
         if (!geItem.isReadyToCollect()) {
             return;
@@ -182,13 +181,13 @@ public class Trading {
             item.setProfit(item.getProfit() + (price - item.getLastBuyPrice()) * vol);
 
             rm.session.setProfit(0);
-            for (humblePhlipper.Resources.Items.Item loopItem : rm.items.values()) {
+            for (humblePhlipper.resources.Items.Item loopItem : rm.items.values()) {
                 rm.session.incrementProfit(loopItem.getProfit());
             }
             rm.session.incrementTimeCumProfitMap(rm.session.getTimer().elapsed(), rm.session.getProfit());
         }
 
-        Trade trade = new Trade(LocalDateTime.now(), geItem.getName(), vol, price);
+        humblePhlipper.resources.savedData.Trade trade = new humblePhlipper.resources.savedData.Trade(LocalDateTime.now(), geItem.getName(), vol, price);
         item.incrementTradeList(trade);
         Logger.log("<trade>\n" + trade.getCSV() + "</trade>");
     }
@@ -198,7 +197,7 @@ public class Trading {
             return false;
         }
 
-        humblePhlipper.Resources.Items.Item item = rm.items.get(ID);
+        humblePhlipper.resources.Items.Item item = rm.items.get(ID);
 
         if (GrandExchange.getFirstOpenSlot() == -1) {
             return false;
@@ -217,7 +216,7 @@ public class Trading {
             return false;
         }
 
-        humblePhlipper.Resources.Items.Item item = rm.items.get(ID);
+        humblePhlipper.resources.Items.Item item = rm.items.get(ID);
 
         if (GrandExchange.getFirstOpenSlot() == -1) {
             return false;

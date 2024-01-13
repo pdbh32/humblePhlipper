@@ -1,8 +1,6 @@
 // Resources\Items.java
 
-package humblePhlipper.Resources;
-
-import humblePhlipper.Resources.SavedData.Trade;
+package humblePhlipper.resources;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -63,7 +61,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
     public class Item {
         private humblePhlipper.ResourceManager rm;
         private int id;
-        private humblePhlipper.Resources.SavedData.FourHourLimits.FourHourLimit fourHourLimit;
+        private humblePhlipper.resources.savedData.FourHourLimits.FourHourLimit fourHourLimit;
         private int targetVol;
         private double lastBuyPrice;
         private double profit;
@@ -72,11 +70,11 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         private Integer bid;
         private Integer ask;
 
-        private humblePhlipper.Resources.API.Mapping mapping;
-        private humblePhlipper.Resources.API.Latest latest = new humblePhlipper.Resources.API.Latest();
-        private humblePhlipper.Resources.API.FiveMinute fiveMinute = new humblePhlipper.Resources.API.FiveMinute();
-        private humblePhlipper.Resources.API.OneHour oneHour = new humblePhlipper.Resources.API.OneHour();
-        private List<Trade> tradeList = new ArrayList<>();
+        private humblePhlipper.resources.api.Mapping mapping;
+        private humblePhlipper.resources.api.Latest latest = new humblePhlipper.resources.api.Latest();
+        private humblePhlipper.resources.api.FiveMinute fiveMinute = new humblePhlipper.resources.api.FiveMinute();
+        private humblePhlipper.resources.api.OneHour oneHour = new humblePhlipper.resources.api.OneHour();
+        private List<humblePhlipper.resources.savedData.Trade> tradeList = new ArrayList<>();
 
         public Item(int id, humblePhlipper.ResourceManager rm) {
             this.id = id;
@@ -98,7 +96,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         }
         public int getId() {return id; }
 
-        public humblePhlipper.Resources.SavedData.FourHourLimits.FourHourLimit getFourHourLimit() { return fourHourLimit; }
+        public humblePhlipper.resources.savedData.FourHourLimits.FourHourLimit getFourHourLimit() { return fourHourLimit; }
         public void updateFourHourLimit() { this.fourHourLimit = rm.fourHourLimits.get(this.id); }
         public int getTargetVol() { return targetVol; }
         public void updateTargetVol() {
@@ -134,17 +132,17 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             this.sold = sold;
         }
 
-        public List<Trade> getTradeList() { return tradeList; }
+        public List<humblePhlipper.resources.savedData.Trade> getTradeList() { return tradeList; }
 
-        public void incrementTradeList(Trade trade) { this.tradeList.add(trade); }
+        public void incrementTradeList(humblePhlipper.resources.savedData.Trade trade) { this.tradeList.add(trade); }
 
         public Integer getBid() { return bid; }
         public Integer getAsk() { return ask; }
 
-        public humblePhlipper.Resources.API.Mapping getMapping() { return mapping; }
+        public humblePhlipper.resources.api.Mapping getMapping() { return mapping; }
         private void updateMapping() { mapping = rm.mappingMap.get(id); }
 
-        public humblePhlipper.Resources.API.Latest getLatest() { return latest; }
+        public humblePhlipper.resources.api.Latest getLatest() { return latest; }
         private void updateLatest() {
             if (rm.latestMap.get(id) == null) {
                 return;
@@ -158,14 +156,14 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             this.latest = rm.latestMap.get(id);
         }
 
-        public humblePhlipper.Resources.API.FiveMinute getFiveMinute() { return fiveMinute; }
+        public humblePhlipper.resources.api.FiveMinute getFiveMinute() { return fiveMinute; }
         private void updateFiveMinute() {
             if (rm.fiveMinuteMap.get(id) == null) {
                 return;
             }
             this.fiveMinute = rm.fiveMinuteMap.get(id);
         }
-        public humblePhlipper.Resources.API.OneHour getOneHour() { return oneHour; }
+        public humblePhlipper.resources.api.OneHour getOneHour() { return oneHour; }
         private void updateOneHour() {
             if (rm.oneHourMap.get(id) == null) {
                 return;
