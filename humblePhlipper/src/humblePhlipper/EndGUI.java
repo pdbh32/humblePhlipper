@@ -114,11 +114,11 @@ public class EndGUI extends JFrame {
             timeList.add(trade.getTime());
         }
 
-        long runtime = (!timeList.isEmpty()) ? Duration.between(Collections.min(timeList), Collections.max(timeList)).toMinutes() : 0;
+        long runtime = (!timeList.isEmpty()) ? Duration.between(Collections.min(timeList), Collections.max(timeList)).toMillis() : 0;
         double profit = (!itemProfitMap.isEmpty()) ? itemProfitMap.values().stream().mapToDouble(Double::doubleValue).sum() : 0;
-        double profitPerHour = (runtime != 0) ? 60 * profit / runtime : 0;
+        double profitPerHour = (runtime != 0) ? 3600000 * profit / runtime : 0;
 
-        tradingTimeField.setText(runtime + " minutes");
+        tradingTimeField.setText(runtime / 60000 + " minutes");
         profitTextField.setText(commaFormat.format(Math.round(profit)));
         profitPerHourTextField.setText(commaFormat.format(Math.round(profitPerHour)));
 
