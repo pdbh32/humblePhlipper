@@ -187,8 +187,8 @@ public class Trading {
             rm.session.incrementTimeCumProfitMap(rm.session.getTimer().elapsed(), rm.session.getProfit());
         }
 
-        humblePhlipper.resources.savedData.Trade trade = new humblePhlipper.resources.savedData.Trade(LocalDateTime.now(), geItem.getName(), vol, price);
-        item.incrementTradeList(trade);
+        humblePhlipper.resources.savedData.Trades.Trade trade = new humblePhlipper.resources.savedData.Trades.Trade(LocalDateTime.now(), geItem.getName(), vol, price);
+        item.getTrades().increment(trade);
         Logger.log("<trade>\n" + trade.getCSV() + "</trade>");
     }
 

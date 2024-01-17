@@ -13,7 +13,7 @@ public class Session {
     private boolean running; // true if config set up
     private boolean bidding; // if false, close bids and sell remaining inventory
     private double profit;
-    private String tradesCSV;
+    public humblePhlipper.resources.savedData.Trades trades;
     private TreeMap<Long, Double> timeCumProfitMap; // cumulative profit time series
     Map<String, String> sessionHistory; // to save down history
 
@@ -22,7 +22,7 @@ public class Session {
         this.running = false;
         this.bidding = true;
         this.profit = 0;
-        this.tradesCSV = "time,name,vol,price";
+        this.trades = new humblePhlipper.resources.savedData.Trades();
         this.timeCumProfitMap = new TreeMap<>();
         this.timeCumProfitMap.put(0L, 0.0);
         this.sessionHistory = new HashMap<>();
@@ -68,10 +68,6 @@ public class Session {
     }
     public void setTimeCumProfitMap(TreeMap<Long, Double> timeCumProfitMap) { this.timeCumProfitMap = timeCumProfitMap; }
     public void incrementTimeCumProfitMap(Long time, double amount) { this.timeCumProfitMap.merge(time, amount, Double::sum); }
-
-    public String getTradesCSV() { return tradesCSV; }
-    public void setTradesCSV(String tradesCSV) { this.tradesCSV = tradesCSV; };
-    public void incrementTradesCSV(String tradesCSV) { this.tradesCSV += tradesCSV; }
 
     public Map<String, String> getSessionHistory() { return sessionHistory; }
     public void setSessionHistory(Map<String, String> sessionHistory) { this.sessionHistory = sessionHistory; }

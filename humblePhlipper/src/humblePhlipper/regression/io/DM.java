@@ -11,59 +11,26 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class DM {
+    private File[] files;
     private int k;
-    public int cumRuntimeHours;
-    public int cumProfit;
+    public double cumRuntimeHours = 0.0;
+    public double cumProfit = 0.0;
+    public String errors = "";
     public Jama.Matrix Y;
     public Jama.Matrix X;
-    public DM(int k) {
+    public DM(File[] files, int k) {
+        this.files = files;
         this.k = k;
-        this.cumRuntimeHours = 0;
-        this.cumProfit = 0;
         designMatrices();
     }
 
-    private static Map<String, Double> parseCSV(String tradesCSV, String fileName) {
-        Map<String, Double> dataMap = new HashMap<>();
-        dataMap.put("profit", 0.0);
-        dataMap.put("runtime", null);
-
-        List<LocalDateTime> timeList = new ArrayList<>();
-        Map<String, Integer> itemCumVolMap = new HashMap<>();
-
-        String[] trades = tradesCSV.split("\\n");
-        for (int i = 1; i < trades.length; i++) {
-            humblePhlipper.resources.savedData.Trade trade = new humblePhlipper.resources.savedData.Trade(trades[i]);
-
-            if (trade.getPrice() == 0) {
-                Logger.log("<Error: Price = 0>" + fileName + "</Error>");
-                return null;
-            }
-
-            dataMap.merge("profit", trade.getPrice() * trade.getVol(), Double::sum);
-            timeList.add(trade.getTime());
-            itemCumVolMap.merge(
-                    trade.getName(),
-                    trade.getVol() * (trade.getPrice() < 0 ? 1 : -1),
-                    Integer::sum);
-        }
-
-        for (Map.Entry<String, Integer> entry : itemCumVolMap.entrySet()) {
-            if (entry.getValue() != 0) {
-                Logger.log("<Error: Cumulative Volume of " + entry.getKey() + " != 0>" + fileName + "</Error>");
-                return null;
-            }
-        }
-
-        long runtimeMs = (!timeList.isEmpty()) ? Duration.between(Collections.min(timeList), Collections.max(timeList)).toMillis() : 0;
-        if (runtimeMs == 0.0) {
-            Logger.log("<Error: No Trades>" + fileName + "</Error>");
-            return null;
-        }
-
-        dataMap.put("runtime", (double) runtimeMs/3600000);
-        return dataMap;
+    public DM(File file, int k) {
+        this.files = new File[]{file};
+        this.k = k;
+        designMatrices();
     }
+
+
 
     private static double[] y(double profit, double runtime) {
         double profitPerHour = profit/runtime;
@@ -106,39 +73,39 @@ public class DM {
     }
 
     private void designMatrices() {
-        String historyPath = System.getProperty("scripts.path") + File.separator + "humblePhlipper" + File.separator + "History";
-        File historyDirectory = new File(historyPath);
-        File[] files = historyDirectory.listFiles();
-
-        if (files == null) {
-            return;
-        }
-
         List<double[]> yList = new ArrayList<>();
         List<double[]> xList = new ArrayList<>();
 
         for (File file : files) {
             Map sessionHistory = ScriptSettings.load(Map.class, "humblePhlipper", "History", file.getName());
+
             String tradesCSV = (String) sessionHistory.get("tradesCSV");
+            humblePhlipper.resources.savedData.Trades trades = new humblePhlipper.resources.savedData.Trades(tradesCSV);
+
             String configJSON = (String) sessionHistory.get("configJSON");
             humblePhlipper.resources.savedData.Config config = humblePhlipper.Main.rm.gson.fromJson(configJSON, humblePhlipper.resources.savedData.Config.class);
 
-            Map<String, Double> dataMap = parseCSV(tradesCSV, file.getName());
-            if (dataMap == null) {
+            String error = trades.getError();
+            if (error != null) {
+                errors += error + file.getName() + "</Error>\n";
                 continue;
             }
 
-            cumProfit += dataMap.get("profit");
-            cumRuntimeHours += dataMap.get("runtime");
+            humblePhlipper.resources.savedData.Trades.Summary summary = trades.summarise();
 
-            double[] y = y(dataMap.get("profit"), dataMap.get("runtime"));
+            cumProfit += summary.profit;
+            cumRuntimeHours += summary.runtimeHours;
+
+            double[] y = y(summary.profit, summary.runtimeHours);
             yList.add(y);
 
-            double[] x = x(config, dataMap.get("runtime"), k);
+            double[] x = x(config, summary.runtimeHours, k);
             xList.add(x);
         }
 
         Y = new Matrix(yList.stream().toArray(double[][]::new));
         X = new Matrix(xList.stream().toArray(double[][]::new));
+
+        errors = errors.substring(0, errors.length()-1); // Remove trailing \n
     }
 }

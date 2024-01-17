@@ -3,12 +3,14 @@ package humblePhlipper;
 import Jama.Matrix;
 
 import humblePhlipper.regression.LinearRegression;
+import humblePhlipper.regression.distributions.F;
+import humblePhlipper.regression.distributions.T;
 import humblePhlipper.regression.io.CSV;
 import humblePhlipper.regression.io.DM;
 import humblePhlipper.regression.io.Models;
 import humblePhlipper.regression.io.Regressors;
 import humblePhlipper.resources.savedData.Config;
-import humblePhlipper.resources.savedData.Trade;
+import humblePhlipper.resources.savedData.Trades;
 import org.dreambot.api.Client;
 import org.dreambot.api.settings.ScriptSettings;
 
@@ -19,18 +21,18 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class EndGUI extends JFrame {
+    private final File historyDirectory = new File(System.getProperty("scripts.path") + File.separator + "humblePhlipper" + File.separator + "History");
     private List<Integer> modelsList = Models.getList();
     private String[] regressorsArray = Regressors.getArray();
     private String regressorsCSV = Regressors.getCSV();
     private DecimalFormat commaFormat = new DecimalFormat("#,###");
     private DecimalFormat fourDpFormat = new DecimalFormat("#.####");
+    private DM dm; // Design matrices including *all coefficients*
     private JTabbedPane tabbedPane1;
     private JPanel contentPanel;
     private JComboBox historyComboBox;
@@ -38,7 +40,7 @@ public class EndGUI extends JFrame {
     private JTextArea configTextArea;
     private JTextField profitPerHourTextField;
     private JTextField profitTextField;
-    private JTextField tradingTimeField;
+    private JTextField runtimeTextField;
     private JScrollPane barChartScrollPane;
     private JTextArea selectionsTextArea;
     private JTable regressionTable;
@@ -56,14 +58,19 @@ public class EndGUI extends JFrame {
     private JCheckBox finiteCorrectionCheckbox;
     private JTabbedPane tabbedPane4;
     private JTextArea stataCodeTextArea;
+    private JTextArea omissionsTextArea;
+    private JTextField errorsTextField;
 
     public EndGUI() {
         setHistoryComboBox();
         populateInspectionObjectsFromHistoryFile();
+
+        assembleData();
         populateAnalysis();
         setSeComboBox();
         setFiniteCorrectionCheckbox();
         runRegressions();
+
         configureUI();
     }
 
@@ -97,30 +104,29 @@ public class EndGUI extends JFrame {
         tradesTextArea.setText(tradesCSV);
         configTextArea.setText(configJSON);
 
-        List<LocalDateTime> timeList = new ArrayList<>();
+        Trades trades = new Trades(tradesCSV);
+        Trades.Summary allSummary = trades.summarise();
+
+        errorsTextField.setText(trades.getError());
+        runtimeTextField.setText(Math.round(allSummary.runtimeHours * 60) + " minutes");
+        profitTextField.setText(commaFormat.format(Math.round(allSummary.profit)));
+        profitPerHourTextField.setText(commaFormat.format(Math.round(allSummary.profit / allSummary.runtimeHours)));
+
+        Map<String, Trades> tradesMap = trades.splitByName();
         Map<String, Double> itemProfitMap = new HashMap<>();
         Map<String, Integer> itemVolMap = new HashMap<>();
+
         Config config = Main.rm.gson.fromJson(configJSON, Config.class);
         for (int ID : config.getSelections()) {
             itemProfitMap.put(Main.rm.mappingMap.get(ID).getName(), 0.0);
             itemVolMap.put(Main.rm.mappingMap.get(ID).getName(), 0);
         }
 
-        String[] trades = tradesCSV.split("\\n");
-        for (int i = 1; i < trades.length; i++) {
-            Trade trade = new Trade(trades[i]);
-            itemProfitMap.merge(trade.getName(), trade.getPrice() * trade.getVol(), Double::sum);
-            itemVolMap.merge(trade.getName(), trade.getVol(), Integer::sum);
-            timeList.add(trade.getTime());
+        for (Map.Entry<String, Trades> entry : tradesMap.entrySet()) {
+            Trades.Summary itemSummary = entry.getValue().summarise();
+            itemProfitMap.merge(entry.getKey(), itemSummary.profit, Double::sum);
+            itemVolMap.merge(entry.getKey(), itemSummary.vol, Integer::sum);
         }
-
-        long runtime = (!timeList.isEmpty()) ? Duration.between(Collections.min(timeList), Collections.max(timeList)).toMillis() : 0;
-        double profit = (!itemProfitMap.isEmpty()) ? itemProfitMap.values().stream().mapToDouble(Double::doubleValue).sum() : 0;
-        double profitPerHour = (runtime != 0) ? 3600000 * profit / runtime : 0;
-
-        tradingTimeField.setText(runtime / 60000 + " minutes");
-        profitTextField.setText(commaFormat.format(Math.round(profit)));
-        profitPerHourTextField.setText(commaFormat.format(Math.round(profitPerHour)));
 
         drawBarChart(itemProfitMap, itemVolMap);
     }
@@ -164,25 +170,39 @@ public class EndGUI extends JFrame {
         barChartScrollPane.setViewportView(chartPanel);
     }
 
-    private void populateAnalysis() {
-        try {
-            DM dm = new DM(Collections.max(modelsList));
-            totalProfitTextField.setText(commaFormat.format(Math.round(dm.cumProfit)));
-            totalRuntimeTextField.setText(commaFormat.format(Math.round(dm.cumRuntimeHours)));
-            totalProfitPerHourTextField.setText(commaFormat.format(Math.round(dm.cumProfit / dm.cumRuntimeHours)));
-            numberOfSessionsTextField.setText(commaFormat.format(dm.Y.getRowDimension()));
-            yTextArea.setText(CSV.toCSV(dm.Y, false, false, true));
-            xTextArea.setText(CSV.toCSV(dm.X, false, true, false));
-            rCodeTextArea.setText("Y <- c(\n" + CSV.toCSV(dm.Y, true, false, false) + ")" +
-                    "\n" +
-                    "\nX <- matrix(c(\n" + CSV.toCSV(dm.X, true, false, false) + ")," +
-                    "\nnrow = " + dm.X.getRowDimension() + ", ncol = " + dm.X.getColumnDimension() + ", byrow = TRUE," +
-                    "\ndimnames = list(NULL, c(" + regressorsCSV + ")))" +
-                    "\n" +
-                    "\nmodel <- lm(Y ~ X[, 2:5])" +
-                    "\nsummary(model)");
-        } catch (Exception ignored) {
+    private void assembleData() {
+        File[] files = historyDirectory.listFiles();
+        if (files == null) {
+            return;
         }
+        dm = new DM(files, Collections.max(modelsList));
+    }
+
+    private void populateAnalysis() {
+        if (dm == null) {
+            return;
+        }
+        totalProfitTextField.setText(commaFormat.format(Math.round(dm.cumProfit)));
+        totalRuntimeTextField.setText(commaFormat.format(Math.round(dm.cumRuntimeHours)));
+        totalProfitPerHourTextField.setText(commaFormat.format(Math.round(dm.cumProfit / dm.cumRuntimeHours)));
+        numberOfSessionsTextField.setText(commaFormat.format(dm.Y.getRowDimension()));
+        omissionsTextArea.setText(dm.errors);
+        yTextArea.setText(CSV.toCSV(dm.Y, false, false, true));
+        xTextArea.setText(CSV.toCSV(dm.X, false, true, false));
+        rCodeTextArea.setText("Y <- c(\n" + CSV.toCSV(dm.Y, true, false, false) + ")" +
+                "\n" +
+                "\nX <- matrix(c(\n" + CSV.toCSV(dm.X, true, false, false) + ")," +
+                "\nnrow = " + dm.X.getRowDimension() + ", ncol = " + dm.X.getColumnDimension() + ", byrow = TRUE," +
+                "\ndimnames = list(NULL, c(" + regressorsCSV + ")))" +
+                "\n" +
+                "\n#OLS assuming homoskedasticity with finite sample correction" +
+                "\nmodel <- lm(Y ~ X[, 2:5])" +
+                "\nsummary(model)" +
+                "\n" +
+                "\n#OLS assuming heteroskedasticity (White, 1980) without finite sample correction" +
+                "\nlibrary(lmtest)" +
+                "\nlibrary(sandwich)" +
+                "\ncoeftest(model, vcov = vcovHC(model, type = 'HC0'))");
     }
 
     private void runRegressions() {
@@ -193,8 +213,9 @@ public class EndGUI extends JFrame {
 
         try {
             for (int k : modelsList) {
-                DM dm = new DM(k);
-                listLr.add(new LinearRegression(dm.Y, dm.X, finiteCorrection));
+                Matrix I = Matrix.identity(dm.X.getColumnDimension(), k + 1);
+                Matrix X = dm.X.times(I);
+                listLr.add(new LinearRegression(dm.Y, X, finiteCorrection));
             }
         } catch (Exception ignored) {
             return;
@@ -220,6 +241,11 @@ public class EndGUI extends JFrame {
                     continue;
                 }
 
+                if (lr.n < lr.k + 1) {
+                    row.add("n < k + 1");
+                    continue;
+                }
+
                 if (lr.BetaHat == null) {
                     row.add("Singular X");
                     continue;
@@ -228,8 +254,12 @@ public class EndGUI extends JFrame {
                 Matrix B = lr.BetaHat;
                 Matrix O = (white) ? lr.WhiteOmegaHat : lr.OmegaHat;
 
-                String bSe = commaFormat.format(B.get(k, 0)) + lr.calcSigStar(k, white);
-                bSe += " (" + commaFormat.format(Math.sqrt(O.get(k, k))) + ")";
+                double b = B.get(k, 0);
+                double se = Math.sqrt(O.get(k, k));
+                double t = b / se;
+
+                String bSe = commaFormat.format(b) + T.calcSigStar(t, lr.n - 1);
+                bSe += " (" + commaFormat.format(se) + ")";
                 row.add(bSe);
             }
             model.addRow(row.toArray());
@@ -239,6 +269,11 @@ public class EndGUI extends JFrame {
         R2row.add("R^2");
         for (int m = 0; m < modelsList.size(); m++) {
             LinearRegression lr = listLr.get(m);
+
+            if (lr.n < lr.k + 1) {
+                R2row.add("n < k + 1");
+                continue;
+            }
 
             if (lr.BetaHat == null) {
                 R2row.add("Singular X");
@@ -253,6 +288,11 @@ public class EndGUI extends JFrame {
         AdjR2row.add("Adjusted R^2");
         for (int m = 0; m < modelsList.size(); m++) {
             LinearRegression lr = listLr.get(m);
+
+            if (lr.n < lr.k + 1) {
+                AdjR2row.add("n < k + 1");
+                continue;
+            }
 
             if (lr.BetaHat == null) {
                 AdjR2row.add("Singular X");
@@ -269,12 +309,17 @@ public class EndGUI extends JFrame {
         for (int m = 1; m < modelsList.size(); m++) {
             LinearRegression lr = listLr.get(m);
 
-            if (lr.BetaHat == null) {
-                AdjR2row.add("Singular X");
+            if (lr.n < lr.k + 1) {
+                FstatRow.add("n < k + 1");
                 continue;
             }
 
-            FstatRow.add(fourDpFormat.format(lr.calcFstat()));
+            if (lr.BetaHat == null) {
+                FstatRow.add("Singular X");
+                continue;
+            }
+
+            FstatRow.add(fourDpFormat.format(lr.F) + F.calcSigStar(lr.F, lr.k, lr.n - lr.k - 1));
         }
         model.addRow(FstatRow.toArray());
 
@@ -330,30 +375,72 @@ public class EndGUI extends JFrame {
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new BorderLayout(0, 0));
         tabbedPane1.addTab("Inspect", panel1);
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridBagLayout());
+        panel1.add(panel2, BorderLayout.NORTH);
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new GridBagLayout());
+        GridBagConstraints gbc;
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel2.add(panel3, gbc);
+        final JPanel panel4 = new JPanel();
+        panel4.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel3.add(panel4, gbc);
+        panel4.setBorder(BorderFactory.createTitledBorder(null, "Errors", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        errorsTextField = new JTextField();
+        errorsTextField.setEditable(false);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel4.add(errorsTextField, gbc);
+        final JPanel panel5 = new JPanel();
+        panel5.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel2.add(panel5, gbc);
+        panel5.setBorder(BorderFactory.createTitledBorder(null, "History File", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         historyComboBox = new JComboBox();
         final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
         historyComboBox.setModel(defaultComboBoxModel1);
-        panel1.add(historyComboBox, BorderLayout.NORTH);
+        panel5.add(historyComboBox, BorderLayout.CENTER);
         final JTabbedPane tabbedPane5 = new JTabbedPane();
         panel1.add(tabbedPane5, BorderLayout.CENTER);
-        final JPanel panel2 = new JPanel();
-        panel2.setLayout(new BorderLayout(0, 0));
-        tabbedPane5.addTab("Summary", panel2);
-        final JPanel panel3 = new JPanel();
-        panel3.setLayout(new GridBagLayout());
-        panel3.setEnabled(true);
-        panel2.add(panel3, BorderLayout.NORTH);
-        final JPanel panel4 = new JPanel();
-        panel4.setLayout(new GridBagLayout());
-        GridBagConstraints gbc;
+        final JPanel panel6 = new JPanel();
+        panel6.setLayout(new BorderLayout(0, 0));
+        tabbedPane5.addTab("Summary", panel6);
+        final JPanel panel7 = new JPanel();
+        panel7.setLayout(new GridBagLayout());
+        panel7.setEnabled(true);
+        panel6.add(panel7, BorderLayout.NORTH);
+        final JPanel panel8 = new JPanel();
+        panel8.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel3.add(panel4, gbc);
-        panel4.setBorder(BorderFactory.createTitledBorder(null, "Profit Per Hour", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel7.add(panel8, gbc);
+        panel8.setBorder(BorderFactory.createTitledBorder(null, "Profit Per Hour", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         profitPerHourTextField = new JTextField();
         profitPerHourTextField.setEditable(false);
         gbc = new GridBagConstraints();
@@ -363,19 +450,20 @@ public class EndGUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel4.add(profitPerHourTextField, gbc);
-        final JPanel panel5 = new JPanel();
-        panel5.setLayout(new GridBagLayout());
+        panel8.add(profitPerHourTextField, gbc);
+        final JPanel panel9 = new JPanel();
+        panel9.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel3.add(panel5, gbc);
-        panel5.setBorder(BorderFactory.createTitledBorder(null, "Trading Time", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        tradingTimeField = new JTextField();
-        tradingTimeField.setEditable(false);
+        panel7.add(panel9, gbc);
+        panel9.setBorder(BorderFactory.createTitledBorder(null, "Runtime (Minutes)", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        runtimeTextField = new JTextField();
+        runtimeTextField.setEditable(false);
+        runtimeTextField.setText("");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -383,17 +471,17 @@ public class EndGUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel5.add(tradingTimeField, gbc);
-        final JPanel panel6 = new JPanel();
-        panel6.setLayout(new GridBagLayout());
+        panel9.add(runtimeTextField, gbc);
+        final JPanel panel10 = new JPanel();
+        panel10.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel3.add(panel6, gbc);
-        panel6.setBorder(BorderFactory.createTitledBorder(null, "Profit", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel7.add(panel10, gbc);
+        panel10.setBorder(BorderFactory.createTitledBorder(null, "Profit", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         profitTextField = new JTextField();
         profitTextField.setEditable(false);
         gbc = new GridBagConstraints();
@@ -403,9 +491,9 @@ public class EndGUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel6.add(profitTextField, gbc);
+        panel10.add(profitTextField, gbc);
         barChartScrollPane = new JScrollPane();
-        panel2.add(barChartScrollPane, BorderLayout.CENTER);
+        panel6.add(barChartScrollPane, BorderLayout.CENTER);
         final JScrollPane scrollPane1 = new JScrollPane();
         tabbedPane5.addTab("Config JSON", scrollPane1);
         configTextArea = new JTextArea();
@@ -421,117 +509,117 @@ public class EndGUI extends JFrame {
         selectionsTextArea = new JTextArea();
         selectionsTextArea.setEditable(false);
         scrollPane3.setViewportView(selectionsTextArea);
-        final JPanel panel7 = new JPanel();
-        panel7.setLayout(new BorderLayout(0, 0));
-        tabbedPane1.addTab("Analyse", panel7);
-        final JPanel panel8 = new JPanel();
-        panel8.setLayout(new GridBagLayout());
-        panel8.setEnabled(true);
-        panel7.add(panel8, BorderLayout.NORTH);
-        final JPanel panel9 = new JPanel();
-        panel9.setLayout(new BorderLayout(0, 0));
+        final JPanel panel11 = new JPanel();
+        panel11.setLayout(new BorderLayout(0, 0));
+        tabbedPane1.addTab("Analyse", panel11);
+        final JPanel panel12 = new JPanel();
+        panel12.setLayout(new GridBagLayout());
+        panel12.setEnabled(true);
+        panel11.add(panel12, BorderLayout.NORTH);
+        final JPanel panel13 = new JPanel();
+        panel13.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel8.add(panel9, gbc);
-        panel9.setBorder(BorderFactory.createTitledBorder(null, "Profit", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel12.add(panel13, gbc);
+        panel13.setBorder(BorderFactory.createTitledBorder(null, "Profit", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         totalProfitTextField = new JTextField();
         totalProfitTextField.setEditable(false);
-        panel9.add(totalProfitTextField, BorderLayout.CENTER);
-        final JPanel panel10 = new JPanel();
-        panel10.setLayout(new BorderLayout(0, 0));
+        panel13.add(totalProfitTextField, BorderLayout.CENTER);
+        final JPanel panel14 = new JPanel();
+        panel14.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 3;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel8.add(panel10, gbc);
-        panel10.setBorder(BorderFactory.createTitledBorder(null, "Number of Sessions", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel12.add(panel14, gbc);
+        panel14.setBorder(BorderFactory.createTitledBorder(null, "Number of Sessions", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         numberOfSessionsTextField = new JTextField();
         numberOfSessionsTextField.setEditable(false);
-        panel10.add(numberOfSessionsTextField, BorderLayout.CENTER);
-        final JPanel panel11 = new JPanel();
-        panel11.setLayout(new BorderLayout(0, 0));
+        panel14.add(numberOfSessionsTextField, BorderLayout.CENTER);
+        final JPanel panel15 = new JPanel();
+        panel15.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel8.add(panel11, gbc);
-        panel11.setBorder(BorderFactory.createTitledBorder(null, "Runtime (Hours)", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel12.add(panel15, gbc);
+        panel15.setBorder(BorderFactory.createTitledBorder(null, "Runtime (Hours)", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         totalRuntimeTextField = new JTextField();
         totalRuntimeTextField.setEditable(false);
-        panel11.add(totalRuntimeTextField, BorderLayout.CENTER);
-        final JPanel panel12 = new JPanel();
-        panel12.setLayout(new BorderLayout(0, 0));
+        panel15.add(totalRuntimeTextField, BorderLayout.CENTER);
+        final JPanel panel16 = new JPanel();
+        panel16.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel8.add(panel12, gbc);
-        panel12.setBorder(BorderFactory.createTitledBorder(null, "Profit per Hour", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel12.add(panel16, gbc);
+        panel16.setBorder(BorderFactory.createTitledBorder(null, "Profit per Hour", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         totalProfitPerHourTextField = new JTextField();
         totalProfitPerHourTextField.setEditable(false);
-        panel12.add(totalProfitPerHourTextField, BorderLayout.CENTER);
-        final JPanel panel13 = new JPanel();
-        panel13.setLayout(new BorderLayout(0, 0));
-        panel7.add(panel13, BorderLayout.CENTER);
+        panel16.add(totalProfitPerHourTextField, BorderLayout.CENTER);
+        final JPanel panel17 = new JPanel();
+        panel17.setLayout(new BorderLayout(0, 0));
+        panel11.add(panel17, BorderLayout.CENTER);
         tabbedPane3 = new JTabbedPane();
-        panel13.add(tabbedPane3, BorderLayout.CENTER);
-        final JPanel panel14 = new JPanel();
-        panel14.setLayout(new BorderLayout(0, 0));
-        tabbedPane3.addTab("Regression", panel14);
-        final JPanel panel15 = new JPanel();
-        panel15.setLayout(new GridBagLayout());
-        panel14.add(panel15, BorderLayout.NORTH);
-        final JPanel panel16 = new JPanel();
-        panel16.setLayout(new BorderLayout(0, 0));
+        panel17.add(tabbedPane3, BorderLayout.CENTER);
+        final JPanel panel18 = new JPanel();
+        panel18.setLayout(new BorderLayout(0, 0));
+        tabbedPane3.addTab("Regression", panel18);
+        final JPanel panel19 = new JPanel();
+        panel19.setLayout(new GridBagLayout());
+        panel18.add(panel19, BorderLayout.NORTH);
+        final JPanel panel20 = new JPanel();
+        panel20.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel15.add(panel16, gbc);
-        panel16.setBorder(BorderFactory.createTitledBorder(null, "Model", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel19.add(panel20, gbc);
+        panel20.setBorder(BorderFactory.createTitledBorder(null, "Model", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         OLSTextField = new JTextField();
         OLSTextField.setEditable(false);
         OLSTextField.setText("OLS");
-        panel16.add(OLSTextField, BorderLayout.CENTER);
-        final JPanel panel17 = new JPanel();
-        panel17.setLayout(new BorderLayout(0, 0));
+        panel20.add(OLSTextField, BorderLayout.CENTER);
+        final JPanel panel21 = new JPanel();
+        panel21.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel15.add(panel17, gbc);
-        panel17.setBorder(BorderFactory.createTitledBorder(null, "Finite Sample Correction", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel19.add(panel21, gbc);
+        panel21.setBorder(BorderFactory.createTitledBorder(null, "Finite Sample Correction", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         finiteCorrectionCheckbox = new JCheckBox();
         finiteCorrectionCheckbox.setText("True");
-        panel17.add(finiteCorrectionCheckbox, BorderLayout.CENTER);
-        final JPanel panel18 = new JPanel();
-        panel18.setLayout(new BorderLayout(0, 0));
+        panel21.add(finiteCorrectionCheckbox, BorderLayout.CENTER);
+        final JPanel panel22 = new JPanel();
+        panel22.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel15.add(panel18, gbc);
-        panel18.setBorder(BorderFactory.createTitledBorder(null, "Standard Errors", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        panel19.add(panel22, gbc);
+        panel22.setBorder(BorderFactory.createTitledBorder(null, "Standard Errors", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         seComboBox = new JComboBox();
-        panel18.add(seComboBox, BorderLayout.CENTER);
+        panel22.add(seComboBox, BorderLayout.CENTER);
         regressionTable = new JTable();
-        panel14.add(regressionTable, BorderLayout.CENTER);
+        panel18.add(regressionTable, BorderLayout.CENTER);
         tabbedPane2 = new JTabbedPane();
         tabbedPane3.addTab("Inputs", tabbedPane2);
         final JScrollPane scrollPane4 = new JScrollPane();
@@ -544,20 +632,25 @@ public class EndGUI extends JFrame {
         xTextArea = new JTextArea();
         xTextArea.setEditable(false);
         scrollPane5.setViewportView(xTextArea);
+        final JScrollPane scrollPane6 = new JScrollPane();
+        tabbedPane2.addTab("Omissions", scrollPane6);
+        omissionsTextArea = new JTextArea();
+        omissionsTextArea.setEditable(false);
+        scrollPane6.setViewportView(omissionsTextArea);
         tabbedPane4 = new JTabbedPane();
         tabbedPane3.addTab("Replication", tabbedPane4);
-        final JScrollPane scrollPane6 = new JScrollPane();
-        tabbedPane4.addTab("R (4.2.2) Code", scrollPane6);
+        final JScrollPane scrollPane7 = new JScrollPane();
+        tabbedPane4.addTab("R (4.2.2) Code", scrollPane7);
         rCodeTextArea = new JTextArea();
         rCodeTextArea.setEditable(false);
-        scrollPane6.setViewportView(rCodeTextArea);
-        final JPanel panel19 = new JPanel();
-        panel19.setLayout(new BorderLayout(0, 0));
-        tabbedPane4.addTab("Stata (13) Code", panel19);
+        scrollPane7.setViewportView(rCodeTextArea);
+        final JPanel panel23 = new JPanel();
+        panel23.setLayout(new BorderLayout(0, 0));
+        tabbedPane4.addTab("Stata (13) Code", panel23);
         stataCodeTextArea = new JTextArea();
         stataCodeTextArea.setEditable(false);
         stataCodeTextArea.setText("");
-        panel19.add(stataCodeTextArea, BorderLayout.CENTER);
+        panel23.add(stataCodeTextArea, BorderLayout.CENTER);
     }
 
     /**
