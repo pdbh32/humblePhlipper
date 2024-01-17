@@ -8,14 +8,13 @@ public class CSV {
 
         if (xHeaders) {
             csv.append(humblePhlipper.regression.io.Regressors.getCSV());
-            if (endOfLineDelimit) {
-                csv.append(",");
-            }
-            csv.append("\n");
         }
 
         if (yHeader) {
             csv.append("\"profitPerHour\"");
+        }
+
+        if (xHeaders || yHeader) {
             if (endOfLineDelimit) {
                 csv.append(",");
             }

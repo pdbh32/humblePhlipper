@@ -2,9 +2,9 @@
 
 package humblePhlipper.resources;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import humblePhlipper.resources.savedData.Trades;
+
+import java.util.*;
 
 public class Items extends LinkedHashMap<Integer, Items.Item> {
     humblePhlipper.ResourceManager rm;
@@ -58,6 +58,15 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         }
     }
 
+    public void alphabetSort() {
+        List<Map.Entry<Integer, Item>> entryList = new ArrayList<>(entrySet());
+        entryList.sort(Comparator.comparing(entry -> entry.getValue().mapping.getName()));
+        clear();
+        for (Map.Entry<Integer, Item> entry : entryList) {
+            put(entry.getKey(), entry.getValue());
+        }
+    }
+
     public class Item {
         private humblePhlipper.ResourceManager rm;
         private int id;
@@ -74,7 +83,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         private humblePhlipper.resources.api.Latest latest = new humblePhlipper.resources.api.Latest();
         private humblePhlipper.resources.api.FiveMinute fiveMinute = new humblePhlipper.resources.api.FiveMinute();
         private humblePhlipper.resources.api.OneHour oneHour = new humblePhlipper.resources.api.OneHour();
-        private List<humblePhlipper.resources.savedData.Trade> tradeList = new ArrayList<>();
+        public humblePhlipper.resources.savedData.Trades trades = new humblePhlipper.resources.savedData.Trades();
 
         public Item(int id, humblePhlipper.ResourceManager rm) {
             this.id = id;
@@ -131,11 +140,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         public void setSold(int sold) {
             this.sold = sold;
         }
-
-        public List<humblePhlipper.resources.savedData.Trade> getTradeList() { return tradeList; }
-
-        public void incrementTradeList(humblePhlipper.resources.savedData.Trade trade) { this.tradeList.add(trade); }
-
+        public Trades getTrades() { return trades; }
         public Integer getBid() { return bid; }
         public Integer getAsk() { return ask; }
 

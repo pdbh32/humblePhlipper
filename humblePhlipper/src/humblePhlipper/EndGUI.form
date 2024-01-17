@@ -12,19 +12,67 @@
         <properties/>
         <border type="none"/>
         <children>
-          <grid id="b0a50" layout-manager="BorderLayout" hgap="0" vgap="0">
+          <grid id="3be02" layout-manager="BorderLayout" hgap="0" vgap="0">
             <constraints>
               <tabbedpane title="Inspect"/>
             </constraints>
             <properties/>
             <border type="none"/>
             <children>
-              <component id="5f00" class="javax.swing.JComboBox" binding="historyComboBox">
+              <grid id="29ede" layout-manager="GridBagLayout">
                 <constraints border-constraint="North"/>
-                <properties>
-                  <model/>
-                </properties>
-              </component>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <grid id="173ef" layout-manager="GridBagLayout">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <grid id="f63e0" layout-manager="GridBagLayout">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                          <gridbag weightx="1.0" weighty="1.0"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none" title="Errors"/>
+                        <children>
+                          <component id="93b1d" class="javax.swing.JTextField" binding="errorsTextField">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                                <preferred-size width="150" height="-1"/>
+                              </grid>
+                              <gridbag weightx="1.0" weighty="1.0"/>
+                            </constraints>
+                            <properties>
+                              <editable value="false"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
+                    </children>
+                  </grid>
+                  <grid id="1a07e" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none" title="History File"/>
+                    <children>
+                      <component id="5f00" class="javax.swing.JComboBox" binding="historyComboBox">
+                        <constraints border-constraint="Center"/>
+                        <properties>
+                          <model/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
               <tabbedpane id="ba6f3">
                 <constraints border-constraint="Center"/>
                 <properties/>
@@ -71,9 +119,9 @@
                               <gridbag weightx="1.0" weighty="1.0"/>
                             </constraints>
                             <properties/>
-                            <border type="none" title="Trading Time"/>
+                            <border type="none" title="Runtime (Minutes)"/>
                             <children>
-                              <component id="d0c06" class="javax.swing.JTextField" binding="tradingTimeField">
+                              <component id="d0c06" class="javax.swing.JTextField" binding="runtimeTextField">
                                 <constraints>
                                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                                     <preferred-size width="150" height="-1"/>
@@ -82,6 +130,7 @@
                                 </constraints>
                                 <properties>
                                   <editable value="false"/>
+                                  <text value=""/>
                                 </properties>
                               </component>
                             </children>
@@ -353,6 +402,21 @@
                             <border type="none"/>
                             <children>
                               <component id="75a7f" class="javax.swing.JTextArea" binding="xTextArea">
+                                <constraints/>
+                                <properties>
+                                  <editable value="false"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </scrollpane>
+                          <scrollpane id="44848">
+                            <constraints>
+                              <tabbedpane title="Omissions"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="7587" class="javax.swing.JTextArea" binding="omissionsTextArea">
                                 <constraints/>
                                 <properties>
                                   <editable value="false"/>

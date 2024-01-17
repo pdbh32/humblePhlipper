@@ -22,7 +22,7 @@ import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.2)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.21)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -151,20 +151,19 @@ public class Main extends AbstractScript {
         }
         rm.disposeApiSchedulers();
         rm.saveFourHourLimits();
+        rm.items.alphabetSort();
 
         for (humblePhlipper.resources.Items.Item item : rm.items.values()) {
-            for (humblePhlipper.resources.savedData.Trade trade : item.getTradeList()) {
-                rm.session.incrementTradesCSV("\n" + trade.getCSV());
-            }
+            rm.session.trades.increment(item.getTrades());
         }
 
-        rm.session.incrementSessionHistory("tradesCSV", rm.session.getTradesCSV());
+        rm.session.incrementSessionHistory("tradesCSV", rm.session.trades.getCSV());
         rm.session.incrementSessionHistory("configJSON", rm.getConfigString());
         String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
         ScriptSettings.save(rm.session.getSessionHistory(), "humblePhlipper", "History", fileName);
 
         Logger.log("--------------------------------------------------------------------------------------");
-        Logger.log("<trades>" + rm.session.getTradesCSV() + "\n</trades>");
+        Logger.log("<trades>" + rm.session.trades.getCSV() + "\n</trades>");
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("Trading over with profit of: " + Math.round(rm.session.getProfit()));
         Logger.log("Runtime (minutes): " + (rm.session.getTimer().elapsed()/60000));

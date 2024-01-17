@@ -16,11 +16,12 @@ public class LinearRegression {
     private Matrix Ml; // l = (1, ..., 1)'
     public Matrix BetaHat; // OLS, (X'X)^{-1}X'Y
     public Matrix OmegaHat; // assuming homoskedasticity, (E'E/(n-k-1)) * (X'X)^{-1}
-    public Matrix WhiteOmegaHat; // assuming heteroskedasticity (White SEs), n(X'X)^{-1}(X'diag(e1^2, ..., en^2)X)(X'X)^{-1}
+    public Matrix WhiteOmegaHat; // assuming heteroskedasticity (White SEs), (X'X)^{-1}(X'diag(e1^2, ..., en^2)X)(X'X)^{-1}
     private double SSRu; // sum of squared residuals unrestricted, E'E where E = MX Y
     private double SSRr; // sum of squared residuals restricted, E'E where E = Ml Y
     public double R2; // R^2, 1 - Y'MX Y/l(l'l)l' = 1 - Y'MX Y/(1/n)ll' where l = (1, ..., 1)'
     public double AdjR2; // 1 - (1 - R2)(n - 1)/(n - k -1)
+    public double F; // [(SSR_r - SSR_u)/k] / [SSR_u/(n-k-1)]
 
     public LinearRegression(Matrix Y, Matrix X, boolean finiteCorrection) {
         this.Y = Y;
@@ -45,6 +46,7 @@ public class LinearRegression {
             this.SSRr = calcSSRr();
             this.R2 = calcR2();
             this.AdjR2 = calcAdjR2();
+            this.F = calcFstat();
         }
         catch (RuntimeException e) {
             Logger.log("<Error: Singular X>" + "k = " + k + "</Error>");
@@ -122,23 +124,8 @@ public class LinearRegression {
         return 1.0 - (1.0 - R2)*(n - 1.0)/(n - k - 1.0);
     }
 
-
-    // Regressor t-tests
-    public String calcSigStar(int k, boolean White) {
-        Double se = (White) ? Math.sqrt(WhiteOmegaHat.get(k, k)) : Math.sqrt(OmegaHat.get(k, k)) ;
-        Double t = Math.abs(BetaHat.get(k, 0) / se);
-        if (t > 3.290526731492) {
-            return "***";
-        } else if (t > 2.575829303549) {
-            return "**";
-        } else if (t > 1.959963984540) {
-            return "*";
-        }
-        return "";
-    }
-
     // F-statistic, [(SSR_r - SSR_u)/k] / [SSR_u/(n-k-1)]
-    public double calcFstat() {
+    private double calcFstat() {
         double numerator = (SSRr - SSRu)/k;
         double denominator = (SSRu)/(n-k-1);
         return numerator/denominator;
