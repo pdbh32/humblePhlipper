@@ -3,21 +3,21 @@ package humblePhlipper.regression.io;
 import Jama.Matrix;
 
 import org.dreambot.api.settings.ScriptSettings;
-import org.dreambot.api.utilities.Logger;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class DM {
     private File[] files;
     private int k;
+    public Jama.Matrix Y; // Regressand
+    public Jama.Matrix X; // Regressor
+    public Jama.Matrix Weights; // n x 1 column vector of runtimeHours
     public double cumRuntimeHours = 0.0;
     public double cumProfit = 0.0;
+    public int cumTrades = 0;
+    public int cumTax = 0;
     public String errors = "";
-    public Jama.Matrix Y;
-    public Jama.Matrix X;
     public DM(File[] files, int k) {
         this.files = files;
         this.k = k;
@@ -30,20 +30,18 @@ public class DM {
         designMatrices();
     }
 
-
-
-    private static double[] y(double profit, double runtime) {
-        double profitPerHour = profit/runtime;
+    private static double[] y(double profit, double runtimeHours) {
+        double profitPerHour = profit/runtimeHours;
         double[] y = {profitPerHour};
         return y;
     }
 
-    private static double[] x(humblePhlipper.resources.savedData.Config config, double runtime, int k) {
+    private static double[] x(humblePhlipper.resources.savedData.Config config, double runtimeHours, int k) {
         double[] x = {
                 1.0,  // intercept
 
-                runtime,
-                runtime % 4,
+                runtimeHours,
+                runtimeHours % 4,
 
                 config.getMembers() ? 1.0 : 0.0,
                 config.getTradeRestricted() ? 1.0 : 0.0,
@@ -72,9 +70,15 @@ public class DM {
         return Arrays.stream(x).limit(k + 1).toArray();
     }
 
+    private static double[] weight(double runtimeHours) {
+        double[] weight = {runtimeHours};
+        return weight;
+    }
+
     private void designMatrices() {
         List<double[]> yList = new ArrayList<>();
         List<double[]> xList = new ArrayList<>();
+        List<double[]> weightList = new ArrayList<>();
 
         for (File file : files) {
             Map sessionHistory = ScriptSettings.load(Map.class, "humblePhlipper", "History", file.getName());
@@ -95,17 +99,25 @@ public class DM {
 
             cumProfit += summary.profit;
             cumRuntimeHours += summary.runtimeHours;
+            cumTax += summary.tax;
+            cumTrades += summary.trades;
 
             double[] y = y(summary.profit, summary.runtimeHours);
             yList.add(y);
 
             double[] x = x(config, summary.runtimeHours, k);
             xList.add(x);
+
+            double[] weight = weight(summary.runtimeHours);
+            weightList.add(weight);
         }
 
         Y = new Matrix(yList.stream().toArray(double[][]::new));
         X = new Matrix(xList.stream().toArray(double[][]::new));
+        Weights = new Matrix(weightList.stream().toArray(double[][]::new));
 
-        errors = errors.substring(0, errors.length()-1); // Remove trailing \n
+        if (errors.length() > 0) {
+            errors = errors.substring(0, errors.length() - 1); // Remove trailing \n
+        }
     }
 }

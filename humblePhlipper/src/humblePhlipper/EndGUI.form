@@ -251,7 +251,7 @@
                       <gridbag weightx="1.0" weighty="1.0"/>
                     </constraints>
                     <properties/>
-                    <border type="none" title="Number of Sessions"/>
+                    <border type="none" title="Sessions"/>
                     <children>
                       <component id="d1d8e" class="javax.swing.JTextField" binding="numberOfSessionsTextField">
                         <constraints border-constraint="Center"/>
@@ -267,7 +267,7 @@
                       <gridbag weightx="1.0" weighty="1.0"/>
                     </constraints>
                     <properties/>
-                    <border type="none" title="Runtime (Hours)"/>
+                    <border type="none" title="Hours"/>
                     <children>
                       <component id="920a1" class="javax.swing.JTextField" binding="totalRuntimeTextField">
                         <constraints border-constraint="Center"/>
@@ -283,9 +283,41 @@
                       <gridbag weightx="1.0" weighty="1.0"/>
                     </constraints>
                     <properties/>
-                    <border type="none" title="Profit per Hour"/>
+                    <border type="none" title="Profit/Hour"/>
                     <children>
                       <component id="d03bc" class="javax.swing.JTextField" binding="totalProfitPerHourTextField">
+                        <constraints border-constraint="Center"/>
+                        <properties>
+                          <editable value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                  <grid id="1cfbb" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="5" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none" title="Tax"/>
+                    <children>
+                      <component id="55a14" class="javax.swing.JTextField" binding="totalTaxTextField">
+                        <constraints border-constraint="Center"/>
+                        <properties>
+                          <editable value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                  <grid id="5e996" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none" title="Trades"/>
+                    <children>
+                      <component id="ee11f" class="javax.swing.JTextField" binding="totalTradesTextField">
                         <constraints border-constraint="Center"/>
                         <properties>
                           <editable value="false"/>
@@ -325,12 +357,9 @@
                                 <properties/>
                                 <border type="none" title="Model"/>
                                 <children>
-                                  <component id="df37b" class="javax.swing.JTextField" binding="OLSTextField" default-binding="true">
+                                  <component id="d78d8" class="javax.swing.JComboBox" binding="modelComboBox">
                                     <constraints border-constraint="Center"/>
-                                    <properties>
-                                      <editable value="false"/>
-                                      <text value="OLS"/>
-                                    </properties>
+                                    <properties/>
                                   </component>
                                 </children>
                               </grid>

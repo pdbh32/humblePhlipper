@@ -3,12 +3,14 @@
 package humblePhlipper;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class Paint {
     private final humblePhlipper.ResourceManager rm;
+    private static final DecimalFormat commaFormat = new DecimalFormat("#,###");
     private static final Color recBg = new Color(0, 0, 0, 127);
     public Paint(ResourceManager rm) {
         this.rm = rm;
@@ -44,7 +46,7 @@ public class Paint {
             }
             // Draw table rows
             g.drawString(item.getMapping().getName(), tableX, tableY);
-            g.drawString(String.valueOf(Math.round(item.getProfit())), tableX + 150 + 0*85, tableY);
+            g.drawString(commaFormat.format(Math.round(item.getProfit())), tableX + 150 + 0*85, tableY);
             g.drawString(String.valueOf(item.getSold()), tableX + 150 + 1*85, tableY);
             g.drawString(String.valueOf(item.getTargetVol()), tableX + 150 + 2*85, tableY);
             g.drawString(String.valueOf(item.getBid()), tableX + 150 + 3*85, tableY);
@@ -62,7 +64,7 @@ public class Paint {
         g.setColor(recBg);
         g.fillRect(7,344,506,132);
         g.setColor(Color.WHITE);
-        g.drawString("Profit: " + Math.round(rm.session.getProfit()), 13, 360);
+        g.drawString("Profit: " + commaFormat.format(Math.round(rm.session.getProfit())) + " (" + commaFormat.format(Math.round(3600000 * rm.session.getProfit() /rm.session.getTimer().elapsed())) +"/hr)", 13, 360);
         g.drawString("Runtime: " + rm.session.getTimer().formatTime(), 13, 380);
         g.drawString("* Trades CSV output to console log" , 13, 400);
         g.drawString("* CSV bid prices are negative" , 13, 420);
