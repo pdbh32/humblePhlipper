@@ -46,9 +46,11 @@ public class Trades {
         List<LocalDateTime> timeList = new ArrayList<>();
         for (Trades.Trade trade : this.list) {
             timeList.add(trade.getTime());
+            summary.trades += 1;
             summary.vol += trade.getVol();
             summary.cumVol += trade.getVol() * (trade.getPrice() < 0 ? 1 : -1);
             summary.profit += trade.getVol() * trade.getPrice();
+            summary.tax += trade.getVol() * (trade.getPrice() > 0 ? (int) (trade.getPrice()/99) : 0);
         }
         long runtimeMs = (!timeList.isEmpty()) ? Duration.between(Collections.min(timeList), Collections.max(timeList)).toMillis() : 0;
         summary.runtimeHours +=  (double) runtimeMs/3600000;
@@ -72,12 +74,16 @@ public class Trades {
     public static class Summary {
         public double profit;
         public double runtimeHours;
+        public int trades;
+        public int tax;
         public int cumVol;
         public int vol;
 
         public Summary() {
             profit = 0.0;
             runtimeHours = 0.0;
+            trades = 0;
+            tax = 0;
             cumVol = 0;
             vol = 0;
         }
