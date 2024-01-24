@@ -2,12 +2,14 @@
 
 package humblePhlipper;
 
+import Gelox_.DiscordWebhook;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.AccountManager;
 
+import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -22,6 +24,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+
+import static org.dreambot.core.Instance.getInstance;
 
 /*
 
@@ -49,6 +53,8 @@ public class ResourceManager {
     public humblePhlipper.resources.Items items;
     public humblePhlipper.resources.Session session;
 
+    private ScheduledExecutorService webhookScheduler;
+
     public ResourceManager() {
         this.gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -67,6 +73,29 @@ public class ResourceManager {
 
         // (4) Initialise session
         this.session = new humblePhlipper.resources.Session();
+
+        // (5) Set Discord post scheduler
+        setWebhookScheduler();
+    }
+
+    private void setWebhookScheduler() {
+        webhookScheduler = Executors.newSingleThreadScheduledExecutor();
+        webhookScheduler.scheduleAtFixedRate(() -> {
+            if (getInstance().getDiscordWebhook() != null) {
+                DiscordWebhook webhook = new DiscordWebhook(getInstance().getDiscordWebhook());
+                webhook.setContent("Account: " + (AccountManager.getAccountHash()).substring(0,6) + "..., Profit: " + Math.round(session.getProfit()));
+                webhook.setAvatarUrl("https://i.postimg.cc/W4DLDmhP/humble-Phlipper.png");
+                webhook.setUsername("humblePhlipper");
+                webhook.setTts(true);
+                webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                        .addField("Profit", String.valueOf(Math.round(session.getProfit())), false)
+                        .addField("Runtime", session.getTimer().formatTime(), false)
+                        .addField("Profit/Hr", String.valueOf(Math.round(3600000 * session.getProfit() / session.getTimer().elapsed())), false)
+                        .addField("Timeout", String.valueOf(config.getTimeout()), false));
+                try { webhook.execute(); }
+                catch(Exception ignored) {}
+            }
+        }, 60, 60, TimeUnit.MINUTES);
     }
 
     public void setApiSchedulers() {
@@ -117,6 +146,11 @@ public class ResourceManager {
         long currentTime = Instant.now().getEpochSecond();
         long nextUpdateTime = ((currentTime / interval) + 1) * interval + 3; // 3 second delay as a precaution
         return nextUpdateTime - currentTime;
+    }
+
+    public void disposeWebhookScheduler() {
+        if (webhookScheduler == null) { return; }
+        webhookScheduler.shutdownNow();
     }
 
     public void disposeApiSchedulers() {
