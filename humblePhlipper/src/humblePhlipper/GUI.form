@@ -21,6 +21,7 @@
           <component id="84db" class="javax.swing.JButton" binding="saveButton">
             <constraints border-constraint="East"/>
             <properties>
+              <enabled value="false"/>
               <text value="Save"/>
             </properties>
           </component>
@@ -29,6 +30,12 @@
             <properties>
               <editable value="false"/>
               <enabled value="true"/>
+            </properties>
+          </component>
+          <component id="448ac" class="javax.swing.JButton" binding="newButton">
+            <constraints border-constraint="West"/>
+            <properties>
+              <text value="New"/>
             </properties>
           </component>
         </children>
