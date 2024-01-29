@@ -252,13 +252,13 @@ public class ResourceManager {
     }
 
     public void loadConfig(String fileName) {
-        String file = fileName + ".json";
-        config = ScriptSettings.load(humblePhlipper.resources.savedData.Config.class, "humblePhlipper", "Config", file);
+        //String fileName = fileName + ".json";
+        config = ScriptSettings.load(humblePhlipper.resources.savedData.Config.class, "humblePhlipper", "Config", fileName);
     }
 
     public void saveConfig(String fileName) {
-        String file = fileName + ".json";
-        ScriptSettings.save(config, "humblePhlipper", "Config", file);
+        //String file = fileName + ".json";
+        ScriptSettings.save(config, "humblePhlipper", "Config", fileName);
     }
 
     public void setQuickStartConfig(String[] params) {

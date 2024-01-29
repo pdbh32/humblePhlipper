@@ -3,6 +3,8 @@
 package humblePhlipper;
 
 // Script architecture
+import Gelox_.DiscordWebhook;
+import humblePhlipper.resources.savedData.Trades;
 import org.dreambot.api.Client;
 import org.dreambot.api.methods.grandexchange.GrandExchangeItem;
 import org.dreambot.api.randoms.RandomSolver;
@@ -12,6 +14,7 @@ import org.dreambot.api.script.ScriptManifest;
 
 // Script functionality
 import org.dreambot.api.settings.ScriptSettings;
+import org.dreambot.api.utilities.AccountManager;
 import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
 import org.dreambot.api.utilities.Sleep;
@@ -19,10 +22,13 @@ import org.dreambot.api.utilities.Timer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.3)
+import static org.dreambot.core.Instance.getInstance;
+
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.31)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -30,6 +36,7 @@ public class Main extends AbstractScript {
     private static GUI gui;
 
     public static final int SLEEP = 1000;
+    private static final DecimalFormat commaFormat = new DecimalFormat("#,###");
 
     @Override
     public void onStart(java.lang.String... params) {
@@ -136,6 +143,11 @@ public class Main extends AbstractScript {
             rm.session.setBidding(false);
         }
 
+        if ((float) rm.session.getTimer().elapsed() /60000 - rm.config.getTimeout() > 60) {
+            Logger.log("Timeout exceeded by over 60 minutes, forcing stop...");
+            return -1;
+        }
+
         // if ((GE limits used up) || (not bidding && no inventory)) { Stop(); }
         if (rm.items.values().stream().allMatch(item -> (item.getTargetVol() <= 0 || (!rm.session.getBidding() && item.getSold() >= item.getBought())) && Arrays.stream(GrandExchange.getItems()).noneMatch(geItem -> geItem.getName().equals(item.getMapping().getName())))) {
             return -1;
@@ -163,12 +175,31 @@ public class Main extends AbstractScript {
         String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
         ScriptSettings.save(rm.session.getSessionHistory(), "humblePhlipper", "History", fileName);
 
+        Trades.Summary allSummary = rm.session.trades.summarise();
+
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("<trades>" + rm.session.trades.getCSV() + "\n</trades>");
         Logger.log("--------------------------------------------------------------------------------------");
-        Logger.log("Trading over with profit of: " + Math.round(rm.session.getProfit()));
-        Logger.log("Runtime (minutes): " + (rm.session.getTimer().elapsed()/60000));
+        Logger.log("Trading over with profit of: " + commaFormat.format(Math.round(allSummary.profit)));
+        Logger.log("Runtime: " + Math.round(allSummary.runtimeHours * 60) + " minutes");
+        Logger.log("Profit/Hr: " + commaFormat.format(Math.round(allSummary.profit / allSummary.runtimeHours)));
+        Logger.log("Errors: " + rm.session.trades.getError());
         Logger.log("--------------------------------------------------------------------------------------");
+
+        if (getInstance().getDiscordWebhook() != null) {
+            DiscordWebhook webhook = new DiscordWebhook(getInstance().getDiscordWebhook());
+            webhook.setContent("Account: " + (AccountManager.getAccountHash()).substring(0,6) + "..., End of Session" + Math.round(rm.session.getProfit()));
+            webhook.setAvatarUrl("https://i.postimg.cc/W4DLDmhP/humble-Phlipper.png");
+            webhook.setUsername("humblePhlipper");
+            webhook.setTts(true);
+            webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                    .addField("Profit", commaFormat.format(Math.round(allSummary.profit)), false)
+                    .addField("Runtime", Math.round(allSummary.runtimeHours * 60) + " minutes", false)
+                    .addField("Profit/Hr", commaFormat.format(Math.round(allSummary.profit / allSummary.runtimeHours)), false)
+                    .addField("Errors", String.valueOf(rm.session.trades.getError()), false));
+            try { webhook.execute(); }
+            catch(Exception ignored) {}
+        }
 
         if (rm.config.getSysExit()) {
             System.exit(0);

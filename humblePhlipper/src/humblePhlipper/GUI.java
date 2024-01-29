@@ -11,11 +11,18 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 
 public class GUI extends JFrame {
+    // Config combo box model
+    private DefaultComboBoxModel<String> configComboBoxModel = new DefaultComboBoxModel<>();
+    private int configComboBoxSelectedIndex = 0;
+
     // Objects to populate with Config data
     private JTextField timeoutField;
     private JTextField profitCutOffField;
@@ -70,12 +77,14 @@ public class GUI extends JFrame {
     private JSpinner pricingOffsetSpinner;
     private JButton removeButton;
     private JTextField removeItemField;
+    private JButton newButton;
 
     public GUI() {
         // Set action listeners
 
         // headerPanel
         setConfigComboBox();
+        setNewButton();
         setSaveButton();
 
         // mainPane > paramsPanel;
@@ -151,26 +160,35 @@ public class GUI extends JFrame {
     }
 
     private void setConfigComboBox() {
-        DefaultComboBoxModel<String> comboBoxModel = new DefaultComboBoxModel<>();
-        comboBoxModel.addElement("Default");
-        comboBoxModel.addElement("Custom 1");
-        comboBoxModel.addElement("Custom 2");
-        comboBoxModel.addElement("Custom 3");
-        comboBoxModel.addElement("Custom 4");
-        comboBoxModel.addElement("Custom 5");
-        comboBoxModel.addElement("Custom 6");
-        comboBoxModel.addElement("Custom 7");
-        comboBoxModel.addElement("Custom 8");
-        comboBoxModel.addElement("Custom 9");
-        comboBoxModel.addElement("Custom 10");
-        configComboBox.setModel(comboBoxModel);
+        configComboBoxModel.addElement("Default");
+        configComboBox.setModel(configComboBoxModel);
+
+        String configPath = System.getProperty("scripts.path") + File.separator + "humblePhlipper" + File.separator + "Config";
+        File configDirectory = new File(configPath);
+        File[] files = configDirectory.listFiles();
+
+        if (files != null) {
+            Arrays.sort(files, Comparator.comparing(File::getName));
+            for (File file : files) {
+                configComboBoxModel.addElement(file.getName());
+            }
+        }
+
         configComboBox.addActionListener(e -> {
+            if (configComboBox.getSelectedIndex() != -1) {
+                configComboBoxSelectedIndex = configComboBox.getSelectedIndex();
+            }
             String fileName = (String) configComboBox.getSelectedItem();
             if (fileName == "Default") {
                 Main.rm.config = new Config();
+                configComboBox.setEditable(false);
                 saveButton.setEnabled(false);
             } else {
-                Main.rm.loadConfig(fileName);
+                try {
+                    Main.rm.loadConfig(fileName);
+                } catch (Exception ignored) {
+                }
+                configComboBox.setEditable(true);
                 saveButton.setEnabled(true);
             }
             if (Main.rm.config.getAuto()) {
@@ -187,7 +205,7 @@ public class GUI extends JFrame {
         profitCutOffField.setText(String.valueOf(Main.rm.config.getProfitCutOff()));
         sysExitCheckBox.setSelected(Main.rm.config.getSysExit());
         maxBidValueField.setText(String.valueOf(Main.rm.config.getMaxBidValue()));
-        maxBidVolField.setText(String.valueOf(Main.rm.config.getMaxBidPrice()));
+        maxBidVolField.setText(String.valueOf(Main.rm.config.getMaxBidVol()));
 
         // Bid Priority
         priorityProfitSlider.setValue(Main.rm.config.getPriorityProfit());
@@ -230,11 +248,23 @@ public class GUI extends JFrame {
     }
 
     private void setSaveButton() {
-        saveButton.setEnabled(!"Default".equals((String) configComboBox.getSelectedItem()));
         saveButton.addActionListener(e -> {
             setConfigFromObjects();
             String fileName = (String) configComboBox.getSelectedItem();
             Main.rm.saveConfig(fileName);
+
+            configComboBoxModel.removeElementAt(configComboBoxSelectedIndex);
+            configComboBoxModel.addElement(fileName);
+            configComboBoxModel.setSelectedItem(fileName);
+            configComboBoxSelectedIndex = configComboBox.getSelectedIndex();
+        });
+    }
+
+    private void setNewButton() {
+        newButton.addActionListener(e -> {
+            configComboBoxModel.addElement("New Config Profile.json");
+            configComboBox.setSelectedItem("New Config Profile.json");
+            configComboBoxSelectedIndex = configComboBox.getSelectedIndex();
         });
     }
 
@@ -367,12 +397,16 @@ public class GUI extends JFrame {
         contentPanel.add(headerPanel, BorderLayout.NORTH);
         headerPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         saveButton = new JButton();
+        saveButton.setEnabled(false);
         saveButton.setText("Save");
         headerPanel.add(saveButton, BorderLayout.EAST);
         configComboBox = new JComboBox();
         configComboBox.setEditable(false);
         configComboBox.setEnabled(true);
         headerPanel.add(configComboBox, BorderLayout.CENTER);
+        newButton = new JButton();
+        newButton.setText("New");
+        headerPanel.add(newButton, BorderLayout.WEST);
         mainPane = new JTabbedPane();
         mainPane.setEnabled(true);
         mainPane.setMinimumSize(new Dimension(69, 100));
