@@ -4,9 +4,8 @@ package humblePhlipper;
 
 // Script architecture
 import Gelox_.DiscordWebhook;
-import humblePhlipper.resources.savedData.Trades;
+import humblePhlipper.resources.data.Trades;
 import org.dreambot.api.Client;
-import org.dreambot.api.methods.grandexchange.GrandExchangeItem;
 import org.dreambot.api.randoms.RandomSolver;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
@@ -28,7 +27,7 @@ import java.util.*;
 
 import static org.dreambot.core.Instance.getInstance;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.31)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.4)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -109,13 +108,13 @@ public class Main extends AbstractScript {
         rm.items.updateAllTargetVol();
 
         // Loop through slots and make cancellations
-        for (GrandExchangeItem geItem : GrandExchange.getItems()) {
-            trading.Cancel(geItem);
+        for (int i=0; i<8; i++) {
+            trading.Cancel(i);
         }
 
         // Loop through slots and make collections
-        for (GrandExchangeItem geItem : GrandExchange.getItems()) {
-            trading.Collect(geItem);
+        for (int i=0; i<8; i++) {
+            trading.Collect(i);
         }
 
         // Loop through items and make asks
@@ -188,10 +187,10 @@ public class Main extends AbstractScript {
 
         if (getInstance().getDiscordWebhook() != null) {
             DiscordWebhook webhook = new DiscordWebhook(getInstance().getDiscordWebhook());
-            webhook.setContent("Account: " + (AccountManager.getAccountHash()).substring(0,6) + "..., End of Session" + Math.round(rm.session.getProfit()));
+            webhook.setContent((AccountManager.getAccountUsername()) + " ended with profit of " + commaFormat.format(Math.round(rm.session.getProfit())));
             webhook.setAvatarUrl("https://i.postimg.cc/W4DLDmhP/humble-Phlipper.png");
             webhook.setUsername("humblePhlipper");
-            webhook.setTts(true);
+            webhook.setTts(false);
             webhook.addEmbed(new DiscordWebhook.EmbedObject()
                     .addField("Profit", commaFormat.format(Math.round(allSummary.profit)), false)
                     .addField("Runtime", Math.round(allSummary.runtimeHours * 60) + " minutes", false)

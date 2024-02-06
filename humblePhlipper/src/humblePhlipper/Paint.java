@@ -4,8 +4,6 @@ package humblePhlipper;
 
 import java.awt.*;
 import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class Paint {
@@ -47,16 +45,12 @@ public class Paint {
             // Draw table rows
             g.drawString(item.getMapping().getName(), tableX, tableY);
             g.drawString(commaFormat.format(Math.round(item.getProfit())), tableX + 150 + 0*85, tableY);
-            g.drawString(String.valueOf(item.getSold()), tableX + 150 + 1*85, tableY);
-            g.drawString(String.valueOf(item.getTargetVol()), tableX + 150 + 2*85, tableY);
-            g.drawString(String.valueOf(item.getBid()), tableX + 150 + 3*85, tableY);
-            g.drawString(String.valueOf((int) Math.ceil(0.99 * item.getAsk() - item.getBid())), tableX + 150 + 4*85, tableY);
-            g.drawString(String.valueOf(item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume()), tableX + 150 + 5*85, tableY);
-            if (item.getFourHourLimit().getUsedLimit() == 0) {
-                g.drawString("N/A", tableX + 150 + 6*85, tableY);
-            } else {
-                g.drawString(String.valueOf((int) 240 - Duration.between(item.getFourHourLimit().getRefreshTime(), LocalDateTime.now()).toMinutes()) + " mins", tableX + 150 + 6*85, tableY);
-            }
+            g.drawString(commaFormat.format(item.getSold()), tableX + 150 + 1*85, tableY);
+            g.drawString(commaFormat.format(item.getTargetVol()), tableX + 150 + 2*85, tableY);
+            g.drawString(commaFormat.format(item.getBid()), tableX + 150 + 3*85, tableY);
+            g.drawString(commaFormat.format((int) Math.ceil(0.99 * item.getAsk() - item.getBid())), tableX + 150 + 4*85, tableY);
+            g.drawString(commaFormat.format(item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume()), tableX + 150 + 5*85, tableY);
+            g.drawString((item.getFourHourLimit().getCountdownMinutes() < 0) ? "N/A" : (int) Math.ceil(item.getFourHourLimit().getCountdownMinutes()) + " mins", tableX + 150 + 6*85, tableY);
 
             tableY += 20;
         }
@@ -78,10 +72,10 @@ public class Paint {
         g.drawString("bidding", 200,460);
         g.setColor(Color.WHITE);
         g.drawString("Timeout: " + rm.config.getTimeout() + " mins",260,360);
-        g.drawString("Profit Cutoff: " + rm.config.getProfitCutOff(), 260,380);
+        g.drawString("Profit Cutoff: " + commaFormat.format(rm.config.getProfitCutOff()), 260,380);
         g.drawString("System Exit: " + rm.config.getSysExit(),260,400);
-        g.drawString("Max Bid Value: " + rm.config.getMaxBidValue(), 260, 420);
-        g.drawString("Max Bid Volume: " + rm.config.getMaxBidVol(), 260, 440);
+        g.drawString("Max Bid Value: " + commaFormat.format(rm.config.getMaxBidValue()), 260, 420);
+        g.drawString("Max Bid Volume: " + commaFormat.format(rm.config.getMaxBidVol()), 260, 440);
         g.drawString("Pricing: " + rm.config.getPricing(), 260,460);
 
         // Finally, a cumulative profit graph
@@ -102,7 +96,7 @@ public class Paint {
                 final double y0 = (0 - minY) * 80 / (maxY - minY);
                 g.drawLine(567, (int) (445 - y0), 567 + 150, (int) (445 - y0)); // y = 0 line
 
-                g.drawString(Math.round((float) maxX /60000) + "m", 697, 460);
+                g.drawString(commaFormat.format(Math.round((double) maxX /60000)) + "m", 697, 460);
                 g.drawString(String.valueOf(Math.round(minY)), 547 + 10, 460);
                 g.drawString(String.valueOf(Math.round(maxY)), 547 + 10, 360);
 

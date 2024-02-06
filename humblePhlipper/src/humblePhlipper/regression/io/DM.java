@@ -36,7 +36,7 @@ public class DM {
         return y;
     }
 
-    private static double[] x(humblePhlipper.resources.savedData.Config config, double runtimeHours, int k) {
+    private static double[] x(humblePhlipper.resources.data.Config config, double runtimeHours, int k) {
         double[] x = {
                 1.0,  // intercept
 
@@ -84,10 +84,10 @@ public class DM {
             Map sessionHistory = ScriptSettings.load(Map.class, "humblePhlipper", "History", file.getName());
 
             String tradesCSV = (String) sessionHistory.get("tradesCSV");
-            humblePhlipper.resources.savedData.Trades trades = new humblePhlipper.resources.savedData.Trades(tradesCSV);
+            humblePhlipper.resources.data.Trades trades = new humblePhlipper.resources.data.Trades(tradesCSV);
 
             String configJSON = (String) sessionHistory.get("configJSON");
-            humblePhlipper.resources.savedData.Config config = humblePhlipper.Main.rm.gson.fromJson(configJSON, humblePhlipper.resources.savedData.Config.class);
+            humblePhlipper.resources.data.Config config = humblePhlipper.Main.rm.gson.fromJson(configJSON, humblePhlipper.resources.data.Config.class);
 
             String error = trades.getError();
             if (error != null) {
@@ -95,7 +95,7 @@ public class DM {
                 continue;
             }
 
-            humblePhlipper.resources.savedData.Trades.Summary summary = trades.summarise();
+            humblePhlipper.resources.data.Trades.Summary summary = trades.summarise();
 
             cumProfit += summary.profit;
             cumRuntimeHours += summary.runtimeHours;

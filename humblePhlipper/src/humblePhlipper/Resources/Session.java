@@ -13,7 +13,7 @@ public class Session {
     private boolean running; // true if config set up
     private boolean bidding; // if false, close bids and sell remaining inventory
     private double profit;
-    public humblePhlipper.resources.savedData.Trades trades;
+    public humblePhlipper.resources.data.Trades trades;
     private TreeMap<Long, Double> timeCumProfitMap; // cumulative profit time series
     Map<String, String> sessionHistory; // to save down history
 
@@ -22,7 +22,7 @@ public class Session {
         this.running = false;
         this.bidding = true;
         this.profit = 0;
-        this.trades = new humblePhlipper.resources.savedData.Trades();
+        this.trades = new humblePhlipper.resources.data.Trades();
         this.timeCumProfitMap = new TreeMap<>();
         this.timeCumProfitMap.put(0L, 0.0);
         this.sessionHistory = new HashMap<>();

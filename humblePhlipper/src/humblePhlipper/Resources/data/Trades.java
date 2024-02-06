@@ -1,6 +1,4 @@
-// Resource\SavedData\Trade.java
-
-package humblePhlipper.resources.savedData;
+package humblePhlipper.resources.data;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -57,13 +55,13 @@ public class Trades {
         return summary;
     }
     public String getError() {
-        humblePhlipper.resources.savedData.Trades.Summary allSummary = summarise();
+        humblePhlipper.resources.data.Trades.Summary allSummary = summarise();
         if (allSummary.runtimeHours == 0) {
             return "<Error: No trades>";
         }
         Map<String, Trades> tradesMap = splitByName();
         for (Map.Entry<String, Trades> entry : tradesMap.entrySet()) {
-            humblePhlipper.resources.savedData.Trades.Summary itemSummary = entry.getValue().summarise();
+            humblePhlipper.resources.data.Trades.Summary itemSummary = entry.getValue().summarise();
             if (itemSummary.cumVol != 0) {
                 return "<Error: Cumulative volume of " + entry.getKey() + " != 0>";
             }

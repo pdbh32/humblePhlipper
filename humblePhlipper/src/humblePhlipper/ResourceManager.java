@@ -9,14 +9,11 @@ import com.google.gson.reflect.TypeToken;
 import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.AccountManager;
 
-import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -47,8 +44,8 @@ public class ResourceManager {
     private ScheduledExecutorService latestApiScheduler;
     private ScheduledExecutorService fiveMinuteApiScheduler;
     private ScheduledExecutorService oneHourApiScheduler;
-    public humblePhlipper.resources.savedData.FourHourLimits fourHourLimits;
-    public humblePhlipper.resources.savedData.Config config;
+    public humblePhlipper.resources.data.FourHourLimits fourHourLimits;
+    public humblePhlipper.resources.data.Config config;
 
     public humblePhlipper.resources.Items items;
     public humblePhlipper.resources.Session session;
@@ -66,7 +63,7 @@ public class ResourceManager {
 
         // (2) Load and set four hour limits and set default config,
         loadFourHourLimits();
-        this.config = new humblePhlipper.resources.savedData.Config(); // Custom config is loaded and set by GUI3/CLI
+        this.config = new humblePhlipper.resources.data.Config(); // Custom config is loaded and set by GUI3/CLI
 
         // (3) Initialise items
         this.items = new humblePhlipper.resources.Items(this);
@@ -82,20 +79,9 @@ public class ResourceManager {
         webhookScheduler = Executors.newSingleThreadScheduledExecutor();
         webhookScheduler.scheduleAtFixedRate(() -> {
             if (getInstance().getDiscordWebhook() != null) {
-                DiscordWebhook webhook = new DiscordWebhook(getInstance().getDiscordWebhook());
-                webhook.setContent("Account: " + (AccountManager.getAccountHash()).substring(0,6) + "..., Profit: " + Math.round(session.getProfit()));
-                webhook.setAvatarUrl("https://i.postimg.cc/W4DLDmhP/humble-Phlipper.png");
-                webhook.setUsername("humblePhlipper");
-                webhook.setTts(true);
-                webhook.addEmbed(new DiscordWebhook.EmbedObject()
-                        .addField("Profit", String.valueOf(Math.round(session.getProfit())), false)
-                        .addField("Runtime", session.getTimer().formatTime(), false)
-                        .addField("Profit/Hr", String.valueOf(Math.round(3600000 * session.getProfit() / session.getTimer().elapsed())), false)
-                        .addField("Timeout", String.valueOf(config.getTimeout()), false));
-                try { webhook.execute(); }
-                catch(Exception ignored) {}
+                new humblePhlipper.resources.network.Client();
             }
-        }, 60, 60, TimeUnit.MINUTES);
+        }, initialDelay(3600), 3600, TimeUnit.SECONDS);
     }
 
     public void setApiSchedulers() {
@@ -223,7 +209,7 @@ public class ResourceManager {
 
     public void loadFourHourLimits() {
         String file = AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "") + ".json";
-        fourHourLimits = ScriptSettings.load(humblePhlipper.resources.savedData.FourHourLimits.class, "humblePhlipper", "FourHourLimits", file);
+        fourHourLimits = ScriptSettings.load(humblePhlipper.resources.data.FourHourLimits.class, "humblePhlipper", "FourHourLimits", file);
 
         // If not empty, update refresh times and return, else set default,
         if (!fourHourLimits.isEmpty()) {
@@ -231,12 +217,12 @@ public class ResourceManager {
             return;
         }
         for (Integer ID : mappingMap.keySet()) {
-            fourHourLimits.put(ID, new humblePhlipper.resources.savedData.FourHourLimits.FourHourLimit());
+            fourHourLimits.put(ID, new humblePhlipper.resources.data.FourHourLimits.FourHourLimit());
         }
     }
 
     public void saveFourHourLimits() {
-        if (AccountManager.getAccountHash() == "") {
+        if (AccountManager.getAccountHash().equals("")) {
             return;
         }
         String file = AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "") + ".json";
@@ -245,7 +231,7 @@ public class ResourceManager {
 
     public void updateFourHourLimits() {
         for (Integer ID : fourHourLimits.keySet()) {
-            if (Duration.between(fourHourLimits.get(ID).getRefreshTime(), LocalDateTime.now()).toMinutes() > 240) {
+            if (fourHourLimits.get(ID).getCountdownMinutes() < 0) {
                 fourHourLimits.get(ID).setUsedLimit(0);
             }
         }
@@ -253,7 +239,7 @@ public class ResourceManager {
 
     public void loadConfig(String fileName) {
         //String fileName = fileName + ".json";
-        config = ScriptSettings.load(humblePhlipper.resources.savedData.Config.class, "humblePhlipper", "Config", fileName);
+        config = ScriptSettings.load(humblePhlipper.resources.data.Config.class, "humblePhlipper", "Config", fileName);
     }
 
     public void saveConfig(String fileName) {
@@ -268,7 +254,7 @@ public class ResourceManager {
         if (params[0].startsWith("<") && params[0].endsWith(">")) {
             loadConfig(params[0].substring(1, params[0].length() - 1));
         } else {
-            config = gson.fromJson(params[0], humblePhlipper.resources.savedData.Config.class);
+            config = gson.fromJson(params[0], humblePhlipper.resources.data.Config.class);
         }
     }
 

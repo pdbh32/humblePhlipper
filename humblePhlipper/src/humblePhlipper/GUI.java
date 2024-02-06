@@ -3,7 +3,7 @@
 package humblePhlipper;
 
 import humblePhlipper.resources.Items;
-import humblePhlipper.resources.savedData.Config;
+import humblePhlipper.resources.data.Config;
 import org.dreambot.api.Client;
 import org.dreambot.api.utilities.Timer;
 
@@ -12,8 +12,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -300,7 +298,7 @@ public class GUI extends JFrame {
                     (int) Math.ceil(0.99 * item.getAsk() - item.getBid()),
                     item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume(),
                     item.getTargetVol(),
-                    (item.getFourHourLimit().getUsedLimit() == 0) ? "N/A" : (int) (240 - Duration.between(item.getFourHourLimit().getRefreshTime(), LocalDateTime.now()).toMinutes()) + " mins"}
+                    (item.getFourHourLimit().getCountdownMinutes() < 0) ? "N/A" : (int) Math.ceil(item.getFourHourLimit().getCountdownMinutes()) + " mins"}
             );
         }
         selectionsTable.setModel(tableModel);

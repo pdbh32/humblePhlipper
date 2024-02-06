@@ -1,39 +1,38 @@
-// Resources\SavedData\FourHourLimits.java
-
-package humblePhlipper.resources.savedData;
+package humblePhlipper.resources.data;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 
 public class FourHourLimits extends HashMap<Integer, FourHourLimits.FourHourLimit> {
 
     public static class FourHourLimit {
 
-        @SerializedName("refreshTime")
+        @SerializedName("lastReset")
         @Expose
-        private LocalDateTime refreshTime;
+        private long lastReset; // epochMilli
 
         @SerializedName("usedLimit")
         @Expose
-        private Integer usedLimit;
+        private int usedLimit;
 
         public FourHourLimit() {
+            this.lastReset = 0;
             this.usedLimit = 0;
-            this.refreshTime = LocalDateTime.now();
         }
 
-        public LocalDateTime getRefreshTime() {
-            return refreshTime;
+        public long getRefreshTime() {
+            return lastReset;
         }
 
-        public void setRefreshTime(LocalDateTime refreshTime) {
-            this.refreshTime = refreshTime;
+        public void setRefreshTime(long refreshTime) {
+            this.lastReset = refreshTime;
         }
 
-        public Integer getUsedLimit() {
+        public int getUsedLimit() {
             return usedLimit;
         }
 
@@ -42,5 +41,8 @@ public class FourHourLimits extends HashMap<Integer, FourHourLimits.FourHourLimi
         }
 
         public void incrementUsedLimit(Integer vol) { this.usedLimit += vol; }
+        public double getCountdownMinutes() {
+            return 240 - Duration.between(Instant.ofEpochMilli(lastReset), Instant.now()).toMinutes();
+        }
     }
 }
