@@ -9,11 +9,10 @@ import humblePhlipper.regression.io.CSV;
 import humblePhlipper.regression.io.DM;
 import humblePhlipper.regression.io.Models;
 import humblePhlipper.regression.io.Regressors;
-import humblePhlipper.resources.savedData.Config;
-import humblePhlipper.resources.savedData.Trades;
+import humblePhlipper.resources.data.Config;
+import humblePhlipper.resources.data.Trades;
 import org.dreambot.api.Client;
 import org.dreambot.api.settings.ScriptSettings;
-import org.dreambot.api.utilities.Logger;
 
 import java.util.Arrays;
 import javax.swing.*;

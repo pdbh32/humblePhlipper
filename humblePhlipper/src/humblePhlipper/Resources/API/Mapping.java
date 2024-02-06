@@ -1,5 +1,3 @@
-// Resources\API\Mapping.java
-
 package humblePhlipper.resources.api;
 
 import com.google.gson.annotations.Expose;

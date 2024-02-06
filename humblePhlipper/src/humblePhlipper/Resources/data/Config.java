@@ -1,6 +1,4 @@
-// Resources\SavedData\Config.java
-
-package humblePhlipper.resources.savedData;
+package humblePhlipper.resources.data;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

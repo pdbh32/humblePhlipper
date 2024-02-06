@@ -2,7 +2,7 @@
 
 package humblePhlipper.resources;
 
-import humblePhlipper.resources.savedData.Trades;
+import humblePhlipper.resources.data.Trades;
 
 import java.util.*;
 
@@ -70,7 +70,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
     public class Item {
         private humblePhlipper.ResourceManager rm;
         private int id;
-        private humblePhlipper.resources.savedData.FourHourLimits.FourHourLimit fourHourLimit;
+        private humblePhlipper.resources.data.FourHourLimits.FourHourLimit fourHourLimit;
         private int targetVol;
         private double lastBuyPrice;
         private double profit;
@@ -83,7 +83,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         private humblePhlipper.resources.api.Latest latest = new humblePhlipper.resources.api.Latest();
         private humblePhlipper.resources.api.FiveMinute fiveMinute = new humblePhlipper.resources.api.FiveMinute();
         private humblePhlipper.resources.api.OneHour oneHour = new humblePhlipper.resources.api.OneHour();
-        public humblePhlipper.resources.savedData.Trades trades = new humblePhlipper.resources.savedData.Trades();
+        public humblePhlipper.resources.data.Trades trades = new humblePhlipper.resources.data.Trades();
 
         public Item(int id, humblePhlipper.ResourceManager rm) {
             this.id = id;
@@ -105,7 +105,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         }
         public int getId() {return id; }
 
-        public humblePhlipper.resources.savedData.FourHourLimits.FourHourLimit getFourHourLimit() { return fourHourLimit; }
+        public humblePhlipper.resources.data.FourHourLimits.FourHourLimit getFourHourLimit() { return fourHourLimit; }
         public void updateFourHourLimit() { this.fourHourLimit = rm.fourHourLimits.get(this.id); }
         public int getTargetVol() { return targetVol; }
         public void updateTargetVol() {
