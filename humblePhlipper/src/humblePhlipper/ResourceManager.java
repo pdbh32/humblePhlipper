@@ -1,13 +1,12 @@
-// ResourceManager.java
-
 package humblePhlipper;
 
-import Gelox_.DiscordWebhook;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+
 import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.AccountManager;
+import static org.dreambot.core.Instance.getInstance;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -21,8 +20,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import static org.dreambot.core.Instance.getInstance;
 
 /*
 
@@ -211,7 +208,7 @@ public class ResourceManager {
         String file = AccountManager.getAccountHash().replaceAll("[^a-zA-Z0-9]", "") + ".json";
         fourHourLimits = ScriptSettings.load(humblePhlipper.resources.data.FourHourLimits.class, "humblePhlipper", "FourHourLimits", file);
 
-        // If not empty, update refresh times and return, else set default,
+        // If not empty, update refresh times and return, else, set default,
         if (!fourHourLimits.isEmpty()) {
             updateFourHourLimits();
             return;

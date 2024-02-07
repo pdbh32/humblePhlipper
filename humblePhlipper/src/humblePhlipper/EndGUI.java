@@ -2,15 +2,6 @@ package humblePhlipper;
 
 import Jama.Matrix;
 
-import humblePhlipper.regression.LinearRegression;
-import humblePhlipper.regression.distributions.F;
-import humblePhlipper.regression.distributions.T;
-import humblePhlipper.regression.io.CSV;
-import humblePhlipper.regression.io.DM;
-import humblePhlipper.regression.io.Models;
-import humblePhlipper.regression.io.Regressors;
-import humblePhlipper.resources.data.Config;
-import humblePhlipper.resources.data.Trades;
 import org.dreambot.api.Client;
 import org.dreambot.api.settings.ScriptSettings;
 
@@ -27,12 +18,12 @@ import java.util.stream.Collectors;
 
 public class EndGUI extends JFrame {
     private final File historyDirectory = new File(System.getProperty("scripts.path") + File.separator + "humblePhlipper" + File.separator + "History");
-    private final List<Integer> modelsList = Models.getList();
-    private final String[] regressorsArray = Regressors.getArray();
-    private final String regressorsCSV = Regressors.getCSV();
+    private final List<Integer> modelsList = humblePhlipper.regression.io.Models.getList();
+    private final String[] regressorsArray = humblePhlipper.regression.io.Regressors.getArray();
+    private final String regressorsCSV = humblePhlipper.regression.io.Regressors.getCSV();
     private final DecimalFormat commaFormat = new DecimalFormat("#,###");
     private final DecimalFormat fourDpFormat = new DecimalFormat("#.####");
-    private DM dm; // Design matrices including *all coefficients*
+    private humblePhlipper.regression.io.DM dm; // Design matrices including *all coefficients*
     private JTabbedPane tabbedPane1;
     private JPanel contentPanel;
     private JComboBox historyComboBox;
@@ -109,26 +100,26 @@ public class EndGUI extends JFrame {
         tradesTextArea.setText(tradesCSV);
         configTextArea.setText(configJSON);
 
-        Trades trades = new Trades(tradesCSV);
-        Trades.Summary allSummary = trades.summarise();
+        humblePhlipper.resources.data.Trades trades = new humblePhlipper.resources.data.Trades(tradesCSV);
+        humblePhlipper.resources.data.Trades.Summary allSummary = trades.summarise();
 
         errorsTextField.setText(trades.getError());
         runtimeTextField.setText(Math.round(allSummary.runtimeHours * 60) + " minutes");
         profitTextField.setText(commaFormat.format(Math.round(allSummary.profit)));
         profitPerHourTextField.setText(commaFormat.format(Math.round(allSummary.profit / allSummary.runtimeHours)));
 
-        Map<String, Trades> tradesMap = trades.splitByName();
+        Map<String, humblePhlipper.resources.data.Trades> tradesMap = trades.splitByName();
         Map<String, Double> itemProfitMap = new HashMap<>();
         Map<String, Integer> itemVolMap = new HashMap<>();
 
-        Config config = Main.rm.gson.fromJson(configJSON, Config.class);
+        humblePhlipper.resources.data.Config config = Main.rm.gson.fromJson(configJSON, humblePhlipper.resources.data.Config.class);
         for (int ID : config.getSelections()) {
             itemProfitMap.put(Main.rm.mappingMap.get(ID).getName(), 0.0);
             itemVolMap.put(Main.rm.mappingMap.get(ID).getName(), 0);
         }
 
-        for (Map.Entry<String, Trades> entry : tradesMap.entrySet()) {
-            Trades.Summary itemSummary = entry.getValue().summarise();
+        for (Map.Entry<String, humblePhlipper.resources.data.Trades> entry : tradesMap.entrySet()) {
+            humblePhlipper.resources.data.Trades.Summary itemSummary = entry.getValue().summarise();
             itemProfitMap.merge(entry.getKey(), itemSummary.profit, Double::sum);
             itemVolMap.merge(entry.getKey(), itemSummary.vol, Integer::sum);
         }
@@ -180,7 +171,7 @@ public class EndGUI extends JFrame {
         if (files == null) {
             return;
         }
-        dm = new DM(files, Collections.max(modelsList));
+        dm = new humblePhlipper.regression.io.DM(files, Collections.max(modelsList));
     }
 
     private void populateAnalysis() {
@@ -194,11 +185,11 @@ public class EndGUI extends JFrame {
         totalProfitPerHourTextField.setText(commaFormat.format(Math.round(dm.cumProfit / dm.cumRuntimeHours)));
         numberOfSessionsTextField.setText(commaFormat.format(dm.Y.getRowDimension()));
         omissionsTextArea.setText(dm.errors);
-        yTextArea.setText(CSV.toCSV(dm.Y, false, false, true));
-        xTextArea.setText(CSV.toCSV(dm.X, false, true, false));
-        rCodeTextArea.setText("Y <- c(\n" + CSV.toCSV(dm.Y, true, false, false) + ")" +
+        yTextArea.setText(humblePhlipper.regression.io.CSV.toCSV(dm.Y, false, false, true));
+        xTextArea.setText(humblePhlipper.regression.io.CSV.toCSV(dm.X, false, true, false));
+        rCodeTextArea.setText("Y <- c(\n" + humblePhlipper.regression.io.CSV.toCSV(dm.Y, true, false, false) + ")" +
                 "\n" +
-                "\nX <- matrix(c(\n" + CSV.toCSV(dm.X, true, false, false) + ")," +
+                "\nX <- matrix(c(\n" + humblePhlipper.regression.io.CSV.toCSV(dm.X, true, false, false) + ")," +
                 "\nnrow = " + dm.X.getRowDimension() + ", ncol = " + dm.X.getColumnDimension() + ", byrow = TRUE," +
                 "\ndimnames = list(NULL, c(" + regressorsCSV + ")))" +
                 "\n" +
@@ -221,13 +212,13 @@ public class EndGUI extends JFrame {
         boolean white = "Assume Heteroskedasticity (White, 1980)".equals(seComboBox.getSelectedItem());
         boolean finiteCorrection = finiteCorrectionCheckbox.isSelected();
 
-        List<LinearRegression> listLr = new ArrayList<>();
+        List<humblePhlipper.regression.LinearRegression> listLr = new ArrayList<>();
 
         try {
             for (int k : modelsList) {
                 Matrix I = Matrix.identity(dm.X.getColumnDimension(), k + 1);
                 Matrix X = dm.X.times(I);
-                LinearRegression lr = new LinearRegression(dm.Y, X);
+                humblePhlipper.regression.LinearRegression lr = new humblePhlipper.regression.LinearRegression(dm.Y, X);
                 if (WLS) lr.WLS(dm.Weights);
                 else lr.OLS();
                 if (white) lr.WhiteOmegaHat();
@@ -252,7 +243,7 @@ public class EndGUI extends JFrame {
             List<Object> row = new ArrayList<>();
             row.add(regressorsArray[k]);
             for (int m = 0; m < modelsList.size(); m++) {
-                LinearRegression lr = listLr.get(m);
+                humblePhlipper.regression.LinearRegression lr = listLr.get(m);
 
                 if (k > lr.k) {
                     row.add("");
@@ -273,7 +264,7 @@ public class EndGUI extends JFrame {
                 double se = Math.sqrt(lr.O.get(k, k));
                 double t = b / se;
 
-                String bSe = commaFormat.format(b) + T.calcSigStar(t, lr.n - 1);
+                String bSe = commaFormat.format(b) + humblePhlipper.regression.distributions.T.calcSigStar(t, lr.n - 1);
                 bSe += " (" + commaFormat.format(se) + ")";
                 row.add(bSe);
             }
@@ -283,7 +274,7 @@ public class EndGUI extends JFrame {
         List<Object> R2row = new ArrayList<>();
         R2row.add("R^2");
         for (int m = 0; m < modelsList.size(); m++) {
-            LinearRegression lr = listLr.get(m);
+            humblePhlipper.regression.LinearRegression lr = listLr.get(m);
 
             if (lr.n < lr.k + 1) {
                 R2row.add("n < k + 1");
@@ -302,7 +293,7 @@ public class EndGUI extends JFrame {
         List<Object> AdjR2row = new ArrayList<>();
         AdjR2row.add("Adjusted R^2");
         for (int m = 0; m < modelsList.size(); m++) {
-            LinearRegression lr = listLr.get(m);
+            humblePhlipper.regression.LinearRegression lr = listLr.get(m);
 
             if (lr.n < lr.k + 1) {
                 AdjR2row.add("n < k + 1");
@@ -322,7 +313,7 @@ public class EndGUI extends JFrame {
         FstatRow.add("F-statistic");
         FstatRow.add("N/A");
         for (int m = 1; m < modelsList.size(); m++) {
-            LinearRegression lr = listLr.get(m);
+            humblePhlipper.regression.LinearRegression lr = listLr.get(m);
 
             if (lr.n < lr.k + 1) {
                 FstatRow.add("n < k + 1");
@@ -334,7 +325,7 @@ public class EndGUI extends JFrame {
                 continue;
             }
 
-            FstatRow.add(fourDpFormat.format(lr.F) + F.calcSigStar(lr.F, lr.k, lr.n - lr.k - 1));
+            FstatRow.add(fourDpFormat.format(lr.F) + humblePhlipper.regression.distributions.F.calcSigStar(lr.F, lr.k, lr.n - lr.k - 1));
         }
         model.addRow(FstatRow.toArray());
 

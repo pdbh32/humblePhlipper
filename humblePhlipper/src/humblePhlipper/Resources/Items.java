@@ -1,8 +1,4 @@
-// Resources\Items.java
-
 package humblePhlipper.resources;
-
-import humblePhlipper.resources.data.Trades;
 
 import java.util.*;
 
@@ -140,7 +136,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         public void setSold(int sold) {
             this.sold = sold;
         }
-        public Trades getTrades() { return trades; }
+        public humblePhlipper.resources.data.Trades getTrades() { return trades; }
         public Integer getBid() { return bid; }
         public Integer getAsk() { return ask; }
 

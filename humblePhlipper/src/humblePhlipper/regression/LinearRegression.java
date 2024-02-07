@@ -1,6 +1,7 @@
 package humblePhlipper.regression;
 
 import Jama.Matrix;
+
 import org.dreambot.api.utilities.Logger;
 
 public class LinearRegression {

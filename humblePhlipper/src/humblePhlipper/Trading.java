@@ -1,8 +1,5 @@
-// Trading.java
-
 package humblePhlipper;
 
-import humblePhlipper.dbGE.Slot;
 import org.dreambot.api.Client;
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
@@ -96,7 +93,7 @@ public class Trading {
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
             return;
         }
-        Slot geSlot = Slot.get(slotIndex);
+        humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
         if (geSlot.getType().equals("Empty")) {
             return;
         }
@@ -117,7 +114,7 @@ public class Trading {
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
             return;
         }
-        Slot geSlot = Slot.get(slotIndex);
+        humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
         if (geSlot.getType().equals("Empty")) {
             return;
         }
@@ -198,7 +195,7 @@ public class Trading {
         if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId())) {
             return false;
         }
-        if (item.getSold() >= item.getBought() || Inventory.count(item.getMapping().getName()) == 0) {
+        if (item.getSold() >= item.getBought() || Inventory.count(item.getMapping().getId()) == 0) {
             return false;
         }
         return Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP);
