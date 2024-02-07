@@ -33,21 +33,23 @@ public class Muling {
         phinancialMule.Main.action = phinancialMule.enums.Action.IDLE;
     }
     private boolean Receive() {
-        if (!Sleep.sleepUntil(() -> tradeWithPlayer(theirName), 5000)) {
+        Sleep.sleep(3000,8000);
+        if (!Sleep.sleepUntil(() -> tradeWithPlayer(theirName), 20000)) {
             return false;
         }
-        if (!Sleep.sleepUntil(() -> contains(false, "Coins"), 5000)) {
+        Sleep.sleep(2000,5000);
+        if (!Sleep.sleepUntil(() -> contains(false, "Coins"), 20000)) {
             return false;
         }
-        Sleep.sleep(3500,5000);
-        if (!Sleep.sleepUntil(() -> acceptTrade(), 5000)) {
+        Sleep.sleep(4000,7000);
+        if (!Sleep.sleepUntil(() -> acceptTrade(), 20000)) {
             return false;
         }
-        Sleep.sleep(3500,5000);
-        if (!Sleep.sleepUntil(() -> acceptTrade(), 5000)) {
+        Sleep.sleep(2000,5000);
+        if (!Sleep.sleepUntil(() -> acceptTrade(), 20000)) {
             return false;
         }
-        Sleep.sleep(3500,5000);
+        Sleep.sleep(3000,8000);
         trades += 1;
         if (phinancialMule.Main.role == phinancialMule.enums.Role.SLAVE) {
             phinancialMule.Main.status = phinancialMule.enums.Status.FINISHED;
@@ -66,21 +68,23 @@ public class Muling {
         } else {
             distribution = totalGp/(phinancialMule.Main.numSlaves + 1);
         }
-        if (!Sleep.sleepUntil(() -> tradeWithPlayer(theirName), 5000)) {
+        Sleep.sleep(3000,8000);
+        if (!Sleep.sleepUntil(() -> tradeWithPlayer(theirName), 20000)) {
             return false;
         }
-        if (!Sleep.sleepUntil(() -> addItem("Coins", distribution), 5000)) {
+        Sleep.sleep(2000,5000);
+        if (!Sleep.sleepUntil(() -> addItem("Coins", distribution), 20000)) {
             return false;
         }
-        Sleep.sleep(3500,5000);
-        if (!Sleep.sleepUntil(() -> acceptTrade(), 5000)) {
+        Sleep.sleep(4000,7000);
+        if (!Sleep.sleepUntil(() -> acceptTrade(), 20000)) {
             return false;
         }
-        Sleep.sleep(3500,5000);
-        if (!Sleep.sleepUntil(() -> acceptTrade(), 5000)) {
+        Sleep.sleep(2000,5000);
+        if (!Sleep.sleepUntil(() -> acceptTrade(), 20000)) {
             return false;
         }
-        Sleep.sleep(3500,5000);
+        Sleep.sleep(3000,8000);
         trades += 1;
         if (phinancialMule.Main.role == phinancialMule.enums.Role.SLAVE) {
             phinancialMule.Main.status = phinancialMule.enums.Status.RECEIVING;

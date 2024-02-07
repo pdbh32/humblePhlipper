@@ -10,7 +10,7 @@ import org.dreambot.api.script.ScriptManifest;
 import javax.swing.*;
 import java.awt.*;
 
-@ScriptManifest(category = Category.MISC, name = "phinancialMule", author = "apnasus", version = 1.0)
+@ScriptManifest(category = Category.MISC, name = "phinancialMule", author = "apnasus", version = 1.01)
 public class Main extends AbstractScript {
     private static boolean running = false;
     public static String myName;
