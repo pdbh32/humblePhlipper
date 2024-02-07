@@ -198,7 +198,13 @@ public class Trading {
         if (item.getSold() >= item.getBought() || Inventory.count(item.getMapping().getId()) == 0) {
             return false;
         }
-        return Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP);
+        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP)) {
+            return true; // We need this to buy items like Falador tablet (teleport)
+        }
+        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getName(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP)) {
+            return true; // We need this to sell items like Black d'hide body and Bat bones (???)
+        }
+        return false;
     }
 
     public Boolean MakeBid(Integer ID) {
@@ -224,6 +230,12 @@ public class Trading {
             return false;
         }
         final int finalVol = vol;
-        return Sleep.sleepUntil(() -> GrandExchange.buyItem(item.getMapping().getId(), finalVol, item.getBid()), SLEEP);
+        if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.getMapping().getId(), finalVol, item.getBid()), SLEEP)) {
+            return true; // This seems to work for all items
+        }
+        if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.getMapping().getId(), finalVol, item.getBid()), SLEEP)) {
+            return true; // But we will play it safe in case it doesn't
+        }
+        return false;
     }
 }
