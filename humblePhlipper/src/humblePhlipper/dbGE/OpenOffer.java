@@ -1,7 +1,6 @@
 package humblePhlipper.dbGE;
 
 import org.dreambot.api.methods.widget.Widgets;
-import org.dreambot.api.utilities.Logger;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

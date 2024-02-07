@@ -1,5 +1,3 @@
-// GUI,java
-
 package humblePhlipper;
 
 import humblePhlipper.resources.Items;

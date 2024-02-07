@@ -1,10 +1,6 @@
-// Main.java
-
 package humblePhlipper;
 
 // Script architecture
-import Gelox_.DiscordWebhook;
-import humblePhlipper.resources.data.Trades;
 import org.dreambot.api.Client;
 import org.dreambot.api.randoms.RandomSolver;
 import org.dreambot.api.script.AbstractScript;
@@ -18,6 +14,7 @@ import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
 import org.dreambot.api.utilities.Sleep;
 import org.dreambot.api.utilities.Timer;
+import static org.dreambot.core.Instance.getInstance;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +22,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.dreambot.core.Instance.getInstance;
+import Gelox_.DiscordWebhook;
 
 @ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.4)
 public class Main extends AbstractScript {
@@ -174,7 +171,7 @@ public class Main extends AbstractScript {
         String fileName = String.valueOf(LocalDateTime.now()).replaceAll(":","-") + ".json";
         ScriptSettings.save(rm.session.getSessionHistory(), "humblePhlipper", "History", fileName);
 
-        Trades.Summary allSummary = rm.session.trades.summarise();
+        humblePhlipper.resources.data.Trades.Summary allSummary = rm.session.trades.summarise();
 
         Logger.log("--------------------------------------------------------------------------------------");
         Logger.log("<trades>" + rm.session.trades.getCSV() + "\n</trades>");

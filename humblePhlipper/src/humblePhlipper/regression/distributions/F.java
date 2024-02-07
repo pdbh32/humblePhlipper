@@ -6,7 +6,7 @@ import numpy as np
 import scipy.stats as stats
 
 alpha = 0.05
-maxDf2 = 24
+maxDf2 = 40
 maxDf1 = 80
 
 critical_values = []

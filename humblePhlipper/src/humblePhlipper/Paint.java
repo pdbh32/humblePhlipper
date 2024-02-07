@@ -1,5 +1,3 @@
-// Paint.java
-
 package humblePhlipper;
 
 import java.awt.*;
