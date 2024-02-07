@@ -124,10 +124,12 @@ public class Trading {
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
 
         boolean isBuyOffer = geSlot.isBuyOffer();
-        if (!Sleep.sleepUntil(() -> GrandExchange.openSlotInterface(slotIndex), SLEEP)) {
-            return;
-        } else {
+        if (Sleep.sleepUntil(() -> GrandExchange.openSlotInterface(slotIndex), SLEEP)) {
             Sleep.sleep(SLEEP);
+        } else if (Sleep.sleepUntil(() -> geSlot.openInterface(), SLEEP)) {
+            Sleep.sleep(SLEEP);
+        } else {
+            return;
         }
 
         boolean collectionSuccess = false;
