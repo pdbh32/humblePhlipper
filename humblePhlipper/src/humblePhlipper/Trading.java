@@ -192,10 +192,13 @@ public class Trading {
         if (GrandExchange.getFirstOpenSlot() == -1) {
             return false;
         }
-        if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId())) {
+        if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId() || geItem.getName().equals(item.getMapping().getName()))) {
             return false;
         }
-        if (item.getSold() >= item.getBought() || Inventory.count(item.getMapping().getId()) == 0) {
+        if (Inventory.count(item.getMapping().getName()) == 0 && Inventory.count(item.getMapping().getId()) == 0) {
+            return false;
+        }
+        if (item.getSold() >= item.getBought()) {
             return false;
         }
         if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP)) {
@@ -217,10 +220,16 @@ public class Trading {
         if (GrandExchange.getFirstOpenSlot() == -1) {
             return false;
         }
-        if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId())) {
+        if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId() || geItem.getName().equals(item.getMapping().getName()))) {
             return false;
         }
         if (item.getTargetVol() == 0 || !rm.session.getBidding() || Inventory.count("Coins") < item.getBid() || 0.99 * item.getAsk() - item.getBid() <= 0) {
+            return false;
+        }
+        if (Inventory.count(item.getMapping().getName()) != 0 || Inventory.count(item.getMapping().getId()) != 0) {
+            return false;
+        }
+        if (item.getBought() > item.getSold()) {
             return false;
         }
         int vol = Math.min(item.getTargetVol(), (int) Math.floor((double) Inventory.count("Coins") / item.getBid()));
@@ -233,7 +242,7 @@ public class Trading {
         if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.getMapping().getId(), finalVol, item.getBid()), SLEEP)) {
             return true; // This seems to work for all items
         }
-        if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.getMapping().getId(), finalVol, item.getBid()), SLEEP)) {
+        if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.getMapping().getName(), finalVol, item.getBid()), SLEEP)) {
             return true; // But we will play it safe in case it doesn't
         }
         return false;
