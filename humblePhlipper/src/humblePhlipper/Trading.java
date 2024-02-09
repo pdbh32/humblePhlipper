@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class Trading {
     private final ResourceManager rm;
-    private static final Integer SLEEP = 1000;
+    private static final Integer SLEEP = humblePhlipper.Main.SLEEP;
     private static final Set<Integer> restrictedIdSet = new HashSet<>(Arrays.asList(1521, 1519, 1515, 317, 315, 321, 319, 377, 379, 434, 1761, 436, 438, 440, 442, 444, 453, 447, 449, 451, 1739, 229, 227, 1937, 313, 314, 221, 245, 556, 555, 557, 554, 558, 562));
     public Trading(ResourceManager rm) {
         this.rm = rm;
@@ -86,55 +86,56 @@ public class Trading {
         }));
         rm.config.setSelections(new LinkedHashSet<>(orderedSelections));
     }
-    public void Cancel(int slotIndex) {
+    public boolean Cancel(int slotIndex) {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
-            return;
+            return false;
         }
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
-            return;
+            return false;
         }
         humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
         if (geSlot.getType().equals("Empty")) {
-            return;
+            return false;
+        }
+        if (geSlot.getTradeBarWidth() == humblePhlipper.dbGE.Slot.maxTradeBarWidth) {
+            return false;
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
-        if ((geSlot.isBuyOffer() && (geSlot.getPrice() != item.getBid() || 0.99 * item.getAsk() - item.getBid() <= 0 || geSlot.getTradeBarWidth() > 0 || !rm.session.getBidding())) ||
-            (geSlot.isSellOffer() && geSlot.getPrice() != item.getAsk()))
-        {
-            if (Sleep.sleepUntil(() -> GrandExchange.cancelOffer(slotIndex), 1000)) {
-                Sleep.sleep(1000);
-            }
+        if (((geSlot.isBuyOffer() && (geSlot.getPrice() == item.getBid() && 0.99 * item.getAsk() - item.getBid() > 0 && geSlot.getTradeBarWidth() == 0 && rm.session.getBidding())) ||
+            (geSlot.isSellOffer() && geSlot.getPrice() == item.getAsk()))) {
+            return false;
         }
+        return (Sleep.sleepUntil(() -> GrandExchange.cancelOffer(slotIndex), 1000));
     }
 
-    public void Collect(int slotIndex) {
+    public boolean Collect(int slotIndex) {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
-            return;
+            return false;
         }
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
-            return;
+            return false;
         }
         humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
         if (geSlot.getType().equals("Empty")) {
-            return;
+            return false;
         }
         if (!geSlot.isReadyToCollect()) {
-            return;
+            return false;
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
 
         boolean isBuyOffer = geSlot.isBuyOffer();
         if (Sleep.sleepUntil(() -> GrandExchange.openSlotInterface(slotIndex), SLEEP)) {
             Sleep.sleep(SLEEP);
-        } else if (Sleep.sleepUntil(() -> geSlot.openInterface(), SLEEP)) {
+        } else if (Sleep.sleepUntil(() -> humblePhlipper.dbGE.Slot.openSlotInterface(slotIndex), SLEEP)) {
             Sleep.sleep(SLEEP);
         } else {
-            return;
+            return false;
         }
 
         boolean collectionSuccess = false;
         int vol = humblePhlipper.dbGE.OpenOffer.getTransferredAmount();
-        double price = (double) humblePhlipper.dbGE.OpenOffer.getTransferredValue() /vol;
+        double price = (double) humblePhlipper.dbGE.OpenOffer.getTransferredValue()/vol;
         price = (isBuyOffer) ? -1 * price : price;
 
         if (!GrandExchange.getOfferSecondItemWidget().isHidden()) {
@@ -153,7 +154,7 @@ public class Trading {
         }
 
         if (!collectionSuccess || vol == 0) {
-            return;
+            return false;
         }
 
         if (isBuyOffer) {
@@ -182,6 +183,8 @@ public class Trading {
         humblePhlipper.resources.data.Trades.Trade trade = new humblePhlipper.resources.data.Trades.Trade(LocalDateTime.now(), item.getMapping().getName(), vol, price);
         item.getTrades().increment(trade);
         Logger.log("<trade>\n" + trade.getCSV() + "</trade>");
+
+        return true;
     }
 
     public Boolean MakeAsk(Integer ID) {
@@ -237,10 +240,10 @@ public class Trading {
         int vol = Math.min(item.getTargetVol(), (int) Math.floor((double) Inventory.count("Coins") / item.getBid()));
         vol = Math.min(vol, (int) Math.floor((double) rm.config.getMaxBidValue() / item.getBid()));
         vol = Math.min(vol, rm.config.getMaxBidVol());
+        final int finalVol = vol;
         if (vol == 0) {
             return false;
         }
-        final int finalVol = vol;
         if (Sleep.sleepUntil(() -> GrandExchange.buyItem(item.getMapping().getId(), finalVol, item.getBid()), SLEEP)) {
             return true; // This seems to work for all items
         }

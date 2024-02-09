@@ -106,12 +106,12 @@ public class Main extends AbstractScript {
 
         // Loop through slots and make cancellations
         for (int i=0; i<8; i++) {
-            trading.Cancel(i);
+            if (trading.Cancel(i)) { return SLEEP; }
         }
 
         // Loop through slots and make collections
         for (int i=0; i<8; i++) {
-            trading.Collect(i);
+            if (trading.Collect(i)) { return SLEEP; }
         }
 
         // Loop through items and make asks

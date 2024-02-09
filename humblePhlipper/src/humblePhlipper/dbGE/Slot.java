@@ -52,7 +52,8 @@ public class Slot {
         if (getSlotWidget().getChild(25).getText().isEmpty()) {
             return -1;
         }
-        return Integer.parseInt(getSlotWidget().getChild(25).getText().replaceAll(" coins", "").replaceAll(",",""));
+        String text = getSlotWidget().getChild(25).getText();
+        return Integer.parseInt(text.substring(0,text.indexOf(" coin")));
     }
 
     public static int getFirstOpenSlot() {
@@ -62,5 +63,9 @@ public class Slot {
             }
         }
         return -1;
+    }
+
+    public static boolean openSlotInterface(int i) {
+        return get(i).getSlotWidget().getChild(2).interact();
     }
 }
