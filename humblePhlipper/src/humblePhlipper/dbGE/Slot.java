@@ -53,7 +53,8 @@ public class Slot {
             return -1;
         }
         String text = getSlotWidget().getChild(25).getText();
-        return Integer.parseInt(text.substring(0,text.indexOf(" coin")));
+        text = text.replaceAll("[^0-9]","");
+        return Integer.parseInt(text);
     }
 
     public static int getFirstOpenSlot() {
