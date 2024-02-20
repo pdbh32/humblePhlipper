@@ -13,12 +13,13 @@ public class Server {
     public Server(int port, Protocol sp) {
         Instant startTime = Instant.now();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            serverSocket.setSoTimeout(1000);
             sp.begin();
-            while (Duration.between(startTime, Instant.now()).toMillis() < 1000) {
+            serverSocket.setSoTimeout(3000); // Maximum time serverSocket will block whilst waiting for a client connection via accept()
+            while (Duration.between(startTime, Instant.now()).toMillis() < 3000) { // Time the while loop will run to accept() clients
                 new ServerThread(serverSocket.accept(), sp).start();
             }
         } catch (SocketTimeoutException ignored) {
+            System.err.println(LocalDateTime.now() + " SERVER-side SocketTimeoutException");
         } catch (IOException e) {
             System.err.println("IOException for port " + port);
         }

@@ -26,7 +26,6 @@ public class ClientProtocol extends humblePhlipper.network.Protocol {
                     rm.oneHourMap = sm.oneHourMap;
                     break;
             }
-            Logger.log("--------------------------------------------");
             Logger.log(LocalDateTime.now() + " CLIENT (updated " + request + " map from server)");
         } catch (Exception e) {
             System.err.println(LocalDateTime.now() + " CLIENT read error");
