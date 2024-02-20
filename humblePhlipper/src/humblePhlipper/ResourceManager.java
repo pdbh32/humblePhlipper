@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -122,12 +123,17 @@ public class ResourceManager {
                 items.updateAllPricing();
                 return;
             }
+            int code = new Random().nextInt(10001);
+            Logger.log(LocalDateTime.now() + " " + code + " LATEST schedule");
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
-            new humblePhlipper.network.Client(1066, cp, sp);
-            items.updateAllLatest();
-            items.updateAllPricing();
-        }, initialDelay(config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 5) : config.getApiInterval()), config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 5) : config.getApiInterval(), TimeUnit.SECONDS);
+            Executors.newCachedThreadPool().submit(() -> {
+                new humblePhlipper.network.Client(1066, cp, sp);
+                items.updateAllLatest();
+                items.updateAllPricing();
+                Logger.log(LocalDateTime.now() + " " + code + " LATEST success");
+            });
+        }, initialDelay(config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 10) : config.getApiInterval()), config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 10) : config.getApiInterval(), TimeUnit.SECONDS);
     }
 
     /*private void setFiveMinuteApiScheduler() {
@@ -148,11 +154,16 @@ public class ResourceManager {
                 items.updateAllPricing();
                 return;
             }
+            int code = new Random().nextInt(10001);
+            Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE schedule");
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
-            new humblePhlipper.network.Client(1776, cp, sp);
-            items.updateAllFiveMinute();
-            items.updateAllPricing();
+            Executors.newCachedThreadPool().submit(() -> {
+                new humblePhlipper.network.Client(1776, cp, sp);
+                items.updateAllFiveMinute();
+                items.updateAllPricing();
+                Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE success");
+            });
         }, initialDelay(300), 300, TimeUnit.SECONDS);
     }
 
@@ -174,11 +185,16 @@ public class ResourceManager {
                 items.updateAllPricing();
                 return;
             }
+            int code = new Random().nextInt(10001);
+            Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR schedule");
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
-            new humblePhlipper.network.Client(1929, cp, sp);
-            items.updateAllOneHour();
-            items.updateAllPricing();
+            Executors.newCachedThreadPool().submit(() -> {
+                new humblePhlipper.network.Client(1929, cp, sp);
+                items.updateAllOneHour();
+                items.updateAllPricing();
+                Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR success");
+            });
         }, initialDelay(3600), 3600, TimeUnit.SECONDS);
     }
 

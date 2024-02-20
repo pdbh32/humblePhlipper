@@ -23,7 +23,6 @@ public class ServerProtocol extends humblePhlipper.network.Protocol {
                 rm.updateOneHourMap();
                 break;
         }
-        Logger.log("--------------------------------------------");
         Logger.log(LocalDateTime.now() + " SERVER (updated " + request + " map from Wiki)");
     }
     @Override
