@@ -84,7 +84,7 @@ public class ResourceManager {
             humblePhlipper.network.webhook.ClientProtocol cp = new humblePhlipper.network.webhook.ClientProtocol(this);
             humblePhlipper.network.webhook.ServerProtocol sp = new humblePhlipper.network.webhook.ServerProtocol(this);
             new humblePhlipper.network.Client(1969, cp, sp);
-        }, initialDelay(300), 300, TimeUnit.SECONDS); //3600
+        }, initialDelay(3600), 3600, TimeUnit.SECONDS);
     }
 
     public void setApiSchedulers() {
