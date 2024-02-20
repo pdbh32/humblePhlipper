@@ -1,4 +1,4 @@
-package humblePhlipper.resources.api;
+package humblePhlipper.resources.wikiObject;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

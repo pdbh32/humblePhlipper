@@ -75,10 +75,10 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         private Integer bid;
         private Integer ask;
 
-        private humblePhlipper.resources.api.Mapping mapping;
-        private humblePhlipper.resources.api.Latest latest = new humblePhlipper.resources.api.Latest();
-        private humblePhlipper.resources.api.FiveMinute fiveMinute = new humblePhlipper.resources.api.FiveMinute();
-        private humblePhlipper.resources.api.OneHour oneHour = new humblePhlipper.resources.api.OneHour();
+        private humblePhlipper.resources.wikiObject.Mapping mapping;
+        private humblePhlipper.resources.wikiObject.Latest latest = new humblePhlipper.resources.wikiObject.Latest();
+        private humblePhlipper.resources.wikiObject.FiveMinute fiveMinute = new humblePhlipper.resources.wikiObject.FiveMinute();
+        private humblePhlipper.resources.wikiObject.OneHour oneHour = new humblePhlipper.resources.wikiObject.OneHour();
         public humblePhlipper.resources.data.Trades trades = new humblePhlipper.resources.data.Trades();
 
         public Item(int id, humblePhlipper.ResourceManager rm) {
@@ -140,10 +140,10 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         public Integer getBid() { return bid; }
         public Integer getAsk() { return ask; }
 
-        public humblePhlipper.resources.api.Mapping getMapping() { return mapping; }
+        public humblePhlipper.resources.wikiObject.Mapping getMapping() { return mapping; }
         private void updateMapping() { mapping = rm.mappingMap.get(id); }
 
-        public humblePhlipper.resources.api.Latest getLatest() { return latest; }
+        public humblePhlipper.resources.wikiObject.Latest getLatest() { return latest; }
         private void updateLatest() {
             if (rm.latestMap.get(id) == null) {
                 return;
@@ -157,14 +157,14 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             this.latest = rm.latestMap.get(id);
         }
 
-        public humblePhlipper.resources.api.FiveMinute getFiveMinute() { return fiveMinute; }
+        public humblePhlipper.resources.wikiObject.FiveMinute getFiveMinute() { return fiveMinute; }
         private void updateFiveMinute() {
             if (rm.fiveMinuteMap.get(id) == null) {
                 return;
             }
             this.fiveMinute = rm.fiveMinuteMap.get(id);
         }
-        public humblePhlipper.resources.api.OneHour getOneHour() { return oneHour; }
+        public humblePhlipper.resources.wikiObject.OneHour getOneHour() { return oneHour; }
         private void updateOneHour() {
             if (rm.oneHourMap.get(id) == null) {
                 return;

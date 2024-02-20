@@ -24,7 +24,7 @@ import java.util.*;
 
 import Gelox_.DiscordWebhook;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.41)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.5)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -104,6 +104,13 @@ public class Main extends AbstractScript {
         rm.items.updateAllFourLimit();
         rm.items.updateAllTargetVol();
 
+        // Go back if stuck
+        if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
+            if (Sleep.sleepUntil(GrandExchange::goBack,SLEEP)) {
+                Sleep.sleep(SLEEP);
+            }
+        }
+
         // Loop through slots and make cancellations
         for (int i=0; i<8; i++) {
             if (trading.Cancel(i)) { return SLEEP; }
@@ -122,13 +129,6 @@ public class Main extends AbstractScript {
         // Loop through items and make bids
         for (Integer ID : rm.config.getSelections()) {
             if (trading.MakeBid(ID)) { return SLEEP; }
-        }
-
-        // Go back if stuck
-        if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
-            if (Sleep.sleepUntil(GrandExchange::goBack,SLEEP)) {
-                Sleep.sleep(SLEEP);
-            }
         }
 
         // if ((Timeout reached) || (profit cutoff reached)) { stop bidding; }
@@ -157,8 +157,7 @@ public class Main extends AbstractScript {
         if (gui != null) {
             gui.Dispose();
         }
-        rm.disposeApiSchedulers();
-        rm.disposeWebhookScheduler();
+        rm.disposeSchedulers();
         rm.saveFourHourLimits();
         rm.items.alphabetSort();
 
@@ -182,8 +181,16 @@ public class Main extends AbstractScript {
         Logger.log("Errors: " + rm.session.trades.getError());
         Logger.log("--------------------------------------------------------------------------------------");
 
-        if (getInstance().getDiscordWebhook() != null) {
-            DiscordWebhook webhook = new DiscordWebhook(getInstance().getDiscordWebhook());
+        String discordWebhook;
+        if (rm.config.getDiscordWebhook() != null) {
+            discordWebhook = rm.config.getDiscordWebhook();
+        } else if (getInstance().getDiscordWebhook() != null) {
+            discordWebhook = getInstance().getDiscordWebhook();
+        } else {
+            discordWebhook = null;
+        }
+        if (discordWebhook != null) {
+            DiscordWebhook webhook = new DiscordWebhook(discordWebhook);
             webhook.setContent((AccountManager.getAccountUsername()) + " ended with profit of " + commaFormat.format(Math.round(rm.session.getProfit())));
             webhook.setAvatarUrl("https://i.postimg.cc/W4DLDmhP/humble-Phlipper.png");
             webhook.setUsername("humblePhlipper");

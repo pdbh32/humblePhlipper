@@ -14,6 +14,9 @@ public class Config {
     @SerializedName("sysExit")
     @Expose
     private Boolean sysExit;
+    @SerializedName("discordWebhook")
+    @Expose
+    private String discordWebhook;
     @SerializedName("profitCutOff")
     @Expose
     private Integer profitCutOff;
@@ -45,6 +48,10 @@ public class Config {
     @SerializedName("apiInterval")
     @Expose
     private Integer apiInterval;
+
+    @SerializedName("bandwidthSaver")
+    @Expose
+    private Boolean bandwidthSaver;
 
     // Selections
     @SerializedName("selections")
@@ -82,6 +89,7 @@ public class Config {
         this.timeout = 240F;
         this.profitCutOff = Integer.MAX_VALUE;
         this.sysExit = false;
+        this.discordWebhook = null;
         this.maxBidValue = 1000000;
         this.maxBidVol = 10000;
 
@@ -94,6 +102,7 @@ public class Config {
         this.pricing = "latest";
         this.pricingOffset = 0;
         this.apiInterval = 1;
+        this.bandwidthSaver = false;
 
         // Selections
         this.selections = new LinkedHashSet<>();
@@ -119,6 +128,7 @@ public class Config {
     public Boolean getSysExit() {
         return sysExit;
     }
+    public String getDiscordWebhook() { return discordWebhook; }
     public Integer getMaxBidValue() {
         return maxBidValue;
     }
@@ -147,6 +157,7 @@ public class Config {
     public Integer getApiInterval() {
         return apiInterval;
     }
+    public Boolean getBandwidthSaver() { return bandwidthSaver; }
 
     // Selections Getters
     public Set<Integer> getSelections() {
@@ -180,6 +191,7 @@ public class Config {
     public void setTimeout(Float timeout) { this.timeout = timeout; }
     public void setProfitCutOff(Integer profitCutoff) { this.profitCutOff = profitCutoff; }
     public void setSysExit(Boolean sysExit) { this.sysExit = sysExit; }
+    public void setDiscordWebhook(String discordWebhook ) { this.discordWebhook = discordWebhook; }
     public void setMaxBidValue(Integer maxBidValue) { this.maxBidValue = maxBidValue; }
     public void setMaxBidVol(Integer maxBidVol) { this.maxBidVol = maxBidVol; }
 
@@ -212,6 +224,7 @@ public class Config {
             this.apiInterval = apiInterval;
         }
     }
+    public void setBandwidthSaver(Boolean bandwidthSaver) { this.bandwidthSaver = bandwidthSaver; }
 
     // Selections Setters
     public void setSelections(Set<Integer> selections) { this.selections = selections; }
