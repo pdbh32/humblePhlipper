@@ -2,6 +2,8 @@ package humblePhlipper;
 
 import Jama.Matrix;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import humblePhlipper.regression.LinearRegression;
 import humblePhlipper.regression.distributions.F;
 import humblePhlipper.regression.distributions.T;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class EndGUI extends JFrame {
+    private final Gson gson;
     private final File historyDirectory = new File(System.getProperty("scripts.path") + File.separator + "humblePhlipper" + File.separator + "History");
     private final List<Integer> modelsList = Models.getList();
     private final String[] regressorsArray = Regressors.getArray();
@@ -64,6 +67,8 @@ public class EndGUI extends JFrame {
     private JComboBox modelComboBox;
 
     public EndGUI() {
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
+
         // Inspection
         setHistoryComboBox();
         populateInspectionObjectsFromHistoryFile();
@@ -105,6 +110,10 @@ public class EndGUI extends JFrame {
         String tradesCSV = (String) sessionHistory.get("tradesCSV");
         String configJSON = (String) sessionHistory.get("configJSON");
 
+        // Pretty print the config json (EndGUI uses a separate Gson object from ResourceManager)
+        Config config = gson.fromJson(configJSON, Config.class);
+        configJSON = gson.toJson(config);
+
         selectionsTextArea.setText(selectionsCSV);
         tradesTextArea.setText(tradesCSV);
         configTextArea.setText(configJSON);
@@ -121,7 +130,6 @@ public class EndGUI extends JFrame {
         Map<String, Double> itemProfitMap = new HashMap<>();
         Map<String, Integer> itemVolMap = new HashMap<>();
 
-        Config config = Main.rm.gson.fromJson(configJSON, Config.class);
         for (int ID : config.getSelections()) {
             itemProfitMap.put(Main.rm.mappingMap.get(ID).getName(), 0.0);
             itemVolMap.put(Main.rm.mappingMap.get(ID).getName(), 0);

@@ -6,6 +6,8 @@ import com.google.gson.reflect.TypeToken;
 
 import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.AccountManager;
+import org.dreambot.api.utilities.Logger;
+
 import static org.dreambot.core.Instance.getInstance;
 
 import java.io.*;
@@ -13,6 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -34,10 +37,10 @@ Classes Resources.SavedData.* DO match the structure of their local json source 
 
 public class ResourceManager {
     public final Gson gson;
-    public Map<Integer, humblePhlipper.resources.api.Mapping> mappingMap;
-    public Map<Integer, humblePhlipper.resources.api.Latest> latestMap;
-    public Map<Integer, humblePhlipper.resources.api.FiveMinute> fiveMinuteMap;
-    public Map<Integer, humblePhlipper.resources.api.OneHour> oneHourMap;
+    public Map<Integer, humblePhlipper.resources.wikiObject.Mapping> mappingMap;
+    public Map<Integer, humblePhlipper.resources.wikiObject.Latest> latestMap;
+    public Map<Integer, humblePhlipper.resources.wikiObject.FiveMinute> fiveMinuteMap;
+    public Map<Integer, humblePhlipper.resources.wikiObject.OneHour> oneHourMap;
     private ScheduledExecutorService latestApiScheduler;
     private ScheduledExecutorService fiveMinuteApiScheduler;
     private ScheduledExecutorService oneHourApiScheduler;
@@ -50,7 +53,7 @@ public class ResourceManager {
     private ScheduledExecutorService webhookScheduler;
 
     public ResourceManager() {
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.gson = new GsonBuilder().serializeNulls().create();
 
         // (1) Set API maps and thread,
         updateMappingMap(); // We only need to set this once
@@ -75,10 +78,13 @@ public class ResourceManager {
     private void setWebhookScheduler() {
         webhookScheduler = Executors.newSingleThreadScheduledExecutor();
         webhookScheduler.scheduleAtFixedRate(() -> {
-            if (getInstance().getDiscordWebhook() != null) {
-                new humblePhlipper.resources.network.Client();
+            if (config.getDiscordWebhook() == null && getInstance().getDiscordWebhook() == null) {
+                return;
             }
-        }, initialDelay(3600), 3600, TimeUnit.SECONDS);
+            humblePhlipper.network.webhook.ClientProtocol cp = new humblePhlipper.network.webhook.ClientProtocol(this);
+            humblePhlipper.network.webhook.ServerProtocol sp = new humblePhlipper.network.webhook.ServerProtocol(this);
+            new humblePhlipper.network.Client(1969, cp, sp);
+        }, initialDelay(300), 300, TimeUnit.SECONDS); //3600
     }
 
     public void setApiSchedulers() {
@@ -98,28 +104,79 @@ public class ResourceManager {
         }
     }
 
-    private void setLatestApiScheduler() {
+    /*private void setLatestApiScheduler() {
         latestApiScheduler = Executors.newSingleThreadScheduledExecutor();
         latestApiScheduler.scheduleAtFixedRate(() -> {
             updateLatestMap();
             items.updateAllLatest();
             items.updateAllPricing();
         }, config.getApiInterval(), config.getApiInterval(), TimeUnit.SECONDS);
+    }*/
+
+    private void setLatestApiScheduler() {
+        latestApiScheduler = Executors.newSingleThreadScheduledExecutor();
+        latestApiScheduler.scheduleAtFixedRate(() -> {
+            if (!config.getBandwidthSaver()) {
+                updateLatestMap();
+                items.updateAllLatest();
+                items.updateAllPricing();
+                return;
+            }
+            humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
+            humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
+            new humblePhlipper.network.Client(1066, cp, sp);
+            items.updateAllLatest();
+            items.updateAllPricing();
+        }, initialDelay(config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 5) : config.getApiInterval()), config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 5) : config.getApiInterval(), TimeUnit.SECONDS);
     }
 
-    private void setFiveMinuteApiScheduler() {
+    /*private void setFiveMinuteApiScheduler() {
         fiveMinuteApiScheduler = Executors.newSingleThreadScheduledExecutor();
         fiveMinuteApiScheduler.scheduleAtFixedRate(() -> {
             updateFiveMinuteMap();
             items.updateAllFiveMinute();
             items.updateAllPricing();
         }, initialDelay(300), 300, TimeUnit.SECONDS);
+    }*/
+
+    private void setFiveMinuteApiScheduler() {
+        fiveMinuteApiScheduler = Executors.newSingleThreadScheduledExecutor();
+        fiveMinuteApiScheduler.scheduleAtFixedRate(() -> {
+            if (!config.getBandwidthSaver()) {
+                updateFiveMinuteMap();
+                items.updateAllFiveMinute();
+                items.updateAllPricing();
+                return;
+            }
+            humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
+            humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
+            new humblePhlipper.network.Client(1776, cp, sp);
+            items.updateAllFiveMinute();
+            items.updateAllPricing();
+        }, initialDelay(300), 300, TimeUnit.SECONDS);
     }
+
+    /*private void setOneHourApiScheduler() {
+        oneHourApiScheduler = Executors.newSingleThreadScheduledExecutor();
+        oneHourApiScheduler.scheduleAtFixedRate(() -> {
+            updateOneHourMap();
+            items.updateAllOneHour();
+            items.updateAllPricing();
+        }, initialDelay(3600), 3600, TimeUnit.SECONDS);
+    }*/
 
     private void setOneHourApiScheduler() {
         oneHourApiScheduler = Executors.newSingleThreadScheduledExecutor();
         oneHourApiScheduler.scheduleAtFixedRate(() -> {
-            updateOneHourMap();
+            if (!config.getBandwidthSaver()) {
+                updateOneHourMap();
+                items.updateAllOneHour();
+                items.updateAllPricing();
+                return;
+            }
+            humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
+            humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
+            new humblePhlipper.network.Client(1929, cp, sp);
             items.updateAllOneHour();
             items.updateAllPricing();
         }, initialDelay(3600), 3600, TimeUnit.SECONDS);
@@ -131,15 +188,16 @@ public class ResourceManager {
         return nextUpdateTime - currentTime;
     }
 
-    public void disposeWebhookScheduler() {
-        if (webhookScheduler == null) { return; }
-        webhookScheduler.shutdownNow();
-    }
-
-    public void disposeApiSchedulers() {
+    public void disposeSchedulers() {
+        disposeWebhookScheduler();
         disposeLatestApiScheduler();
         disposeFiveMinuteApiScheduler();
         disposeOneHourApiScheduler();
+    }
+
+    private void disposeWebhookScheduler() {
+        if (webhookScheduler == null) { return; }
+        webhookScheduler.shutdownNow();
     }
     private void disposeLatestApiScheduler() {
         if (latestApiScheduler == null) { return; }
@@ -158,15 +216,15 @@ public class ResourceManager {
         updateMap("mapping");
     }
 
-    private void updateLatestMap() {
+    public void updateLatestMap() {
         updateMap("latest");
     }
 
-    private void updateFiveMinuteMap() {
+    public void updateFiveMinuteMap() {
         updateMap("5m");
     }
 
-    private void updateOneHourMap() {
+    public void updateOneHourMap() {
         updateMap("1h");
     }
 
@@ -179,22 +237,22 @@ public class ResourceManager {
             try (InputStreamReader reader = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
                 switch (urlRoute) {
                     case "mapping":
-                        List<humblePhlipper.resources.api.Mapping> mappingList = gson.fromJson(reader, new TypeToken<List<humblePhlipper.resources.api.Mapping>>() {}.getType());
-                        mappingMap = mappingList.stream().collect(Collectors.toMap(humblePhlipper.resources.api.Mapping::getId, Function.identity()));
+                        List<humblePhlipper.resources.wikiObject.Mapping> mappingList = gson.fromJson(reader, new TypeToken<List<humblePhlipper.resources.wikiObject.Mapping>>() {}.getType());
+                        mappingMap = mappingList.stream().collect(Collectors.toMap(humblePhlipper.resources.wikiObject.Mapping::getId, Function.identity()));
                         break;
                     case "latest":
-                        Map<String, Map<Integer, humblePhlipper.resources.api.Latest>> latestMapData = gson.fromJson(reader, new TypeToken<Map<String, Map<Integer, humblePhlipper.resources.api.Latest>>>() {}.getType());
+                        Map<String, Map<Integer, humblePhlipper.resources.wikiObject.Latest>> latestMapData = gson.fromJson(reader, new TypeToken<Map<String, Map<Integer, humblePhlipper.resources.wikiObject.Latest>>>() {}.getType());
                         latestMap = latestMapData.get("data");
                         break;
                     case "5m":
                         Map fiveMinuteMapData = gson.fromJson(reader, Map.class);
                         String fiveMinuteJson = gson.toJson(fiveMinuteMapData.get("data"));
-                        fiveMinuteMap = gson.fromJson(fiveMinuteJson, new TypeToken<Map<Integer, humblePhlipper.resources.api.FiveMinute>>() {}.getType());
+                        fiveMinuteMap = gson.fromJson(fiveMinuteJson, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.FiveMinute>>() {}.getType());
                         break;
                     case "1h":
                         Map oneHourMapData = gson.fromJson(reader, Map.class);
                         String oneHourJson = gson.toJson(oneHourMapData.get("data"));
-                        oneHourMap = gson.fromJson(oneHourJson, new TypeToken<Map<Integer, humblePhlipper.resources.api.OneHour>>() {}.getType());
+                        oneHourMap = gson.fromJson(oneHourJson, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.OneHour>>() {}.getType());
                         break;
                 }
             }
@@ -269,12 +327,12 @@ public class ResourceManager {
 
     public int getIdFromString(String input) {
         try {
-            humblePhlipper.resources.api.Mapping mapping = mappingMap.get(Integer.parseInt(input));
+            humblePhlipper.resources.wikiObject.Mapping mapping = mappingMap.get(Integer.parseInt(input));
             if (mapping != null) {
                 return mapping.getId();
             }
         } catch (NumberFormatException e) {
-            for (humblePhlipper.resources.api.Mapping mapping : mappingMap.values()) {
+            for (humblePhlipper.resources.wikiObject.Mapping mapping : mappingMap.values()) {
                 if (mapping.getName().equalsIgnoreCase(input)) {
                     return mapping.getId();
                 }

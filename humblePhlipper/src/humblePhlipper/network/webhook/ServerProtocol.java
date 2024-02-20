@@ -1,24 +1,26 @@
-package humblePhlipper.resources.network;
+package humblePhlipper.network.webhook;
 
 import Gelox_.DiscordWebhook;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.dreambot.core.Instance.getInstance;
 
-public class ServerProtocol {
+public class ServerProtocol extends humblePhlipper.network.Protocol {
     private final DecimalFormat commaFormat = new DecimalFormat("#,###");
-    private Map<String, Object[]> accountUsernameMap = new HashMap<>();
-    public ServerProtocol() {
-        addData(new ClientMessage());
+    private final Map<String, Object[]> accountUsernameMap = new HashMap<>();
+    public ServerProtocol(humblePhlipper.ResourceManager rm) {
+        super(rm);
+        addData(new ClientMessage(rm));
     }
-
-    public ClientMessage read(String message) {
-        return new ClientMessage(message);
+    @Override
+    public void go() throws IOException {
+        ClientMessage cm = new ClientMessage(in.readLine());
+        addData(cm);
     }
-
     public void addData(ClientMessage cm) {
         accountUsernameMap.put(cm.accountUsername, new Object[]{cm.profit, cm.elapsed});
     }
@@ -51,11 +53,17 @@ public class ServerProtocol {
     private double getTotalProfitPerHour() {
         return getAvgProfitPerHour() * getInstances();
     }
-    public void sendWebhook() {
-        if (getInstance().getDiscordWebhook() == null) {
+    @Override
+    public void finish() {
+        String discordWebhook;
+        if (rm.config.getDiscordWebhook() != null) {
+            discordWebhook = rm.config.getDiscordWebhook();
+        } else if (getInstance().getDiscordWebhook() != null) {
+            discordWebhook = getInstance().getDiscordWebhook();
+        } else {
             return;
         }
-        DiscordWebhook webhook = new DiscordWebhook(getInstance().getDiscordWebhook());
+        DiscordWebhook webhook = new DiscordWebhook(discordWebhook);
         webhook.setContent("Total Profit: " + commaFormat.format(Math.round(getTotalProfit())) + ", Avg Profit/Hr: " + commaFormat.format(Math.round(getAvgProfitPerHour())));
         webhook.setAvatarUrl("https://i.postimg.cc/W4DLDmhP/humble-Phlipper.png");
         webhook.setUsername("humblePhlipper");
