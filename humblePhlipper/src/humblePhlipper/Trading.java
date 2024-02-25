@@ -39,7 +39,7 @@ public class Trading {
             if ((float) item.getOneHour().getLowPriceVolume() / item.getOneHour().getHighPriceVolume() > rm.config.getMaxBidAskVolRatio()) {
                 continue;
             }
-            if (0.99 * item.getAsk() - item.getBid() < rm.config.getMinMargin()) {
+            if (getProfitMargin(item.getId()) < rm.config.getMinMargin()) {
                 continue;
             }
             if (item.getBid() > rm.config.getMaxBidPrice()) {
@@ -56,8 +56,9 @@ public class Trading {
         Order();
         rm.config.setSelections(rm.config.getSelections().stream().limit(rm.config.getNumToSelect()).collect(Collectors.toCollection(LinkedHashSet::new))); // Keep first N selections
     }
-    private double getProfitMargin(int ID) {
-        return 0.99 * rm.items.get(ID).getAsk() - rm.items.get(ID).getBid();
+    public double getProfitMargin(int ID) {
+
+        return Math.max(Math.ceil(0.99 * rm.items.get(ID).getAsk()), rm.items.get(ID).getAsk() - 5000000) - rm.items.get(ID).getBid();
     }
     private double getVol(int ID) {
         return rm.items.get(ID).getOneHour().getLowPriceVolume() + rm.items.get(ID).getOneHour().getHighPriceVolume();
@@ -101,7 +102,7 @@ public class Trading {
             return false;
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
-        if (((geSlot.isBuyOffer() && (geSlot.getPrice() == item.getBid() && 0.99 * item.getAsk() - item.getBid() > 0 && geSlot.getTradeBarWidth() == 0 && rm.session.getBidding())) ||
+        if (((geSlot.isBuyOffer() && (geSlot.getPrice() == item.getBid() && getProfitMargin(item.getId()) > 0 && geSlot.getTradeBarWidth() == 0 && rm.session.getBidding())) ||
             (geSlot.isSellOffer() && geSlot.getPrice() == item.getAsk()))) {
             return false;
         }
@@ -228,7 +229,7 @@ public class Trading {
         if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId() || geItem.getName().equals(item.getMapping().getName()))) {
             return false;
         }
-        if (item.getTargetVol() == 0 || !rm.session.getBidding() || Inventory.count("Coins") < item.getBid() || 0.99 * item.getAsk() - item.getBid() <= 0) {
+        if (item.getTargetVol() == 0 || !rm.session.getBidding() || Inventory.count("Coins") < item.getBid() || getProfitMargin(item.getId()) <= 0) {
             return false;
         }
         if (Inventory.count(item.getMapping().getName()) != 0 || Inventory.count(item.getMapping().getId()) != 0) {

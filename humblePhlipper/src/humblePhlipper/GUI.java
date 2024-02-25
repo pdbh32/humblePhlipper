@@ -10,11 +10,13 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 
 public class GUI extends JFrame {
+    private final DecimalFormat commaFormat = new DecimalFormat("#,###");
     // Config combo box model
     private DefaultComboBoxModel<String> configComboBoxModel = new DefaultComboBoxModel<>();
     private int configComboBoxSelectedIndex = 0;
@@ -299,10 +301,10 @@ public class GUI extends JFrame {
                     item.getId(),
                     item.getMapping().getMembers(),
                     Trading.getRestrictedIdSet().contains(item.getId()),
-                    item.getBid(),
-                    (int) Math.ceil(0.99 * item.getAsk() - item.getBid()),
-                    item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume(),
-                    item.getTargetVol(),
+                    commaFormat.format(item.getBid()),
+                    commaFormat.format((int) humblePhlipper.Main.trading.getProfitMargin(item.getId())),
+                    commaFormat.format(item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume()),
+                    commaFormat.format(item.getTargetVol()),
                     (item.getFourHourLimit().getCountdownMinutes() < 0) ? "N/A" : (int) Math.ceil(item.getFourHourLimit().getCountdownMinutes()) + " mins"}
             );
         }
