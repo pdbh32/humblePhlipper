@@ -95,8 +95,8 @@ public class Paint {
                 g.drawLine(567, (int) (445 - y0), 567 + 150, (int) (445 - y0)); // y = 0 line
 
                 g.drawString(commaFormat.format(Math.round((double) maxX /60000)) + "m", 697, 460);
-                g.drawString(String.valueOf(Math.round(minY)), 547 + 10, 460);
-                g.drawString(String.valueOf(Math.round(maxY)), 547 + 10, 360);
+                g.drawString(commaFormat.format(Math.round(minY)), 547 + 10, 460);
+                g.drawString(commaFormat.format(Math.round(maxY)), 547 + 10, 360);
 
                 // Map data values to the coordinate system and plot graph,
                 int prevX = 567;
