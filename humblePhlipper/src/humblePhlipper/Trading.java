@@ -67,13 +67,17 @@ public class Trading {
     }
     public void Order() {
         List<Integer> profitOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        profitOrderedSelection.sort(Comparator.nullsLast(Comparator.comparingDouble(this::getProfitMargin)));
+        profitOrderedSelection.sort(Comparator.comparingDouble(id -> {
+            return (getProfitMargin(id) != null) ? getProfitMargin(id) : Double.NEGATIVE_INFINITY;
+        }));
 
         List<Integer> volOrderedSelection = new ArrayList<>(rm.config.getSelections());
         volOrderedSelection.sort(Comparator.comparingDouble(this::getVol));
 
         List<Integer> capitalBindingOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        capitalBindingOrderedSelection.sort(Comparator.nullsLast(Comparator.comparingLong(this::getCapitalBinding)));
+        capitalBindingOrderedSelection.sort(Comparator.comparingLong(id -> {
+            return (getCapitalBinding(id) != null) ? getCapitalBinding(id) : Long.MAX_VALUE;
+        }));
 
         List<Integer> orderedSelections = new ArrayList<>(rm.config.getSelections());
         orderedSelections.sort(Comparator.comparingInt(id -> {
