@@ -56,25 +56,24 @@ public class Trading {
         Order();
         rm.config.setSelections(rm.config.getSelections().stream().limit(rm.config.getNumToSelect()).collect(Collectors.toCollection(LinkedHashSet::new))); // Keep first N selections
     }
-    public double getProfitMargin(int ID) {
-
-        return Math.max(Math.ceil(0.99 * rm.items.get(ID).getAsk()), rm.items.get(ID).getAsk() - 5000000) - rm.items.get(ID).getBid();
+    public Double getProfitMargin(int ID) {
+        return (rm.items.get(ID).getBid() == null || rm.items.get(ID).getAsk() == null) ? null : Math.max(Math.ceil(0.99 * rm.items.get(ID).getAsk()), rm.items.get(ID).getAsk() - 5000000) - rm.items.get(ID).getBid();
     }
     private double getVol(int ID) {
         return rm.items.get(ID).getOneHour().getLowPriceVolume() + rm.items.get(ID).getOneHour().getHighPriceVolume();
     }
-    private long getCapitalBinding(int ID) {
-        return -1L * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol();
+    private Long getCapitalBinding(int ID) {
+        return (rm.items.get(ID).getBid() == null) ? null : -1L * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol();
     }
     public void Order() {
         List<Integer> profitOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        profitOrderedSelection.sort(Comparator.comparingDouble(this::getProfitMargin));
+        profitOrderedSelection.sort(Comparator.nullsLast(Comparator.comparingDouble(this::getProfitMargin)));
 
         List<Integer> volOrderedSelection = new ArrayList<>(rm.config.getSelections());
         volOrderedSelection.sort(Comparator.comparingDouble(this::getVol));
 
         List<Integer> capitalBindingOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        capitalBindingOrderedSelection.sort(Comparator.comparingLong(this::getCapitalBinding));
+        capitalBindingOrderedSelection.sort(Comparator.nullsLast(Comparator.comparingLong(this::getCapitalBinding)));
 
         List<Integer> orderedSelections = new ArrayList<>(rm.config.getSelections());
         orderedSelections.sort(Comparator.comparingInt(id -> {

@@ -302,7 +302,7 @@ public class GUI extends JFrame {
                     item.getMapping().getMembers(),
                     Trading.getRestrictedIdSet().contains(item.getId()),
                     commaFormat.format(item.getBid()),
-                    commaFormat.format((int) humblePhlipper.Main.trading.getProfitMargin(item.getId())),
+                    commaFormat.format(humblePhlipper.Main.trading.getProfitMargin(item.getId())),
                     commaFormat.format(item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume()),
                     commaFormat.format(item.getTargetVol()),
                     (item.getFourHourLimit().getCountdownMinutes() < 0) ? "N/A" : (int) Math.ceil(item.getFourHourLimit().getCountdownMinutes()) + " mins"}
