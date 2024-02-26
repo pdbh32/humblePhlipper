@@ -221,6 +221,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Timeout (Minutes)"/>
+                              <toolTipText value="`timeout` - time in minutes after which to stop making buy offers, sell off remaining inventory, and exit (exit forced if timeout exceeded by 60 minutes)   "/>
                             </properties>
                           </component>
                         </children>
@@ -243,6 +244,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Profit Cutoff"/>
+                              <toolTipText value="`profitCutOff` - profit after which to stop making buy offers, sell off remaining inventory, and exit"/>
                             </properties>
                           </component>
                         </children>
@@ -265,6 +267,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Max Volume of any Bid"/>
+                              <toolTipText value="`maxBidVol` - maximum quantity of any buy offer"/>
                             </properties>
                           </component>
                         </children>
@@ -287,6 +290,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Max Value of any Bid"/>
+                              <toolTipText value="`maxBidValue` - maximum value (quantity * price) of any buy offer"/>
                             </properties>
                           </component>
                         </children>
@@ -309,6 +313,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Close Client on Stop"/>
+                              <toolTipText value="`sysExit` - whether to close client on exit"/>
                             </properties>
                           </component>
                         </children>
@@ -331,6 +336,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Discord Webhook"/>
+                              <toolTipText value="`discordWebhook` - discord webhook for on the hour and end of session notifications"/>
                             </properties>
                           </component>
                         </children>
@@ -373,6 +379,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Base Pricing"/>
+                              <toolTipText value="`pricing` - for `bestOfLatestFiveMinute` bid = min{latest_bid, fiveMinute_bid}; ask = max{latest_ask, fiveMinute_ask}"/>
                             </properties>
                           </component>
                         </children>
@@ -395,6 +402,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Min API Call Interval in Seconds"/>
+                              <toolTipText value="`apiInterval` - second interval for API calls if using `latest` pricing"/>
                             </properties>
                           </component>
                         </children>
@@ -417,6 +425,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Pricing Offset"/>
+                              <toolTipText value="`pricingOffset` - bid = baseline_bid - pricingOffset; ask = baseline_ask + pricingOffset"/>
                             </properties>
                           </component>
                         </children>
@@ -439,6 +448,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Bandwidth-Saver Mode"/>
+                              <toolTipText value="`bandwidthSaver` - reduces bandwidth consumption from O(n) to O(1) for n instanes but increases API call interval floor to 10 seconds"/>
                             </properties>
                           </component>
                         </children>
@@ -656,6 +666,7 @@
                                     <properties>
                                       <editable value="false"/>
                                       <text value="Capital Binding (-ve)"/>
+                                      <toolTipText value="`priorityCapitalBinding` - relative weight assigned to ordinal rank of bid * target, where target is 4hr_GE_limit - used_limit,  in ordering selections"/>
                                     </properties>
                                   </component>
                                 </children>
@@ -697,6 +708,7 @@
                                     <properties>
                                       <editable value="false"/>
                                       <text value="1 Hour Volume (+ve)"/>
+                                      <toolTipText value="`priorityVol` - relative weight assigned to ordinal rank of latest 1 hour volume in ordering selections"/>
                                     </properties>
                                   </component>
                                 </children>
@@ -719,6 +731,7 @@
                                     <properties>
                                       <editable value="false"/>
                                       <text value="Profit Margin (+ve)"/>
+                                      <toolTipText value="`priorityProfit` - relative weight assigned to ordinal rank of post-tax profit margin in ordering selections"/>
                                     </properties>
                                   </component>
                                 </children>
@@ -822,7 +835,9 @@
                               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                               <gridbag weightx="1.0" weighty="1.0"/>
                             </constraints>
-                            <properties/>
+                            <properties>
+                              <toolTipText value=""/>
+                            </properties>
                             <border type="none" title="Max 1 Hour Bid/Vol Volume Ratio"/>
                             <children>
                               <component id="262c3" class="javax.swing.JTextField" binding="maxBidAskVolRatioField">
@@ -832,7 +847,9 @@
                                   </grid>
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
-                                <properties/>
+                                <properties>
+                                  <toolTipText value="`maxBidAskVolRatio` - maximum (1_hour_bid_volume / 1_hour_ask_volume) of candidate automatic selections"/>
+                                </properties>
                               </component>
                             </children>
                           </grid>
@@ -849,7 +866,9 @@
                                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
-                                <properties/>
+                                <properties>
+                                  <toolTipText value="`numToSelect` - number of automatic selections (ordered according to priorityProfit / priorityVol / priorityCapitalBinding)"/>
+                                </properties>
                               </component>
                               <component id="92ca8" class="javax.swing.JButton" binding="generateButton">
                                 <constraints>
@@ -877,7 +896,9 @@
                                   </grid>
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
-                                <properties/>
+                                <properties>
+                                  <toolTipText value="`maxBidPrice` - maximum bid of candaidate automatic selections"/>
+                                </properties>
                               </component>
                             </children>
                           </grid>
@@ -906,7 +927,9 @@
                                   </grid>
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
-                                <properties/>
+                                <properties>
+                                  <toolTipText value="`minVol` - minimum 1 hour volume of candidate automatic selections"/>
+                                </properties>
                               </component>
                             </children>
                           </grid>
@@ -925,7 +948,9 @@
                                   </grid>
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
-                                <properties/>
+                                <properties>
+                                  <toolTipText value="`minMargin` - minimum post-tax profit margin of candidate automatic selections"/>
+                                </properties>
                               </component>
                             </children>
                           </grid>
@@ -944,6 +969,7 @@
                                 </constraints>
                                 <properties>
                                   <text value="Members Account"/>
+                                  <toolTipText value="`members` - whether the account is memebers"/>
                                 </properties>
                               </component>
                               <component id="e0769" class="javax.swing.JCheckBox" binding="tradeRestrictedCheckBox">
@@ -953,6 +979,7 @@
                                 </constraints>
                                 <properties>
                                   <text value="Trade Restricted"/>
+                                  <toolTipText value="`tradeRestricted` - whether the account has 20 hour / 10 quest point / 100 skill level trading restrictions"/>
                                 </properties>
                               </component>
                             </children>
@@ -965,7 +992,9 @@
               </tabbedpane>
               <scrollpane id="6f54d" binding="selectionsTableScrollPane">
                 <constraints border-constraint="Center"/>
-                <properties/>
+                <properties>
+                  <toolTipText value="`selections`"/>
+                </properties>
                 <border type="none"/>
                 <children>
                   <component id="44bbd" class="javax.swing.JTable" binding="selectionsTable">

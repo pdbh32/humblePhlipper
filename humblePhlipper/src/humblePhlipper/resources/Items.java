@@ -222,6 +222,8 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
                     try { this.ask = Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice())  + rm.config.getPricingOffset(); } catch(Exception ignored) {}
                     break;
             }
+            if (this.bid == null && this.latest.getLow() != null) { this.bid = this.latest.getLow() - rm.config.getPricingOffset(); }
+            if (this.ask == null && this.latest.getHigh() != null) { this.ask = this.latest.getHigh() + rm.config.getPricingOffset(); }
             if (this.bid != null && this.bid < 0) { this.bid = null; }
             if (this.ask != null && this.ask < 0) { this.ask = null; }
         }

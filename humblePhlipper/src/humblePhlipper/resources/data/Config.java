@@ -91,16 +91,16 @@ public class Config {
         this.sysExit = false;
         this.discordWebhook = null;
         this.maxBidValue = 1000000;
-        this.maxBidVol = 10000;
+        this.maxBidVol = 20000;
 
         // Bid Priority
         this.priorityProfit = 100;
-        this.priorityVol = 0;
+        this.priorityVol = 100;
         this.priorityCapitalBinding = 0;
 
         // Pricing
-        this.pricing = "latest";
-        this.pricingOffset = 0;
+        this.pricing = "bestOfLatestFiveMinute";
+        this.pricingOffset = -1;
         this.apiInterval = 1;
         this.bandwidthSaver = false;
 
@@ -111,13 +111,13 @@ public class Config {
 
         // Auto Selections
         this.auto = true;
-        this.minVol = 100000;
+        this.minVol = 10000;
         this.minMargin = -10;
         this.maxBidPrice = 20000;
         this.maxBidAskVolRatio = 3.0f;
         this.tradeRestricted = false;
         this.members = false;
-        this.numToSelect = 64;
+        this.numToSelect = 512;
     }
 
     // Miscellaneous Getters
