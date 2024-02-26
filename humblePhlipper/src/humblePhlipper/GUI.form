@@ -838,7 +838,7 @@
                             <properties>
                               <toolTipText value=""/>
                             </properties>
-                            <border type="none" title="Max 1 Hour Bid/Vol Volume Ratio"/>
+                            <border type="none" title="Max 1 Hour Bid/Ask Volume Ratio"/>
                             <children>
                               <component id="262c3" class="javax.swing.JTextField" binding="maxBidAskVolRatioField">
                                 <constraints>

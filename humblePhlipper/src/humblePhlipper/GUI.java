@@ -293,7 +293,7 @@ public class GUI extends JFrame {
         };
         for (int ID : Main.rm.config.getSelections()) {
             Items.Item item = Main.rm.items.get(ID);
-            if (item.getBid() == null | item.getAsk() == null) {
+            if (item.getBid() == null || item.getAsk() == null) {
                 Main.rm.config.removeFromSelections(ID);
             }
             tableModel.addRow(new Object[]{

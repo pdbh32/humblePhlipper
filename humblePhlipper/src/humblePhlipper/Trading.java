@@ -232,6 +232,9 @@ public class Trading {
         if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId() || geItem.getName().equals(item.getMapping().getName()))) {
             return false;
         }
+        if (item.getBid() == null) {
+            return false;
+        }
         if (item.getTargetVol() == 0 || !rm.session.getBidding() || Inventory.count("Coins") < item.getBid() || getProfitMargin(item.getId()) <= 0) {
             return false;
         }

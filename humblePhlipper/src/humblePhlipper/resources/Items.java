@@ -186,12 +186,12 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
                     this.ask = (this.oneHour.getAvgHighPrice() != null) ? this.oneHour.getAvgHighPrice() + rm.config.getPricingOffset() : null;
                     break;
                 case "bestOfLatestFiveMinute":
-                    this.bid = (this.latest.getLow() != null && this.fiveMinute.getAvgLowPrice() != null) ? Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) - rm.config.getPricingOffset() : null;
-                    this.ask = (this.latest.getHigh() != null && this.fiveMinute.getAvgHighPrice() != null) ? Math.max(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) + rm.config.getPricingOffset() : null;
+                    this.bid = (this.fiveMinute.getAvgLowPrice() != null) ? Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) - rm.config.getPricingOffset() : null;
+                    this.ask = (this.fiveMinute.getAvgHighPrice() != null) ? Math.max(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) + rm.config.getPricingOffset() : null;
                     break;
                 case "worstOfLatestFiveMinute":
-                    this.bid = (this.latest.getLow() != null && this.fiveMinute.getAvgLowPrice() != null) ? Math.max(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) - rm.config.getPricingOffset() : null;
-                    this.ask = (this.latest.getHigh() != null && this.fiveMinute.getAvgHighPrice() != null) ? Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) + rm.config.getPricingOffset() : null;
+                    this.bid = (this.fiveMinute.getAvgLowPrice() != null) ? Math.max(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) - rm.config.getPricingOffset() : null;
+                    this.ask = (this.fiveMinute.getAvgHighPrice() != null) ? Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) + rm.config.getPricingOffset() : null;
                     break;
             }
             if (this.bid == null && this.latest.getLow() != null) { this.bid = this.latest.getLow() - rm.config.getPricingOffset(); }
