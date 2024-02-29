@@ -25,30 +25,39 @@ public class Trading {
         for (Integer ID : rm.items.keySet()) {
             humblePhlipper.resources.Items.Item item = rm.items.get(ID);
             if (item.getAsk() == null || item.getBid() == null) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if (item.getTargetVol() == Integer.MAX_VALUE) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if (item.getId() == 13190) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if (item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume() < rm.config.getMinVol()) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if ((float) item.getOneHour().getLowPriceVolume() / item.getOneHour().getHighPriceVolume() > rm.config.getMaxBidAskVolRatio()) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if (getProfitMargin(item.getId()) < rm.config.getMinMargin()) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if (item.getBid() > rm.config.getMaxBidPrice()) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if (rm.config.getTradeRestricted() && restrictedIdSet.contains(item.getId())) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             if (!rm.config.getMembers() && item.getMapping().getMembers()) {
+                rm.config.removeFromSelections(item.getId());
                 continue;
             }
             rm.config.incrementSelections(item.getId());
@@ -105,8 +114,10 @@ public class Trading {
             return false;
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
-        if (((geSlot.isBuyOffer() && (geSlot.getPrice() == item.getBid() && getProfitMargin(item.getId()) > 0 && geSlot.getTradeBarWidth() == 0 && rm.session.getBidding())) ||
-            (geSlot.isSellOffer() && geSlot.getPrice() == item.getAsk()))) {
+        if (geSlot.isBuyOffer() && (geSlot.getPrice() == item.getBid() && getProfitMargin(item.getId()) > 0 && geSlot.getTradeBarWidth() == 0 && rm.session.getBidding())) {
+            return false;
+        }
+        if (geSlot.isSellOffer() && geSlot.getPrice() == item.getAsk()) {
             return false;
         }
         return (Sleep.sleepUntil(() -> GrandExchange.cancelOffer(slotIndex), 1000));

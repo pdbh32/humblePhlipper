@@ -130,10 +130,10 @@ public class EndGUI extends JFrame {
         Map<String, Double> itemProfitMap = new HashMap<>();
         Map<String, Integer> itemVolMap = new HashMap<>();
 
-        for (int ID : config.getSelections()) {
-            itemProfitMap.put(Main.rm.mappingMap.get(ID).getName(), 0.0);
-            itemVolMap.put(Main.rm.mappingMap.get(ID).getName(), 0);
-        }
+        //for (int ID : config.getSelections()) {
+        //    itemProfitMap.put(Main.rm.mappingMap.get(ID).getName(), 0.0);
+        //    itemVolMap.put(Main.rm.mappingMap.get(ID).getName(), 0);
+        //}
 
         for (Map.Entry<String, Trades> entry : tradesMap.entrySet()) {
             Trades.Summary itemSummary = entry.getValue().summarise();
@@ -157,7 +157,7 @@ public class EndGUI extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 int barHeight = 20;
                 int maxBarWidth = getWidth() - 200 - 10;
-                int zeroProfitX = (int) (200 + maxBarWidth * (0 - Collections.min(sortedItemProfitMap.values())) / (Collections.max(sortedItemProfitMap.values()) - Collections.min(sortedItemProfitMap.values())));
+                int zeroProfitX = (itemProfitMap.isEmpty()) ? 0 : (int) (200 + maxBarWidth * (0 - Collections.min(sortedItemProfitMap.values())) / (Collections.max(sortedItemProfitMap.values()) - Collections.min(sortedItemProfitMap.values())));
 
                 int y = 10;
                 for (Map.Entry<String, Double> entry : sortedItemProfitMap.entrySet()) {
