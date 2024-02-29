@@ -24,7 +24,7 @@ import java.util.*;
 
 import Gelox_.DiscordWebhook;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.52)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.6)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -96,8 +96,8 @@ public class Main extends AbstractScript {
 
         GrandExchange.open();
 
-        // Order selections
-        trading.Order();
+        // Dynamic selection
+        trading.Select();
 
         // Update four hour limits data
         rm.updateFourHourLimits();
@@ -108,6 +108,14 @@ public class Main extends AbstractScript {
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
             if (Sleep.sleepUntil(GrandExchange::goBack,SLEEP)) {
                 Sleep.sleep(SLEEP);
+            }
+        }
+
+        // Loop through slots and make diagnostics
+        if (rm.config.getDebug()) {
+            for (int i = 0; i < 8; i++) {
+                humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(i);
+                Logger.log(i + ";" + geSlot.getType() + ";" + geSlot.getItemId() + ";" + ((geSlot.getItemId() != -1) ? rm.items.get(geSlot.getItemId()).getBid() + ";" + rm.items.get(geSlot.getItemId()).getAsk() : "-1id;-1id"));
             }
         }
 
@@ -122,7 +130,7 @@ public class Main extends AbstractScript {
         }
 
         // Loop through items and make asks
-        for (Integer ID : rm.config.getSelections()) {
+        for (Integer ID : rm.items.keySet()) {
             if (trading.MakeAsk(ID)) { return SLEEP; }
         }
 

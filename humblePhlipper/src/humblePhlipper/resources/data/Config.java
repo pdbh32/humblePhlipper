@@ -20,6 +20,11 @@ public class Config {
     @SerializedName("profitCutOff")
     @Expose
     private Integer profitCutOff;
+    @SerializedName("debug")
+    @Expose
+    private Boolean debug;
+
+    // Bid Restrictions
     @SerializedName("maxBidValue")
     @Expose
     private Integer maxBidValue;
@@ -90,6 +95,9 @@ public class Config {
         this.profitCutOff = Integer.MAX_VALUE;
         this.sysExit = false;
         this.discordWebhook = null;
+        this.debug = false;
+
+        // Bid Restrictions
         this.maxBidValue = 1000000;
         this.maxBidVol = 20000;
 
@@ -129,6 +137,11 @@ public class Config {
         return sysExit;
     }
     public String getDiscordWebhook() { return discordWebhook; }
+    public Boolean getDebug() {
+        return debug;
+    }
+
+    // Bid Restrictions Getters
     public Integer getMaxBidValue() {
         return maxBidValue;
     }
@@ -192,6 +205,9 @@ public class Config {
     public void setProfitCutOff(Integer profitCutoff) { this.profitCutOff = profitCutoff; }
     public void setSysExit(Boolean sysExit) { this.sysExit = sysExit; }
     public void setDiscordWebhook(String discordWebhook ) { this.discordWebhook = discordWebhook; }
+    public void setDebug(Boolean debug) { this.debug = debug; }
+
+    // Bid Restrictions Setters
     public void setMaxBidValue(Integer maxBidValue) { this.maxBidValue = maxBidValue; }
     public void setMaxBidVol(Integer maxBidVol) { this.maxBidVol = maxBidVol; }
 

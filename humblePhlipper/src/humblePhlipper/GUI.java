@@ -79,6 +79,7 @@ public class GUI extends JFrame {
     private JTextField bandwidthSaverModeTextField;
     private JCheckBox bandwidthSaverCheckBox;
     private JTextField discordWebhookField;
+    private JCheckBox debugCheckBox;
 
     public GUI() {
         // Set action listeners
@@ -118,6 +119,9 @@ public class GUI extends JFrame {
         Main.rm.config.setProfitCutOff(Integer.parseInt(profitCutOffField.getText()));
         Main.rm.config.setSysExit(sysExitCheckBox.isSelected());
         Main.rm.config.setDiscordWebhook(discordWebhookField.getText().isEmpty() ? null : discordWebhookField.getText());
+        Main.rm.config.setDebug(debugCheckBox.isSelected());
+
+        // Bid Restrictions
         Main.rm.config.setMaxBidValue(Integer.parseInt(maxBidValueField.getText()));
         Main.rm.config.setMaxBidVol(Integer.parseInt(maxBidVolField.getText()));
 
@@ -208,6 +212,9 @@ public class GUI extends JFrame {
         profitCutOffField.setText(String.valueOf(Main.rm.config.getProfitCutOff()));
         sysExitCheckBox.setSelected(Main.rm.config.getSysExit());
         discordWebhookField.setText((Main.rm.config.getDiscordWebhook() == null) ? "" : Main.rm.config.getDiscordWebhook());
+        debugCheckBox.setSelected(Main.rm.config.getDebug());
+
+        // Bid Restrictions
         maxBidValueField.setText(String.valueOf(Main.rm.config.getMaxBidValue()));
         maxBidVolField.setText(String.valueOf(Main.rm.config.getMaxBidVol()));
 

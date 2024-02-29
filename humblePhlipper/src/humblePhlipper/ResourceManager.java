@@ -105,102 +105,78 @@ public class ResourceManager {
         }
     }
 
-    /*private void setLatestApiScheduler() {
-        latestApiScheduler = Executors.newSingleThreadScheduledExecutor();
-        latestApiScheduler.scheduleAtFixedRate(() -> {
-            updateLatestMap();
-            items.updateAllLatest();
-            items.updateAllPricing();
-        }, config.getApiInterval(), config.getApiInterval(), TimeUnit.SECONDS);
-    }*/
-
     private void setLatestApiScheduler() {
         latestApiScheduler = Executors.newSingleThreadScheduledExecutor();
         latestApiScheduler.scheduleAtFixedRate(() -> {
+            int code = new Random().nextInt(10001);
+            if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " LATEST schedule"); }
             if (!config.getBandwidthSaver()) {
                 updateLatestMap();
                 items.updateAllLatest();
                 items.updateAllPricing();
+                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " LATEST success"); }
                 return;
             }
-            int code = new Random().nextInt(10001);
-            Logger.log(LocalDateTime.now() + " " + code + " LATEST schedule");
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
             Executors.newCachedThreadPool().submit(() -> {
                 new humblePhlipper.network.Client(1066, cp, sp);
                 items.updateAllLatest();
                 items.updateAllPricing();
-                Logger.log(LocalDateTime.now() + " " + code + " LATEST success");
+                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " LATEST success"); }
             });
         }, initialDelay(config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 10) : config.getApiInterval()), config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 10) : config.getApiInterval(), TimeUnit.SECONDS);
     }
 
-    /*private void setFiveMinuteApiScheduler() {
-        fiveMinuteApiScheduler = Executors.newSingleThreadScheduledExecutor();
-        fiveMinuteApiScheduler.scheduleAtFixedRate(() -> {
-            updateFiveMinuteMap();
-            items.updateAllFiveMinute();
-            items.updateAllPricing();
-        }, initialDelay(300), 300, TimeUnit.SECONDS);
-    }*/
-
     private void setFiveMinuteApiScheduler() {
         fiveMinuteApiScheduler = Executors.newSingleThreadScheduledExecutor();
         fiveMinuteApiScheduler.scheduleAtFixedRate(() -> {
+            int code = new Random().nextInt(10001);
+            if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE schedule"); }
             if (!config.getBandwidthSaver()) {
                 updateFiveMinuteMap();
                 items.updateAllFiveMinute();
                 items.updateAllPricing();
+                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE success"); }
                 return;
             }
-            int code = new Random().nextInt(10001);
-            Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE schedule");
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
             Executors.newCachedThreadPool().submit(() -> {
                 new humblePhlipper.network.Client(1776, cp, sp);
                 items.updateAllFiveMinute();
                 items.updateAllPricing();
-                Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE success");
+                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE success"); }
             });
         }, initialDelay(300), 300, TimeUnit.SECONDS);
     }
 
-    /*private void setOneHourApiScheduler() {
-        oneHourApiScheduler = Executors.newSingleThreadScheduledExecutor();
-        oneHourApiScheduler.scheduleAtFixedRate(() -> {
-            updateOneHourMap();
-            items.updateAllOneHour();
-            items.updateAllPricing();
-        }, initialDelay(3600), 3600, TimeUnit.SECONDS);
-    }*/
-
     private void setOneHourApiScheduler() {
         oneHourApiScheduler = Executors.newSingleThreadScheduledExecutor();
         oneHourApiScheduler.scheduleAtFixedRate(() -> {
+            int code = new Random().nextInt(10001);
+            if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR schedule"); }
             if (!config.getBandwidthSaver()) {
                 updateOneHourMap();
                 items.updateAllOneHour();
                 items.updateAllPricing();
+                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR success"); }
                 return;
             }
-            int code = new Random().nextInt(10001);
-            Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR schedule");
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
             Executors.newCachedThreadPool().submit(() -> {
                 new humblePhlipper.network.Client(1929, cp, sp);
                 items.updateAllOneHour();
                 items.updateAllPricing();
-                Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR success");
+                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR success"); }
             });
         }, initialDelay(3600), 3600, TimeUnit.SECONDS);
     }
 
     private long initialDelay(int interval) {
         long currentTime = Instant.now().getEpochSecond();
-        long nextUpdateTime = ((currentTime / interval) + 1) * interval + 3; // 3 second delay as a precaution
+        long nextUpdateTime = ((currentTime / interval) + 1) * interval + 15; // 15 second delay as a precaution
         return nextUpdateTime - currentTime;
     }
 

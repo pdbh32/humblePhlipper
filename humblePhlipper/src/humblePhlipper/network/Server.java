@@ -19,7 +19,7 @@ public class Server {
                 new ServerThread(serverSocket.accept(), sp).start();
             }
         } catch (SocketTimeoutException ignored) {
-            System.err.println(LocalDateTime.now() + " SERVER-side SocketTimeoutException");
+            if (humblePhlipper.Main.rm.config.getDebug()) { System.err.println(LocalDateTime.now() + " SERVER-side SocketTimeoutException"); }
         } catch (IOException e) {
             System.err.println("IOException for port " + port);
         }
