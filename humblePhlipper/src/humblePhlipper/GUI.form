@@ -134,16 +134,21 @@
                           </component>
                         </children>
                       </grid>
-                      <grid id="b914" layout-manager="BorderLayout" hgap="0" vgap="0">
+                      <grid id="b914" layout-manager="GridBagLayout">
                         <constraints>
                           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                           <gridbag weightx="1.0" weighty="1.0"/>
                         </constraints>
                         <properties/>
-                        <border type="none"/>
+                        <border type="none">
+                          <font/>
+                        </border>
                         <children>
-                          <component id="fbbff" class="javax.swing.JCheckBox" binding="debugCheckBox">
-                            <constraints border-constraint="Center"/>
+                          <component id="2181e" class="javax.swing.JCheckBox" binding="debugCheckBox">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                              <gridbag weightx="1.0" weighty="1.0"/>
+                            </constraints>
                             <properties>
                               <text value="True"/>
                             </properties>
