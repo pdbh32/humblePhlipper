@@ -96,8 +96,12 @@ public class Main extends AbstractScript {
 
         GrandExchange.open();
 
-        // Dynamic selection
-        trading.Select();
+        // Dynamic selection if auto,
+        if (rm.config.getAuto()) {
+            trading.Select();
+        } else {
+            trading.Order();
+        }
 
         // Update four hour limits data
         rm.updateFourHourLimits();
