@@ -38,6 +38,7 @@ Classes Resources.SavedData.* DO match the structure of their local json source 
 
 public class ResourceManager {
     public final Gson gson;
+    public final humblePhlipper.resources.UserAgent userAgent;
     public Map<Integer, humblePhlipper.resources.wikiObject.Mapping> mappingMap;
     public Map<Integer, humblePhlipper.resources.wikiObject.Latest> latestMap;
     public Map<Integer, humblePhlipper.resources.wikiObject.FiveMinute> fiveMinuteMap;
@@ -55,6 +56,10 @@ public class ResourceManager {
 
     public ResourceManager() {
         this.gson = new GsonBuilder().serializeNulls().create();
+
+        // (0) Generate a random User-Agent
+        this.userAgent = new humblePhlipper.resources.UserAgent();
+        Logger.log("Randomly selected User-Agent: " + userAgent.name);
 
         // (1) Set API maps and thread,
         updateMappingMap(); // We only need to set this once
@@ -224,7 +229,7 @@ public class ResourceManager {
         try {
             URL url = new URL("https://prices.runescape.wiki/api/v1/osrs/" + urlRoute);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", "f2p_flipper");
+            connection.setRequestProperty("User-Agent", userAgent.name);
 
             try (InputStreamReader reader = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
                 switch (urlRoute) {
