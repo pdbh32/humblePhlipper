@@ -1,7 +1,5 @@
 package humblePhlipper.network.wikiData;
 
-import org.dreambot.api.utilities.Logger;
-
 import java.time.LocalDateTime;
 
 public class ServerProtocol extends humblePhlipper.network.Protocol {
@@ -14,16 +12,27 @@ public class ServerProtocol extends humblePhlipper.network.Protocol {
     public void begin() {
         switch(request) {
             case LATEST:
-                rm.updateLatestMap();
+                try {
+                    rm.updateLatestMap();
+                } catch (Exception e) {
+                    request = Request.ERROR;
+                }
                 break;
             case FIVEMINUTE:
-                rm.updateFiveMinuteMap();
+                try {
+                    rm.updateFiveMinuteMap();
+                } catch (Exception e) {
+                    request = Request.ERROR;
+                }
                 break;
             case ONEHOUR:
-                rm.updateOneHourMap();
+                try {
+                    rm.updateOneHourMap();
+                } catch (Exception e) {
+                    request = Request.ERROR;
+                }
                 break;
         }
-        Logger.log(LocalDateTime.now() + " SERVER (updated " + request + " map from Wiki)");
     }
     @Override
     public void go() {

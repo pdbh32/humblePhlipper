@@ -70,16 +70,13 @@ public class GUI extends JFrame {
     private JCheckBox membersCheckBox;
     private JTextField basePricingTextField;
     private JTextField pricingOffsetTextField;
-    private JTextField minAPICallIntervalTextField;
-    private JSpinner apiIntervalSpinner;
     private JSpinner pricingOffsetSpinner;
     private JButton removeButton;
     private JTextField removeItemField;
     private JButton newButton;
-    private JTextField bandwidthSaverModeTextField;
-    private JCheckBox bandwidthSaverCheckBox;
     private JTextField discordWebhookField;
     private JCheckBox debugCheckBox;
+    private JTextField debugLoggingTextField;
 
     public GUI() {
         // Set action listeners
@@ -150,8 +147,6 @@ public class GUI extends JFrame {
                 break;
         }
         Main.rm.config.setPricingOffset((Integer) pricingOffsetSpinner.getValue());
-        Main.rm.config.setApiInterval((Integer) apiIntervalSpinner.getValue());
-        Main.rm.config.setBandwidthSaver(bandwidthSaverCheckBox.isSelected());
 
         // Selections set by `addButton` and `generateButton`
 
@@ -242,8 +237,6 @@ public class GUI extends JFrame {
                 break;
         }
         pricingOffsetSpinner.setValue(Main.rm.config.getPricingOffset());
-        apiIntervalSpinner.setValue(Main.rm.config.getApiInterval());
-        bandwidthSaverCheckBox.setSelected(Main.rm.config.getBandwidthSaver());
 
         // Selections
         setSelectionsTable();
@@ -699,10 +692,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel14.add(panel16, gbc);
-        minAPICallIntervalTextField = new JTextField();
-        minAPICallIntervalTextField.setEditable(false);
-        minAPICallIntervalTextField.setText("Min API Call Interval in Seconds");
-        minAPICallIntervalTextField.setToolTipText("`apiInterval` - second interval for API calls if using `latest` pricing");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -710,7 +699,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel16.add(minAPICallIntervalTextField, gbc);
         final JPanel panel17 = new JPanel();
         panel17.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
@@ -741,10 +729,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel14.add(panel18, gbc);
-        bandwidthSaverModeTextField = new JTextField();
-        bandwidthSaverModeTextField.setEditable(false);
-        bandwidthSaverModeTextField.setText("Bandwidth-Saver Mode");
-        bandwidthSaverModeTextField.setToolTipText("`bandwidthSaver` - reduces bandwidth consumption from O(n) to O(1) for n instanes but increases API call interval floor to 10 seconds");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -752,7 +736,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel18.add(bandwidthSaverModeTextField, gbc);
         final JPanel panel19 = new JPanel();
         panel19.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
@@ -791,7 +774,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel19.add(panel21, gbc);
-        apiIntervalSpinner = new JSpinner();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -799,7 +781,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel21.add(apiIntervalSpinner, gbc);
         final JPanel panel22 = new JPanel();
         panel22.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
@@ -827,15 +808,12 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel19.add(panel23, gbc);
-        bandwidthSaverCheckBox = new JCheckBox();
-        bandwidthSaverCheckBox.setText("True");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
-        panel23.add(bandwidthSaverCheckBox, gbc);
         final JPanel panel24 = new JPanel();
         panel24.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();

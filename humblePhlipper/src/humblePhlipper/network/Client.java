@@ -6,14 +6,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 public class Client {
     public Client(int port, Protocol cp, Protocol sp) {
+        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("<CLIENT>"); }
         try (
                 Socket socket = new Socket("localhost", port);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -27,6 +26,7 @@ public class Client {
         } catch (IOException e) {
             new Server(port, sp);
         }
+        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("</CLIENT>"); }
     }
 }
 //

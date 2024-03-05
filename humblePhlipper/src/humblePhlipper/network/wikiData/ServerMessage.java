@@ -27,7 +27,7 @@ public class ServerMessage {
     }
     public ServerMessage(humblePhlipper.ResourceManager rm, Request request, String message) {
         this.rm = rm;
-        this.request = request;
+        this.request = (message.equals("ERROR")) ? Request.ERROR : request;
         switch(request) {
             case LATEST:
                 latestMap = rm.gson.fromJson(message, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.Latest>>() {}.getType());
@@ -37,6 +37,8 @@ public class ServerMessage {
                 break;
             case ONEHOUR:
                 oneHourMap = rm.gson.fromJson(message, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.OneHour>>() {}.getType());
+                break;
+            case ERROR:
                 break;
         }
     }
@@ -49,6 +51,8 @@ public class ServerMessage {
                 return rm.gson.toJson(fiveMinuteMap);
             case ONEHOUR:
                 return rm.gson.toJson(oneHourMap);
+            case ERROR:
+                return "ERROR";
         }
         return null;
     }

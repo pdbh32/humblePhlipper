@@ -7,10 +7,10 @@ import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 public class Server {
     public Server(int port, Protocol sp) {
+        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("<SERVER>"); }
         Instant startTime = Instant.now();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             sp.begin();
@@ -19,10 +19,10 @@ public class Server {
                 new ServerThread(serverSocket.accept(), sp).start();
             }
         } catch (SocketTimeoutException ignored) {
-            if (humblePhlipper.Main.rm.config.getDebug()) { System.err.println(LocalDateTime.now() + " SERVER-side SocketTimeoutException"); }
         } catch (IOException e) {
             System.err.println("IOException for port " + port);
         }
         sp.finish();
+        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("</SERVER>"); }
     }
 }

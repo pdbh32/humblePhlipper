@@ -50,13 +50,6 @@ public class Config {
     @SerializedName("pricingOffset")
     @Expose
     private Integer pricingOffset;
-    @SerializedName("apiInterval")
-    @Expose
-    private Integer apiInterval;
-
-    @SerializedName("bandwidthSaver")
-    @Expose
-    private Boolean bandwidthSaver;
 
     // Selections
     @SerializedName("selections")
@@ -109,8 +102,6 @@ public class Config {
         // Pricing
         this.pricing = "bestOfLatestFiveMinute";
         this.pricingOffset = -1;
-        this.apiInterval = 1;
-        this.bandwidthSaver = false;
 
         // Selections
         this.selections = new LinkedHashSet<>();
@@ -167,10 +158,6 @@ public class Config {
     public Integer getPricingOffset() {
         return pricingOffset;
     }
-    public Integer getApiInterval() {
-        return apiInterval;
-    }
-    public Boolean getBandwidthSaver() { return bandwidthSaver; }
 
     // Selections Getters
     public Set<Integer> getSelections() {
@@ -235,12 +222,6 @@ public class Config {
     public void setPricingOffset(Integer pricingOffset) {
         this.pricingOffset = pricingOffset;
     }
-    public void setApiInterval(Integer apiInterval) {
-        if (apiInterval >= 1 && apiInterval <= 300) {
-            this.apiInterval = apiInterval;
-        }
-    }
-    public void setBandwidthSaver(Boolean bandwidthSaver) { this.bandwidthSaver = bandwidthSaver; }
 
     // Selections Setters
     public void setSelections(Set<Integer> selections) { this.selections = selections; }

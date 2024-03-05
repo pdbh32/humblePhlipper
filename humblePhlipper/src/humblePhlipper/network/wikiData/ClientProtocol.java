@@ -1,7 +1,5 @@
 package humblePhlipper.network.wikiData;
 
-import org.dreambot.api.utilities.Logger;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 
@@ -18,15 +16,20 @@ public class ClientProtocol extends humblePhlipper.network.Protocol {
             switch (request) {
                 case LATEST:
                     rm.latestMap = sm.latestMap;
+                    this.rm.updateError = false;
                     break;
                 case FIVEMINUTE:
                     rm.fiveMinuteMap = sm.fiveMinuteMap;
+                    this.rm.updateError = false;
                     break;
                 case ONEHOUR:
                     rm.oneHourMap = sm.oneHourMap;
+                    this.rm.updateError = false;
+                    break;
+                case ERROR:
+                    this.rm.updateError = true;
                     break;
             }
-            Logger.log(LocalDateTime.now() + " CLIENT (updated " + request + " map from server)");
         } catch (Exception e) {
             System.err.println(LocalDateTime.now() + " CLIENT read error");
             e.printStackTrace();

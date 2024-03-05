@@ -230,22 +230,14 @@
                           </component>
                         </children>
                       </grid>
-                      <grid id="62c13" layout-manager="BorderLayout" hgap="0" vgap="0">
+                      <grid id="62c13" layout-manager="GridBagLayout">
                         <constraints>
                           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                           <gridbag weightx="1.0" weighty="1.0"/>
                         </constraints>
                         <properties/>
                         <border type="none"/>
-                        <children>
-                          <component id="26be3" class="javax.swing.JTextField" default-binding="true">
-                            <constraints border-constraint="Center"/>
-                            <properties>
-                              <editable value="false"/>
-                              <text value="Debug Logging"/>
-                            </properties>
-                          </component>
-                        </children>
+                        <children/>
                       </grid>
                       <grid id="53ec6" layout-manager="GridBagLayout">
                         <constraints>
@@ -293,6 +285,18 @@
                           </component>
                         </children>
                       </grid>
+                      <component id="a70be" class="javax.swing.JTextField" binding="debugLoggingTextField" default-binding="true">
+                        <constraints>
+                          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="-1"/>
+                          </grid>
+                          <gridbag weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <editable value="false"/>
+                          <text value="Debug Logging"/>
+                        </properties>
+                      </component>
                     </children>
                   </grid>
                 </children>
@@ -336,29 +340,6 @@
                           </component>
                         </children>
                       </grid>
-                      <grid id="8484e" layout-manager="GridBagLayout">
-                        <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                          <gridbag weightx="1.0" weighty="1.0"/>
-                        </constraints>
-                        <properties/>
-                        <border type="none"/>
-                        <children>
-                          <component id="c5dde" class="javax.swing.JTextField" binding="minAPICallIntervalTextField" default-binding="true">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                                <preferred-size width="150" height="-1"/>
-                              </grid>
-                              <gridbag weightx="1.0" weighty="1.0"/>
-                            </constraints>
-                            <properties>
-                              <editable value="false"/>
-                              <text value="Min API Call Interval in Seconds"/>
-                              <toolTipText value="`apiInterval` - second interval for API calls if using `latest` pricing"/>
-                            </properties>
-                          </component>
-                        </children>
-                      </grid>
                       <grid id="c7604" layout-manager="GridBagLayout">
                         <constraints>
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -378,29 +359,6 @@
                               <editable value="false"/>
                               <text value="Pricing Offset"/>
                               <toolTipText value="`pricingOffset` - bid = baseline_bid - pricingOffset; ask = baseline_ask + pricingOffset"/>
-                            </properties>
-                          </component>
-                        </children>
-                      </grid>
-                      <grid id="943b" layout-manager="GridBagLayout">
-                        <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                          <gridbag weightx="1.0" weighty="1.0"/>
-                        </constraints>
-                        <properties/>
-                        <border type="none"/>
-                        <children>
-                          <component id="56261" class="javax.swing.JTextField" binding="bandwidthSaverModeTextField" default-binding="true">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                                <preferred-size width="150" height="-1"/>
-                              </grid>
-                              <gridbag weightx="1.0" weighty="1.0"/>
-                            </constraints>
-                            <properties>
-                              <editable value="false"/>
-                              <text value="Bandwidth-Saver Mode"/>
-                              <toolTipText value="`bandwidthSaver` - reduces bandwidth consumption from O(n) to O(1) for n instanes but increases API call interval floor to 10 seconds"/>
                             </properties>
                           </component>
                         </children>
@@ -434,23 +392,6 @@
                           </component>
                         </children>
                       </grid>
-                      <grid id="c656f" layout-manager="GridBagLayout">
-                        <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                          <gridbag weightx="1.0" weighty="1.0"/>
-                        </constraints>
-                        <properties/>
-                        <border type="none"/>
-                        <children>
-                          <component id="b8884" class="javax.swing.JSpinner" binding="apiIntervalSpinner">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                              <gridbag weightx="1.0" weighty="1.0"/>
-                            </constraints>
-                            <properties/>
-                          </component>
-                        </children>
-                      </grid>
                       <grid id="563f6" layout-manager="GridBagLayout">
                         <constraints>
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -465,25 +406,6 @@
                               <gridbag weightx="1.0" weighty="1.0"/>
                             </constraints>
                             <properties/>
-                          </component>
-                        </children>
-                      </grid>
-                      <grid id="52d84" layout-manager="GridBagLayout">
-                        <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                          <gridbag weightx="1.0" weighty="1.0"/>
-                        </constraints>
-                        <properties/>
-                        <border type="none"/>
-                        <children>
-                          <component id="e7349" class="javax.swing.JCheckBox" binding="bandwidthSaverCheckBox">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                              <gridbag weightx="1.0" weighty="1.0"/>
-                            </constraints>
-                            <properties>
-                              <text value="True"/>
-                            </properties>
                           </component>
                         </children>
                       </grid>
