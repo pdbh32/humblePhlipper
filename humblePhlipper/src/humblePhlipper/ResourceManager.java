@@ -255,11 +255,11 @@ public class ResourceManager {
         }
         if (identity.requestHeaders == null) {
             identity.requestHeaders = new HashMap<>();
-            identity.requestHeaders.put("User-Agent", Collections.singletonList(humblePhlipper.resources.Identity.randomUserAgent()));
+            identity.requestHeaders.put("User-Agent", Collections.singletonList("humblePhlipper " + identity.uuid.toString()));
             saveIdentity();
         }
         else if (identity.requestHeaders.get("User-Agent") == null) {
-            identity.requestHeaders.put("User-Agent", Collections.singletonList(humblePhlipper.resources.Identity.randomUserAgent()));
+            identity.requestHeaders.put("User-Agent", Collections.singletonList("humblePhlipper " + identity.uuid.toString()));
             saveIdentity();
         }
     }
