@@ -8,6 +8,8 @@ import org.dreambot.api.settings.ScriptSettings;
 import org.dreambot.api.utilities.AccountManager;
 import org.dreambot.api.utilities.Logger;
 
+import javax.swing.*;
+
 import static org.dreambot.core.Instance.getInstance;
 
 import java.io.*;
@@ -15,10 +17,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,7 +37,8 @@ Classes Resources.SavedData.* DO match the structure of their local json source 
 
 public class ResourceManager {
     public final Gson gson;
-    public final humblePhlipper.resources.UserAgent userAgent;
+    public boolean updateError;
+    public humblePhlipper.resources.Identity identity;
     public Map<Integer, humblePhlipper.resources.wikiObject.Mapping> mappingMap;
     public Map<Integer, humblePhlipper.resources.wikiObject.Latest> latestMap;
     public Map<Integer, humblePhlipper.resources.wikiObject.FiveMinute> fiveMinuteMap;
@@ -56,20 +56,26 @@ public class ResourceManager {
 
     public ResourceManager() {
         this.gson = new GsonBuilder().serializeNulls().create();
+        this.updateError = false;
 
-        // (0) Generate a random User-Agent
-        this.userAgent = new humblePhlipper.resources.UserAgent();
-        Logger.log("Randomly selected User-Agent: " + userAgent.name);
+        // (0) Load identity,
+        loadIdentity();
 
         // (1) Set API maps and thread,
-        updateMappingMap(); // We only need to set this once
-        updateLatestMap();
-        updateFiveMinuteMap();
-        updateOneHourMap();
+        try {
+            updateMappingMap(); // We only need to set this once
+            updateLatestMap();
+            updateFiveMinuteMap();
+            updateOneHourMap();
+        } catch (Exception e) {
+            SwingUtilities.invokeLater(() -> {
+                new humblePhlipper.ErrorModal(this);
+            });
+        }
 
         // (2) Load and set four hour limits and set default config,
         loadFourHourLimits();
-        this.config = new humblePhlipper.resources.data.Config(); // Custom config is loaded and set by GUI3/CLI
+        this.config = new humblePhlipper.resources.data.Config(); // Custom config is loaded and set by GUI/CLI
 
         // (3) Initialise items
         this.items = new humblePhlipper.resources.Items(this);
@@ -113,45 +119,29 @@ public class ResourceManager {
     private void setLatestApiScheduler() {
         latestApiScheduler = Executors.newSingleThreadScheduledExecutor();
         latestApiScheduler.scheduleAtFixedRate(() -> {
-            int code = new Random().nextInt(10001);
-            if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " LATEST schedule"); }
-            if (!config.getBandwidthSaver()) {
-                updateLatestMap();
-                items.updateAllLatest();
-                items.updateAllPricing();
-                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " LATEST success"); }
-                return;
-            }
+            if (config.getDebug()) { Logger.log("<LATEST>"); }
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
             Executors.newCachedThreadPool().submit(() -> {
                 new humblePhlipper.network.Client(1066, cp, sp);
                 items.updateAllLatest();
                 items.updateAllPricing();
-                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " LATEST success"); }
+                if (config.getDebug()) { Logger.log("</LATEST>"); }
             });
-        }, initialDelay(config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 10) : config.getApiInterval()), config.getBandwidthSaver() ? Math.max(config.getApiInterval(), 10) : config.getApiInterval(), TimeUnit.SECONDS);
+        }, initialDelay(10 + identity.deterministicInt(10)),10 + identity.deterministicInt(10), TimeUnit.SECONDS);
     }
 
     private void setFiveMinuteApiScheduler() {
         fiveMinuteApiScheduler = Executors.newSingleThreadScheduledExecutor();
         fiveMinuteApiScheduler.scheduleAtFixedRate(() -> {
-            int code = new Random().nextInt(10001);
-            if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE schedule"); }
-            if (!config.getBandwidthSaver()) {
-                updateFiveMinuteMap();
-                items.updateAllFiveMinute();
-                items.updateAllPricing();
-                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE success"); }
-                return;
-            }
+            if (config.getDebug()) { Logger.log("<FIVEMINUTE>"); }
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
             Executors.newCachedThreadPool().submit(() -> {
                 new humblePhlipper.network.Client(1776, cp, sp);
                 items.updateAllFiveMinute();
                 items.updateAllPricing();
-                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " FIVEMINUTE success"); }
+                if (config.getDebug()) { Logger.log("</FIVEMINUTE>"); }
             });
         }, initialDelay(300), 300, TimeUnit.SECONDS);
     }
@@ -159,29 +149,21 @@ public class ResourceManager {
     private void setOneHourApiScheduler() {
         oneHourApiScheduler = Executors.newSingleThreadScheduledExecutor();
         oneHourApiScheduler.scheduleAtFixedRate(() -> {
-            int code = new Random().nextInt(10001);
-            if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR schedule"); }
-            if (!config.getBandwidthSaver()) {
-                updateOneHourMap();
-                items.updateAllOneHour();
-                items.updateAllPricing();
-                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR success"); }
-                return;
-            }
+            if (config.getDebug()) { Logger.log("<ONEHOUR>"); }
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
             Executors.newCachedThreadPool().submit(() -> {
                 new humblePhlipper.network.Client(1929, cp, sp);
                 items.updateAllOneHour();
                 items.updateAllPricing();
-                if (config.getDebug()) { Logger.log(LocalDateTime.now() + " " + code + " ONEHOUR success"); }
+                if (config.getDebug()) { Logger.log("</ONEHOUR>"); }
             });
         }, initialDelay(3600), 3600, TimeUnit.SECONDS);
     }
 
     private long initialDelay(int interval) {
         long currentTime = Instant.now().getEpochSecond();
-        long nextUpdateTime = ((currentTime / interval) + 1) * interval + 15; // 15 second delay as a precaution
+        long nextUpdateTime = ((currentTime / interval) + 1) * interval + 15 + identity.deterministicInt(30); // 15-45 second delay as a randomised precaution
         return nextUpdateTime - currentTime;
     }
 
@@ -209,54 +191,81 @@ public class ResourceManager {
         oneHourApiScheduler.shutdownNow();
     }
 
-    private void updateMappingMap() {
-        updateMap("mapping");
-    }
+    private void updateMappingMap() throws Exception { updateMap("mapping");}
 
-    public void updateLatestMap() {
-        updateMap("latest");
-    }
+    public void updateLatestMap() throws Exception { updateMap("latest"); }
 
-    public void updateFiveMinuteMap() {
-        updateMap("5m");
-    }
+    public void updateFiveMinuteMap() throws Exception { updateMap("5m"); }
 
-    public void updateOneHourMap() {
-        updateMap("1h");
-    }
+    public void updateOneHourMap() throws Exception { updateMap("1h"); }
 
-    private void updateMap(String urlRoute) {
+    private void updateMap(String urlRoute) throws Exception {
         try {
             URL url = new URL("https://prices.runescape.wiki/api/v1/osrs/" + urlRoute);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", userAgent.name);
+
+            for (Map.Entry<String, List<String>> entry : identity.requestHeaders.entrySet()) {
+                for (String value : entry.getValue()) {
+                    connection.addRequestProperty(entry.getKey(), value);
+                }
+            }
 
             try (InputStreamReader reader = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
                 switch (urlRoute) {
                     case "mapping":
-                        List<humblePhlipper.resources.wikiObject.Mapping> mappingList = gson.fromJson(reader, new TypeToken<List<humblePhlipper.resources.wikiObject.Mapping>>() {}.getType());
+                        List<humblePhlipper.resources.wikiObject.Mapping> mappingList = gson.fromJson(reader, new TypeToken<List<humblePhlipper.resources.wikiObject.Mapping>>() {
+                        }.getType());
                         mappingMap = mappingList.stream().collect(Collectors.toMap(humblePhlipper.resources.wikiObject.Mapping::getId, Function.identity()));
                         break;
                     case "latest":
-                        Map<String, Map<Integer, humblePhlipper.resources.wikiObject.Latest>> latestMapData = gson.fromJson(reader, new TypeToken<Map<String, Map<Integer, humblePhlipper.resources.wikiObject.Latest>>>() {}.getType());
+                        Map<String, Map<Integer, humblePhlipper.resources.wikiObject.Latest>> latestMapData = gson.fromJson(reader, new TypeToken<Map<String, Map<Integer, humblePhlipper.resources.wikiObject.Latest>>>() {
+                        }.getType());
                         latestMap = latestMapData.get("data");
                         break;
                     case "5m":
                         Map fiveMinuteMapData = gson.fromJson(reader, Map.class);
                         String fiveMinuteJson = gson.toJson(fiveMinuteMapData.get("data"));
-                        fiveMinuteMap = gson.fromJson(fiveMinuteJson, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.FiveMinute>>() {}.getType());
+                        fiveMinuteMap = gson.fromJson(fiveMinuteJson, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.FiveMinute>>() {
+                        }.getType());
                         break;
                     case "1h":
                         Map oneHourMapData = gson.fromJson(reader, Map.class);
                         String oneHourJson = gson.toJson(oneHourMapData.get("data"));
-                        oneHourMap = gson.fromJson(oneHourJson, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.OneHour>>() {}.getType());
+                        oneHourMap = gson.fromJson(oneHourJson, new TypeToken<Map<Integer, humblePhlipper.resources.wikiObject.OneHour>>() {
+                        }.getType());
                         break;
                 }
+                updateError = false;
             }
             connection.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
+            Logger.log("<ERROR>");
+            System.err.println("Error fetching data from Wiki!\nYou may need to change the request-headers in the file\nDreamBot/Scripts/humblePhlipper/Identity.json");
+            Logger.log("</ERROR>");
+            updateError = true;
+            throw e;
         }
+    }
+    private void loadIdentity() {
+        identity = ScriptSettings.load(humblePhlipper.resources.Identity.class, "humblePhlipper", "Identity.json");
+        if (identity.uuid == null) {
+            identity.uuid = UUID.randomUUID();
+            saveIdentity();
+        }
+        if (identity.requestHeaders == null) {
+            identity.requestHeaders = new HashMap<>();
+            identity.requestHeaders.put("User-Agent", Collections.singletonList(humblePhlipper.resources.Identity.randomUserAgent()));
+            saveIdentity();
+        }
+        else if (identity.requestHeaders.get("User-Agent") == null) {
+            identity.requestHeaders.put("User-Agent", Collections.singletonList(humblePhlipper.resources.Identity.randomUserAgent()));
+            saveIdentity();
+        }
+    }
+
+    public void saveIdentity() {
+        ScriptSettings.save(identity, "humblePhlipper", "Identity.json");
     }
 
     public void loadFourHourLimits() {

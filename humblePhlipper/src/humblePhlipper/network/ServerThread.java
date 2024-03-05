@@ -1,7 +1,5 @@
 package humblePhlipper.network;
 
-import org.dreambot.api.utilities.Logger;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,7 +15,6 @@ public class ServerThread extends Thread {
         this.sp = sp;
     }
     public void run() {
-
         try (
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);

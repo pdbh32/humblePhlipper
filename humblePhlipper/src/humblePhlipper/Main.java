@@ -24,7 +24,7 @@ import java.util.*;
 
 import Gelox_.DiscordWebhook;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.61)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.62)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -116,12 +116,12 @@ public class Main extends AbstractScript {
         }
 
         // Loop through slots and make diagnostics
-        if (rm.config.getDebug()) {
+        /*if (rm.config.getDebug()) {
             for (int i = 0; i < 8; i++) {
                 humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(i);
                 Logger.log(i + ";" + geSlot.getType() + ";" + geSlot.getItemId() + ";" + ((geSlot.getItemId() != -1) ? rm.items.get(geSlot.getItemId()).getBid() + ";" + rm.items.get(geSlot.getItemId()).getAsk() : "-1id;-1id"));
             }
-        }
+        }*/
 
         // Loop through slots and make cancellations
         for (int i=0; i<8; i++) {

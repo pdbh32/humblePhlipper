@@ -63,25 +63,6 @@ public class ServerProtocol extends humblePhlipper.network.Protocol {
         } else {
             return;
         }
-        if (rm.config.getDebug()) {
-            DiscordWebhook debugWebhook = new DiscordWebhook(discordWebhook);
-            debugWebhook.setContent("humblePhlipperDebug");
-            debugWebhook.setAvatarUrl("https://i.postimg.cc/YC9WRdnJ/tempDiag.png");
-            debugWebhook.setUsername("humblePhlipperDebug");
-            debugWebhook.setTts(false);
-            debugWebhook.addEmbed(new DiscordWebhook.EmbedObject()
-                    .addField("Slot 0", humblePhlipper.dbGE.Slot.get(0).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(0).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(0).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(0).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(0).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false)
-                    .addField("Slot 1", humblePhlipper.dbGE.Slot.get(1).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(1).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(1).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(1).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(1).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false)
-                    .addField("Slot 2", humblePhlipper.dbGE.Slot.get(2).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(2).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(2).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(2).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(2).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false)
-                    .addField("Slot 3", humblePhlipper.dbGE.Slot.get(3).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(3).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(3).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(3).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(3).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false)
-                    .addField("Slot 4", humblePhlipper.dbGE.Slot.get(4).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(4).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(4).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(4).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(4).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false)
-                    .addField("Slot 5", humblePhlipper.dbGE.Slot.get(5).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(5).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(5).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(5).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(5).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false)
-                    .addField("Slot 6", humblePhlipper.dbGE.Slot.get(6).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(6).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(6).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(6).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(6).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false)
-                    .addField("Slot 7", humblePhlipper.dbGE.Slot.get(7).getType() + "  /  " + ((humblePhlipper.dbGE.Slot.get(7).getItemId() != -1) ? rm.items.get(humblePhlipper.dbGE.Slot.get(7).getItemId()).getMapping().getName() + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(7).getItemId()).getBid()) + "  /  " + commaFormat.format(rm.items.get(humblePhlipper.dbGE.Slot.get(7).getItemId()).getAsk()) : "-1  /  -1;  /  -1"), false));
-            try {
-                debugWebhook.execute();
-            } catch (Exception ignored) {}
-        }
         DiscordWebhook updateWebhook = new DiscordWebhook(discordWebhook);
         updateWebhook.setContent("Total Profit: " + commaFormat.format(Math.round(getTotalProfit())) + ", Avg Profit/Hr: " + commaFormat.format(Math.round(getAvgProfitPerHour())));
         updateWebhook.setAvatarUrl("https://i.postimg.cc/W4DLDmhP/humble-Phlipper.png");

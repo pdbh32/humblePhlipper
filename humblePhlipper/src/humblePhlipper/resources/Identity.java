@@ -1,16 +1,17 @@
 package humblePhlipper.resources;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
-public class UserAgent {
-    public String name;
-    public UserAgent() {
-        List<String> userAgents = userAgents();
-        this.name = userAgents.get(new Random().nextInt(userAgents.size()));
+public class Identity {
+    public UUID uuid;
+    public Map<String, List<String>> requestHeaders;
+    public Identity() {
     }
-    public static List<String> userAgents() {
+    public int deterministicInt(int bound) {
+        long uuidLong = Math.abs(uuid.getMostSignificantBits());
+        return (int)(uuidLong % bound);
+    }
+    public static String randomUserAgent() {
         List<String> userAgents = new ArrayList<>();
         userAgents.add("price_analysis_bot");
         userAgents.add("P2P Flipper");
@@ -89,6 +90,6 @@ public class UserAgent {
         userAgents.add("currency_evaluator");
         userAgents.add("trading advisor");
         userAgents.add("WealthPlanner");
-        return userAgents;
+        return userAgents.get(new Random().nextInt(userAgents.size())) + new Random().nextInt(1001);
     }
 }
