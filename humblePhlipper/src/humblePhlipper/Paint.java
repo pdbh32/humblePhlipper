@@ -128,7 +128,7 @@ public class Paint {
             g.fillRect(292,206,210,90);
             g.setColor(Color.BLACK);
             g.drawString("Error fetching data from Wiki!",297 ,226);
-            g.drawString("You may need to change the",297 , 246);
+            g.drawString("Try restarting, failing that change",297 , 246);
             g.drawString("request-headers in the file", 297,266);
             g.drawString("Scripts/humblePhlipper/Identity.json",297,286);
         }
