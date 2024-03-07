@@ -1,6 +1,8 @@
 package humblePhlipper.network.wikiData;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
 
 public class ClientProtocol extends humblePhlipper.network.Protocol {
@@ -10,7 +12,7 @@ public class ClientProtocol extends humblePhlipper.network.Protocol {
         this.request = request;
     }
     @Override
-    public void go() throws IOException {
+    public void go(BufferedReader in, PrintWriter out) throws IOException {
         try {
             ServerMessage sm = new ServerMessage(rm, request, in.readLine());
             switch (request) {

@@ -31,6 +31,9 @@ public class Config {
     @SerializedName("maxBidVol")
     @Expose
     private Integer maxBidVol;
+    @SerializedName("noSelfCompeting")
+    @Expose
+    private Boolean noSelfCompeting;
 
     // Bid Priority
     @SerializedName("priorityProfit")
@@ -93,6 +96,7 @@ public class Config {
         // Bid Restrictions
         this.maxBidValue = 1000000;
         this.maxBidVol = 20000;
+        this.noSelfCompeting = false;
 
         // Bid Priority
         this.priorityProfit = 100;
@@ -138,6 +142,9 @@ public class Config {
     }
     public Integer getMaxBidVol() {
         return maxBidVol;
+    }
+    public Boolean getNoSelfCompeting() {
+        return noSelfCompeting;
     }
 
     // Bid Priority Getters
@@ -197,6 +204,7 @@ public class Config {
     // Bid Restrictions Setters
     public void setMaxBidValue(Integer maxBidValue) { this.maxBidValue = maxBidValue; }
     public void setMaxBidVol(Integer maxBidVol) { this.maxBidVol = maxBidVol; }
+    public void setNoSelfCompeting(Boolean noSelfCompeting) { this.noSelfCompeting = noSelfCompeting; }
 
     // Bid Priority Setters
     public void setPriorityProfit(Integer priorityProfit) {

@@ -53,6 +53,7 @@ public class ResourceManager {
     public humblePhlipper.resources.Session session;
 
     private ScheduledExecutorService webhookScheduler;
+    private ScheduledExecutorService noSelfCompeting;
 
     public ResourceManager() {
         this.gson = new GsonBuilder().serializeNulls().create();
@@ -85,6 +86,9 @@ public class ResourceManager {
 
         // (5) Set Discord post scheduler
         setWebhookScheduler();
+
+        // (6) Set noCompetition scheduler
+        setNoSelfCompeting();
     }
 
     private void setWebhookScheduler() {
@@ -93,10 +97,32 @@ public class ResourceManager {
             if (config.getDiscordWebhook() == null && getInstance().getDiscordWebhook() == null) {
                 return;
             }
+            int identifier = new Random().nextInt(100000);
+            if (config.getDebug()) { Logger.log("<WEBHOOK " + identifier + ">"); }
             humblePhlipper.network.webhook.ClientProtocol cp = new humblePhlipper.network.webhook.ClientProtocol(this);
             humblePhlipper.network.webhook.ServerProtocol sp = new humblePhlipper.network.webhook.ServerProtocol(this);
-            new humblePhlipper.network.Client(1969, cp, sp);
+            Executors.newCachedThreadPool().submit(() -> {
+                new humblePhlipper.network.Client(1969, cp, sp, identifier);
+                if (config.getDebug()) { Logger.log("</WEBHOOK " + identifier + ">"); }
+            });
         }, initialDelay(3600), 3600, TimeUnit.SECONDS);
+    }
+
+    private void setNoSelfCompeting() {
+        noSelfCompeting = Executors.newSingleThreadScheduledExecutor();
+        noSelfCompeting.scheduleAtFixedRate(() -> {
+            if (!config.getNoSelfCompeting()) {
+                return;
+            }
+            int identifier = new Random().nextInt(100000);
+            if (config.getDebug()) { Logger.log("<NOSELFCOMPETING " + identifier + ">"); }
+            humblePhlipper.network.noSelfCompeting.ClientProtocol cp = new humblePhlipper.network.noSelfCompeting.ClientProtocol(this);
+            humblePhlipper.network.noSelfCompeting.ServerProtocol sp = new humblePhlipper.network.noSelfCompeting.ServerProtocol(this);
+            Executors.newCachedThreadPool().submit(() -> {
+                new humblePhlipper.network.Client(2001, cp, sp, identifier);
+                if (config.getDebug()) { Logger.log("</NOSELFCOMPETING " + identifier + ">"); }
+            });
+        }, initialDelay(10), 10, TimeUnit.SECONDS);
     }
 
     public void setApiSchedulers() {
@@ -119,14 +145,15 @@ public class ResourceManager {
     private void setLatestApiScheduler() {
         latestApiScheduler = Executors.newSingleThreadScheduledExecutor();
         latestApiScheduler.scheduleAtFixedRate(() -> {
-            if (config.getDebug()) { Logger.log("<LATEST>"); }
+            int identifier = new Random().nextInt(100000);
+            if (config.getDebug()) { Logger.log("<LATEST " + identifier + ">"); }
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.LATEST);
             Executors.newCachedThreadPool().submit(() -> {
-                new humblePhlipper.network.Client(1066, cp, sp);
+                new humblePhlipper.network.Client(1066, cp, sp, identifier);
                 items.updateAllLatest();
                 items.updateAllPricing();
-                if (config.getDebug()) { Logger.log("</LATEST>"); }
+                if (config.getDebug()) { Logger.log("</LATEST " + identifier + ">"); }
             });
         }, initialDelay(10 + identity.deterministicInt(10)),10 + identity.deterministicInt(10), TimeUnit.SECONDS);
     }
@@ -134,14 +161,15 @@ public class ResourceManager {
     private void setFiveMinuteApiScheduler() {
         fiveMinuteApiScheduler = Executors.newSingleThreadScheduledExecutor();
         fiveMinuteApiScheduler.scheduleAtFixedRate(() -> {
-            if (config.getDebug()) { Logger.log("<FIVEMINUTE>"); }
+            int identifier = new Random().nextInt(100000);
+            if (config.getDebug()) { Logger.log("<FIVEMINUTE " + identifier + ">"); }
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.FIVEMINUTE);
             Executors.newCachedThreadPool().submit(() -> {
-                new humblePhlipper.network.Client(1776, cp, sp);
+                new humblePhlipper.network.Client(1776, cp, sp, identifier);
                 items.updateAllFiveMinute();
                 items.updateAllPricing();
-                if (config.getDebug()) { Logger.log("</FIVEMINUTE>"); }
+                if (config.getDebug()) { Logger.log("</FIVEMINUTE " + identifier + ">"); }
             });
         }, initialDelay(300), 300, TimeUnit.SECONDS);
     }
@@ -149,14 +177,15 @@ public class ResourceManager {
     private void setOneHourApiScheduler() {
         oneHourApiScheduler = Executors.newSingleThreadScheduledExecutor();
         oneHourApiScheduler.scheduleAtFixedRate(() -> {
-            if (config.getDebug()) { Logger.log("<ONEHOUR>"); }
+            int identifier = new Random().nextInt(100000);
+            if (config.getDebug()) { Logger.log("<ONEHOUR " + identifier + ">"); }
             humblePhlipper.network.wikiData.ClientProtocol cp = new humblePhlipper.network.wikiData.ClientProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
             humblePhlipper.network.wikiData.ServerProtocol sp = new humblePhlipper.network.wikiData.ServerProtocol(this, humblePhlipper.network.wikiData.Request.ONEHOUR);
             Executors.newCachedThreadPool().submit(() -> {
-                new humblePhlipper.network.Client(1929, cp, sp);
+                new humblePhlipper.network.Client(1929, cp, sp, identifier);
                 items.updateAllOneHour();
                 items.updateAllPricing();
-                if (config.getDebug()) { Logger.log("</ONEHOUR>"); }
+                if (config.getDebug()) { Logger.log("</ONEHOUR " + identifier + ">"); }
             });
         }, initialDelay(3600), 3600, TimeUnit.SECONDS);
     }
@@ -169,6 +198,7 @@ public class ResourceManager {
 
     public void disposeSchedulers() {
         disposeWebhookScheduler();
+        disposeNoSelfCompeting();
         disposeLatestApiScheduler();
         disposeFiveMinuteApiScheduler();
         disposeOneHourApiScheduler();
@@ -177,6 +207,11 @@ public class ResourceManager {
     private void disposeWebhookScheduler() {
         if (webhookScheduler == null) { return; }
         webhookScheduler.shutdownNow();
+    }
+
+    private void disposeNoSelfCompeting() {
+        if (noSelfCompeting == null) { return; }
+        noSelfCompeting.shutdownNow();
     }
     private void disposeLatestApiScheduler() {
         if (latestApiScheduler == null) { return; }

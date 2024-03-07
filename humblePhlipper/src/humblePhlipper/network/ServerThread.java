@@ -19,8 +19,7 @@ public class ServerThread extends Thread {
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         ) {
-            sp.feed(in, out);
-            sp.go();
+            sp.go(in, out);
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();

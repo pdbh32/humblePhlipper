@@ -1,14 +1,14 @@
 package humblePhlipper.network.webhook;
 
-import humblePhlipper.Main;
-import org.dreambot.api.utilities.AccountManager;
-import org.dreambot.api.utilities.Logger;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
+
 public class ClientProtocol extends humblePhlipper.network.Protocol {
     public ClientProtocol(humblePhlipper.ResourceManager rm) {
         super(rm);
     }
     @Override
-    public void go() {
+    public void go(BufferedReader in, PrintWriter out) {
         out.println(new ClientMessage(rm).CSV());
     }
 }

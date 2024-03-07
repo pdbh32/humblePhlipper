@@ -24,7 +24,7 @@ import java.util.*;
 
 import Gelox_.DiscordWebhook;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.62)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.7)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -115,32 +115,56 @@ public class Main extends AbstractScript {
             }
         }
 
-        // Loop through slots and make diagnostics
-        /*if (rm.config.getDebug()) {
-            for (int i = 0; i < 8; i++) {
-                humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(i);
-                Logger.log(i + ";" + geSlot.getType() + ";" + geSlot.getItemId() + ";" + ((geSlot.getItemId() != -1) ? rm.items.get(geSlot.getItemId()).getBid() + ";" + rm.items.get(geSlot.getItemId()).getAsk() : "-1id;-1id"));
-            }
-        }*/
-
         // Loop through slots and make cancellations
         for (int i=0; i<8; i++) {
-            if (trading.Cancel(i)) { return SLEEP; }
+            try {
+                if (trading.Cancel(i)) { return SLEEP; }
+            } catch (Exception e) {
+                if (!rm.config.getDebug()) {
+                    continue;
+                }
+                System.err.println("<ERROR>Cancel("+i+")</ERROR>");
+                e.printStackTrace();
+            }
         }
 
         // Loop through slots and make collections
         for (int i=0; i<8; i++) {
-            if (trading.Collect(i)) { return SLEEP; }
+            try {
+                if (trading.Collect(i)) { return SLEEP; }
+            } catch (Exception e) {
+                if (!rm.config.getDebug()) {
+                    continue;
+                }
+                System.err.println("<ERROR>Collect("+i+")</ERROR>");
+                e.printStackTrace();
+            }
         }
 
         // Loop through items and make asks
         for (Integer ID : rm.items.keySet()) {
-            if (trading.MakeAsk(ID)) { return SLEEP; }
+            try {
+                if (trading.MakeAsk(ID)) { return SLEEP; }
+            } catch (Exception e) {
+                if (!rm.config.getDebug()) {
+                    continue;
+                }
+                System.err.println("<ERROR>MakeAsk("+ID+")</ERROR>");
+                e.printStackTrace();
+            }
         }
 
         // Loop through items and make bids
         for (Integer ID : rm.config.getSelections()) {
-            if (trading.MakeBid(ID)) { return SLEEP; }
+            try {
+                if (trading.MakeBid(ID)) { return SLEEP; }
+            } catch (Exception e) {
+                if (!rm.config.getDebug()) {
+                    continue;
+                }
+                System.err.println("<ERROR>MakeBid("+ID+")</ERROR>");
+                e.printStackTrace();
+            }
         }
 
         // if ((Timeout reached) || (profit cutoff reached)) { stop bidding; }

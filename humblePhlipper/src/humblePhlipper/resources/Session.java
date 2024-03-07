@@ -2,9 +2,7 @@ package humblePhlipper.resources;
 
 import org.dreambot.api.utilities.Timer;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class Session {
     private Timer timer;
@@ -13,7 +11,8 @@ public class Session {
     private double profit;
     public humblePhlipper.resources.data.Trades trades;
     private TreeMap<Long, Double> timeCumProfitMap; // cumulative profit time series
-    Map<String, String> sessionHistory; // to save down history
+    private Map<String, String> sessionHistory; // to save down history
+    private Set<Integer> noCompetitionIds;
 
     public Session() {
         this.timer = new Timer();
@@ -24,6 +23,7 @@ public class Session {
         this.timeCumProfitMap = new TreeMap<>();
         this.timeCumProfitMap.put(0L, 0.0);
         this.sessionHistory = new HashMap<>();
+        this.noCompetitionIds = new HashSet<>();
     }
 
     // Getter and setter for 'timer'
@@ -70,4 +70,7 @@ public class Session {
     public Map<String, String> getSessionHistory() { return sessionHistory; }
     public void setSessionHistory(Map<String, String> sessionHistory) { this.sessionHistory = sessionHistory; }
     public void incrementSessionHistory(String key, String value) { this.sessionHistory.put(key, value); }
+
+    public Set<Integer> getNoCompetitionIds() { return noCompetitionIds; }
+    public void setNoCompetitionIds(Set<Integer> noCompetitionIds) { this.noCompetitionIds = noCompetitionIds; }
 }
