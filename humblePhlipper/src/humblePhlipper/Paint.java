@@ -42,13 +42,13 @@ public class Paint {
             }
             // Draw table rows
             g.drawString(item.getMapping().getName(), tableX, tableY);
-            g.drawString(commaFormat.format(Math.round(item.getProfit())), tableX + 150 + 0*85, tableY);
-            g.drawString(commaFormat.format(item.getSold()), tableX + 150 + 1*85, tableY);
-            g.drawString(commaFormat.format(item.getTargetVol()), tableX + 150 + 2*85, tableY);
-            g.drawString(commaFormat.format(item.getBid()), tableX + 150 + 3*85, tableY);
-            g.drawString(commaFormat.format(humblePhlipper.Main.trading.getProfitMargin(item.getId())), tableX + 150 + 4*85, tableY);
-            g.drawString(commaFormat.format(item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume()), tableX + 150 + 5*85, tableY);
-            g.drawString((item.getFourHourLimit().getCountdownMinutes() < 0) ? "N/A" : (int) Math.ceil(item.getFourHourLimit().getCountdownMinutes()) + " mins", tableX + 150 + 6*85, tableY);
+            try { g.drawString(commaFormat.format(Math.round(item.getProfit())), tableX + 150 + 0*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
+            try { g.drawString(commaFormat.format(item.getSold()), tableX + 150 + 1*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
+            try { g.drawString(commaFormat.format(item.getTargetVol()), tableX + 150 + 2*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
+            try { g.drawString(commaFormat.format(item.getBid()), tableX + 150 + 3*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
+            try { g.drawString(commaFormat.format(humblePhlipper.Main.trading.getProfitMargin(item.getId())), tableX + 150 + 4*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
+            try { g.drawString(commaFormat.format(item.getOneHour().getLowPriceVolume() + item.getOneHour().getHighPriceVolume()), tableX + 150 + 5*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
+            try { g.drawString((item.getFourHourLimit().getCountdownMinutes() < 0) ? "N/A" : (int) Math.ceil(item.getFourHourLimit().getCountdownMinutes()) + " mins", tableX + 150 + 6*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
 
             tableY += 20;
         }

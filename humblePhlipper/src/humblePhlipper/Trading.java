@@ -32,7 +32,7 @@ public class Trading {
                 rm.config.removeFromSelections(item.getId());
                 continue;
             }
-            if (item.getId() == 13190) {
+            if (item.getId() == 13190) { // bonds
                 rm.config.removeFromSelections(item.getId());
                 continue;
             }
@@ -107,7 +107,7 @@ public class Trading {
             return false;
         }
         humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
-        if (geSlot.getType().equals("Empty")) {
+        if (geSlot.getType().equals("Empty") || geSlot.getItemId() == -1) {
             return false;
         }
         if (geSlot.getTradeBarWidth() == humblePhlipper.dbGE.Slot.maxTradeBarWidth) {
@@ -131,7 +131,7 @@ public class Trading {
             return false;
         }
         humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
-        if (geSlot.getType().equals("Empty")) {
+        if (geSlot.getType().equals("Empty") || geSlot.getItemId() == -1) {
             return false;
         }
         if (!geSlot.isReadyToCollect()) {
@@ -251,6 +251,11 @@ public class Trading {
         }
         if (Inventory.count(item.getMapping().getName()) != 0 || Inventory.count(item.getMapping().getId()) != 0) {
             return false;
+        }
+        if (rm.session.getNoCompetitionIds() != null) {
+            if (rm.config.getNoSelfCompeting() && rm.session.getNoCompetitionIds().contains(item.getId())) {
+                return false;
+            }
         }
         if (item.getBought() > item.getSold()) {
             return false;

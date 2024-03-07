@@ -2,7 +2,9 @@ package humblePhlipper.network.webhook;
 
 import Gelox_.DiscordWebhook;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +19,7 @@ public class ServerProtocol extends humblePhlipper.network.Protocol {
         addData(new ClientMessage(rm));
     }
     @Override
-    public void go() throws IOException {
+    public void go(BufferedReader in, PrintWriter out) throws IOException {
         ClientMessage cm = new ClientMessage(in.readLine());
         addData(cm);
     }

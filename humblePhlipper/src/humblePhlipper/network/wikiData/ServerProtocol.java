@@ -1,5 +1,7 @@
 package humblePhlipper.network.wikiData;
 
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
 
 public class ServerProtocol extends humblePhlipper.network.Protocol {
@@ -35,7 +37,7 @@ public class ServerProtocol extends humblePhlipper.network.Protocol {
         }
     }
     @Override
-    public void go() {
+    public void go(BufferedReader in, PrintWriter out) {
         try {
             out.println(new ServerMessage(rm, request).CSV());
         } catch (Exception e) {

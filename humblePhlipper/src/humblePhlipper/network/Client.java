@@ -11,22 +11,21 @@ import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
 
 public class Client {
-    public Client(int port, Protocol cp, Protocol sp) {
-        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("<CLIENT>"); }
+    public Client(int port, Protocol cp, Protocol sp, int identifier) {
+        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("<CLIENT " + identifier + ">"); }
         try (
                 Socket socket = new Socket("localhost", port);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         ) {
             socket.setSoTimeout(3000); // Timeout for reading/writing data before closing socket
-            cp.feed(in, out);
-            cp.go();
+            cp.go(in, out);
         } catch (SocketTimeoutException ignored) {
             System.err.println(LocalDateTime.now() + " CLIENT-side SocketTimeoutException");
         } catch (IOException e) {
-            new Server(port, sp);
+            new Server(port, sp, identifier);
         }
-        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("</CLIENT>"); }
+        if (humblePhlipper.Main.rm.config.getDebug()) { Logger.log("</CLIENT " + identifier + ">"); }
     }
 }
 //
