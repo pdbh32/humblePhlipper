@@ -197,7 +197,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             if (this.bid == null && this.latest.getLow() != null) { this.bid = this.latest.getLow() - rm.config.getPricingOffset(); }
             if (this.ask == null && this.latest.getHigh() != null) { this.ask = this.latest.getHigh() + rm.config.getPricingOffset(); }
             if (this.bid != null && this.bid < 0) { this.bid = null; }
-            if (this.ask != null && this.ask < 0) { this.ask = null; }
+            if (this.ask != null && this.ask < 0) { this.ask = 1; }
         }
         private void updatePricing() {
             switch (rm.config.getPricing()) {
@@ -225,7 +225,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             if (this.bid == null && this.latest.getLow() != null) { this.bid = this.latest.getLow() - rm.config.getPricingOffset(); }
             if (this.ask == null && this.latest.getHigh() != null) { this.ask = this.latest.getHigh() + rm.config.getPricingOffset(); }
             if (this.bid != null && this.bid < 0) { this.bid = null; }
-            if (this.ask != null && this.ask < 0) { this.ask = null; }
+            if (this.ask != null && this.ask < 0) { this.ask = 1; }
         }
     }
 }
