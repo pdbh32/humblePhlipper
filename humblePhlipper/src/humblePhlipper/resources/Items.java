@@ -168,6 +168,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         private void updateOneHour() {
             if (rm.oneHourMap.get(id) == null) {
                 this.oneHour = new humblePhlipper.resources.wikiObject.OneHour();
+                return;
             }
             this.oneHour = rm.oneHourMap.get(id);
         }
