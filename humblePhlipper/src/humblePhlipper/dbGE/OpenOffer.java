@@ -22,7 +22,10 @@ public class OpenOffer {
         Matcher matcher = pattern.matcher(Widgets.get(465, 23, 1).getText());
         matcher.find();
         matcher.find();
-        if (matcher.group(1).equals("one")) { return 1; }
-        return Integer.parseInt(matcher.group(1).replaceAll(",", ""));
+        try {
+            return Integer.parseInt(matcher.group(1).replaceAll(",", ""));
+        } catch (IllegalStateException e) {
+            return 1;
+        }
     }
 }
