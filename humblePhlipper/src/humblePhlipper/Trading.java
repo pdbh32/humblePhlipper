@@ -122,8 +122,6 @@ public class Trading {
                                     ) {
             return false;
         }
-        int breakEvenAsk = (int) Math.ceil(item.getLastBuyPrice()/0.99 - 1);
-        final int finalAsk = rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), breakEvenAsk) : item.getAsk();
         if (geSlot.isSellOffer() && (
                                     geSlot.getPrice() == (rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), getBreakEvenAsk(item.getLastBuyPrice())) : item.getAsk()))
                                     ) {
