@@ -63,7 +63,7 @@ public class Trading {
             rm.config.incrementSelections(item.getId());
         }
         Order();
-        rm.config.setSelections(rm.config.getSelections().stream().limit(rm.config.getNumToSelect()).collect(Collectors.toCollection(LinkedHashSet::new))); // Keep first N selections
+        //rm.config.setSelections(rm.config.getSelections().stream().limit(rm.config.getNumToSelect()).collect(Collectors.toCollection(LinkedHashSet::new))); // Keep first N selections
     }
     public Double getProfitMargin(int ID) {
         return (rm.items.get(ID).getBid() == null || rm.items.get(ID).getAsk() == null) ? null : Math.max(Math.ceil(0.99 * rm.items.get(ID).getAsk()), rm.items.get(ID).getAsk() - 5000000) - rm.items.get(ID).getBid();
@@ -114,10 +114,19 @@ public class Trading {
             return false;
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
-        if (geSlot.isBuyOffer() && (geSlot.getPrice() == item.getBid() && getProfitMargin(item.getId()) > 0 && geSlot.getTradeBarWidth() == 0 && rm.session.getBidding())) {
+        if (geSlot.isBuyOffer() && (
+                                    geSlot.getPrice() == item.getBid() &&
+                                    getProfitMargin(item.getId()) >= rm.config.getMinMargin() &&
+                                    (rm.config.getCancelPartialBids() ? geSlot.getTradeBarWidth() == 0 : true) &&
+                                    rm.session.getBidding() )
+                                    ) {
             return false;
         }
-        if (geSlot.isSellOffer() && geSlot.getPrice() == item.getAsk()) {
+        int breakEvenAsk = (int) Math.ceil(item.getLastBuyPrice()/0.99 - 1);
+        final int finalAsk = rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), breakEvenAsk) : item.getAsk();
+        if (geSlot.isSellOffer() && (
+                                    geSlot.getPrice() == (rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), getBreakEvenAsk(item.getLastBuyPrice())) : item.getAsk()))
+                                    ) {
             return false;
         }
         return (Sleep.sleepUntil(() -> GrandExchange.cancelOffer(slotIndex), 1000));
@@ -221,10 +230,11 @@ public class Trading {
         if (item.getSold() >= item.getBought()) {
             return false;
         }
-        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP)) {
+        final int finalAsk = rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), getBreakEvenAsk(item.getLastBuyPrice())) : item.getAsk();
+        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), (item.getBought() - item.getSold()), finalAsk), SLEEP)) {
             return true; // We need this to buy items like Falador tablet (teleport)
         }
-        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getName(), (item.getBought() - item.getSold()), item.getAsk()), SLEEP)) {
+        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getName(), (item.getBought() - item.getSold()), finalAsk), SLEEP)) {
             return true; // We need this to sell items like Black d'hide body and Bat bones (???)
         }
         return false;
@@ -274,5 +284,8 @@ public class Trading {
             return true; // But we will play it safe in case it doesn't
         }
         return false;
+    }
+    private static int getBreakEvenAsk(double lastBuyPrice) {
+        return (int) Math.ceil(lastBuyPrice/0.99 - 1);
     }
 }

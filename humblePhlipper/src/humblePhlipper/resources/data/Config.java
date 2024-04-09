@@ -34,6 +34,12 @@ public class Config {
     @SerializedName("noSelfCompeting")
     @Expose
     private Boolean noSelfCompeting;
+    @SerializedName("cancelPartialBids")
+    @Expose
+    private Boolean cancelPartialBids;
+    @SerializedName("neverSellAtLoss")
+    @Expose
+    private Boolean neverSellAtLoss;
 
     // Bid Priority
     @SerializedName("priorityProfit")
@@ -81,9 +87,6 @@ public class Config {
     @SerializedName("members")
     @Expose
     private Boolean members;
-    @SerializedName("numToSelect")
-    @Expose
-    private Integer numToSelect;
 
     public Config() {
         // Miscellaneous
@@ -97,6 +100,8 @@ public class Config {
         this.maxBidValue = 1000000;
         this.maxBidVol = 20000;
         this.noSelfCompeting = false;
+        this.cancelPartialBids = true;
+        this.neverSellAtLoss = false;
 
         // Bid Priority
         this.priorityProfit = 100;
@@ -120,7 +125,6 @@ public class Config {
         this.maxBidAskVolRatio = 3.0f;
         this.tradeRestricted = false;
         this.members = false;
-        this.numToSelect = 512;
     }
 
     // Miscellaneous Getters
@@ -145,6 +149,12 @@ public class Config {
     }
     public Boolean getNoSelfCompeting() {
         return noSelfCompeting;
+    }
+    public Boolean getCancelPartialBids() {
+        return cancelPartialBids;
+    }
+    public Boolean getNeverSellAtLoss() {
+        return neverSellAtLoss;
     }
 
     // Bid Priority Getters
@@ -192,8 +202,6 @@ public class Config {
 
     public Boolean getMembers() { return members; }
 
-    public Integer getNumToSelect() { return numToSelect; }
-
     // Miscellaneous Setters
     public void setTimeout(Float timeout) { this.timeout = timeout; }
     public void setProfitCutOff(Integer profitCutoff) { this.profitCutOff = profitCutoff; }
@@ -205,6 +213,8 @@ public class Config {
     public void setMaxBidValue(Integer maxBidValue) { this.maxBidValue = maxBidValue; }
     public void setMaxBidVol(Integer maxBidVol) { this.maxBidVol = maxBidVol; }
     public void setNoSelfCompeting(Boolean noSelfCompeting) { this.noSelfCompeting = noSelfCompeting; }
+    public void setCancelPartialBids(Boolean cancelPartialBids) { this.cancelPartialBids = cancelPartialBids; }
+    public void setNeverSellAtLoss(Boolean neverSellAtLoss) { this.neverSellAtLoss = neverSellAtLoss; }
 
     // Bid Priority Setters
     public void setPriorityProfit(Integer priorityProfit) {
@@ -244,5 +254,4 @@ public class Config {
     public void setMaxBidPrice(Integer maxBidPrice) { this.maxBidPrice = maxBidPrice; }
     public void setTradeRestricted(Boolean tradeRestricted) { this.tradeRestricted = tradeRestricted; }
     public void setMembers(Boolean members) { this.members = members; }
-    public void setNumToSelect(Integer numToSelect) { this.numToSelect = numToSelect; }
 }
