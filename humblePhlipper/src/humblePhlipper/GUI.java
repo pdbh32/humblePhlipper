@@ -65,13 +65,13 @@ public class GUI extends JFrame {
     private JCheckBox tradeRestrictedCheckBox;
     private JPanel miscellaneousPanel;
     private JButton generateButton;
-    private JPanel savePanel;
+    private JPanel startPanel;
     private JCheckBox membersCheckBox;
     private JTextField basePricingTextField;
     private JTextField pricingOffsetTextField;
     private JSpinner pricingOffsetSpinner;
-    private JButton removeButton;
-    private JTextField removeItemField;
+    private JButton omitButton;
+    private JTextField omitItemField;
     private JButton newButton;
     private JTextField discordWebhookField;
     private JCheckBox debugCheckBox;
@@ -99,7 +99,7 @@ public class GUI extends JFrame {
         setResetButton();
         setSelectionsTable();
         setGenerateButton();
-        setRemoveButton();
+        setOmitButton();
 
         // startButton
         setStartButton();
@@ -337,19 +337,21 @@ public class GUI extends JFrame {
         resetButton.addActionListener(e -> {
             setConfigFromObjects();
             Main.rm.items.setAllPricing();
+            Main.rm.config.setOmissions(new LinkedHashSet<Integer>());
             Main.rm.config.setSelections(new LinkedHashSet<Integer>());
             setSelectionsTable();
         });
     }
 
-    private void setRemoveButton() {
-        removeButton.addActionListener(e -> {
+    private void setOmitButton() {
+        omitButton.addActionListener(e -> {
             setConfigFromObjects();
             Main.rm.items.setAllPricing();
-            int ID = Main.rm.getIdFromString(removeItemField.getText());
+            int ID = Main.rm.getIdFromString(omitItemField.getText());
             if (ID != -1) {
+                Main.rm.config.incrementOmissions(ID);
                 Main.rm.config.removeFromSelections(ID);
-                removeItemField.setText("");
+                omitItemField.setText("");
             }
             setSelectionsTable();
         });
@@ -1170,7 +1172,7 @@ public class GUI extends JFrame {
         selectionsPane.addTab("Manual", manualPanel);
         manualPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         final JPanel panel46 = new JPanel();
-        panel46.setLayout(new GridBagLayout());
+        panel46.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -1178,22 +1180,9 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         manualPanel.add(panel46, gbc);
-        resetButton = new JButton();
-        resetButton.setText("Reset");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel46.add(resetButton, gbc);
         addButton = new JButton();
         addButton.setText("Add by Name or ID");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel46.add(addButton, gbc);
+        panel46.add(addButton, BorderLayout.CENTER);
         final JPanel panel47 = new JPanel();
         panel47.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
@@ -1369,31 +1358,34 @@ public class GUI extends JFrame {
         panel57.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 0;
+        gbc.gridy = 1;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel56.add(panel57, gbc);
-        removeItemField = new JTextField();
-        panel57.add(removeItemField, BorderLayout.CENTER);
+        resetButton = new JButton();
+        resetButton.setText("Clear Selections and Omissions");
+        panel57.add(resetButton, BorderLayout.CENTER);
         final JPanel panel58 = new JPanel();
         panel58.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
-        gbc.gridx = 1;
+        gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel56.add(panel58, gbc);
-        removeButton = new JButton();
-        removeButton.setText("Remove by ID");
-        panel58.add(removeButton, BorderLayout.CENTER);
-        savePanel = new JPanel();
-        savePanel.setLayout(new BorderLayout(0, 0));
-        contentPanel.add(savePanel, BorderLayout.SOUTH);
+        omitButton = new JButton();
+        omitButton.setText("Omit by Name or ID");
+        panel58.add(omitButton, BorderLayout.EAST);
+        omitItemField = new JTextField();
+        panel58.add(omitItemField, BorderLayout.CENTER);
+        startPanel = new JPanel();
+        startPanel.setLayout(new BorderLayout(0, 0));
+        contentPanel.add(startPanel, BorderLayout.SOUTH);
         startButton = new JButton();
         startButton.setText("Start");
-        savePanel.add(startButton, BorderLayout.CENTER);
+        startPanel.add(startButton, BorderLayout.CENTER);
     }
 
     /**

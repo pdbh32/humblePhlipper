@@ -64,6 +64,9 @@ public class Config {
     @SerializedName("selections")
     @Expose
     private Set<Integer> selections;
+    @SerializedName("omissions")
+    @Expose
+    private Set<Integer> omissions;
 
     // Auto Selections
     @SerializedName("auto")
@@ -116,6 +119,8 @@ public class Config {
         this.selections = new LinkedHashSet<>();
         this.selections.add(1511); // Logs
         this.selections.add(560); // Death rune
+        this.omissions = new LinkedHashSet<>();
+        this.omissions.add(13190); // Bond
 
         // Auto Selections
         this.auto = true;
@@ -179,6 +184,9 @@ public class Config {
     // Selections Getters
     public Set<Integer> getSelections() {
         return selections;
+    }
+    public Set<Integer> getOmissions() {
+        return omissions;
     }
 
     // Auto Selections Getters
@@ -245,6 +253,9 @@ public class Config {
     public void setSelections(Set<Integer> selections) { this.selections = selections; }
     public void incrementSelections(int itemId) { selections.add(itemId); }
     public void removeFromSelections(int itemId) { selections.remove(itemId); }
+    public void setOmissions(Set<Integer> omissions) { this.omissions = omissions; }
+    public void incrementOmissions(int itemId) { omissions.add(itemId); }
+    public void removeFromOmissions(int itemId) { omissions.remove(itemId); }
 
     // Auto Selections Setters
     public void setAuto(Boolean auto) { this.auto = auto; }
