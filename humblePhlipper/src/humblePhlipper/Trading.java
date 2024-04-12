@@ -32,7 +32,7 @@ public class Trading {
                 rm.config.removeFromSelections(item.getId());
                 continue;
             }
-            if (item.getId() == 13190) { // bonds
+            if (item.getId() == 13190 || rm.config.getOmissions().contains(item.getId())) { // bonds and omissions
                 rm.config.removeFromSelections(item.getId());
                 continue;
             }
