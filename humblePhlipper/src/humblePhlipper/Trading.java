@@ -115,16 +115,17 @@ public class Trading {
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
         if (geSlot.isBuyOffer() && (
-                                    geSlot.getPrice() == item.getBid() &&
-                                    getProfitMargin(item.getId()) >= rm.config.getMinMargin() &&
-                                    (rm.config.getCancelPartialBids() ? geSlot.getTradeBarWidth() == 0 : true) &&
-                                    rm.session.getBidding() )
-                                    ) {
+                geSlot.getPrice() == item.getBid() &&
+                        getProfitMargin(item.getId()) >= 1 &&
+                        rm.config.getSelections().contains(item.getId()) &&
+                        (!rm.config.getCancelPartialBids() || geSlot.getTradeBarWidth() == 0) &&
+                        rm.session.getBidding() )
+        ) {
             return false;
         }
         if (geSlot.isSellOffer() && (
-                                    geSlot.getPrice() == (rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), getBreakEvenAsk(item.getLastBuyPrice())) : item.getAsk()))
-                                    ) {
+                geSlot.getPrice() == (rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), getBreakEvenAsk(item.getLastBuyPrice())) : item.getAsk()))
+        ) {
             return false;
         }
         return (Sleep.sleepUntil(() -> GrandExchange.cancelOffer(slotIndex), 1000));
@@ -191,7 +192,7 @@ public class Trading {
 
             item.updateFourHourLimit();
             item.updateTargetVol();
-        } else {
+        } else if (item.getSold() < item.getBought()) {
             item.setSold(item.getSold() + vol);
             item.setProfit(item.getProfit() + (price - item.getLastBuyPrice()) * vol);
 
@@ -225,14 +226,14 @@ public class Trading {
         if (Inventory.count(item.getMapping().getName()) == 0 && Inventory.count(item.getMapping().getId()) == 0) {
             return false;
         }
-        if (item.getSold() >= item.getBought()) {
-            return false;
-        }
+        //if (item.getSold() >= item.getBought()) {
+        //    return false;
+        //}
         final int finalAsk = rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), getBreakEvenAsk(item.getLastBuyPrice())) : item.getAsk();
-        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), (item.getBought() - item.getSold()), finalAsk), SLEEP)) {
+        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getId(), Math.max(Inventory.count(item.getId()), Inventory.count(item.getMapping().getName())), finalAsk), SLEEP)) {
             return true; // We need this to buy items like Falador tablet (teleport)
         }
-        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getName(), (item.getBought() - item.getSold()), finalAsk), SLEEP)) {
+        if (Sleep.sleepUntil(() -> GrandExchange.sellItem(item.getMapping().getName(), Math.max(Inventory.count(item.getId()), Inventory.count(item.getMapping().getName())), finalAsk), SLEEP)) {
             return true; // We need this to sell items like Black d'hide body and Bat bones (???)
         }
         return false;
