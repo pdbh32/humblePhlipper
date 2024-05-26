@@ -129,6 +129,7 @@ public class ResourceManager {
         setOneHourApiScheduler(); // we need this for volume irrespective of pricing
         switch (config.getPricing()) {
             case "latest":
+            case "bestOfLatestOneHour":
                 setLatestApiScheduler();
                 break;
             case "fiveMinute":

@@ -70,7 +70,7 @@ public class Paint {
         g.drawString("bidding", 200,460);
         g.setColor(Color.WHITE);
         g.drawString("Timeout: " + rm.config.getTimeout() + " mins",260,360);
-        g.drawString("Profit Cutoff: " + commaFormat.format(rm.config.getProfitCutOff()), 260,380);
+        g.drawString("Auto Bond: " + rm.config.getAutoBond(), 260,380);
         g.drawString("System Exit: " + rm.config.getSysExit(),260,400);
         g.drawString("Max Bid Value: " + commaFormat.format(rm.config.getMaxBidValue()), 260, 420);
         g.drawString("Max Bid Volume: " + commaFormat.format(rm.config.getMaxBidVol()), 260, 440);

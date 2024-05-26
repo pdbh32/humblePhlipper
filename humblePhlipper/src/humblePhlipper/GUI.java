@@ -23,7 +23,6 @@ public class GUI extends JFrame {
 
     // Objects to populate with Config data
     private JTextField timeoutField;
-    private JTextField profitCutOffField;
     private JCheckBox sysExitCheckBox;
     private JTextField maxBidValueField;
     private JTextField maxBidVolField;
@@ -54,7 +53,7 @@ public class GUI extends JFrame {
     private JTextField a1HourVolumeVeTextField;
     private JTextField capitalBindingVeTextField;
     private JTextField timeoutMinutesTextField;
-    private JTextField profitCutoffTextField;
+    private JTextField autoBondTextField;
     private JTextField closeClientOnStopTextField;
     private JTextField maxValueOfAnyBidTextField;
     private JTextField maxVolumeOfAnyBidTextField;
@@ -82,6 +81,7 @@ public class GUI extends JFrame {
     private JCheckBox cancelPartialBidsCheckBox;
     private JTextField neverSellAtLossTextField;
     private JCheckBox neverSellAtLossCheckBox;
+    private JCheckBox autoBondCheckBox;
 
     public GUI() {
         // Set action listeners
@@ -118,7 +118,7 @@ public class GUI extends JFrame {
     private void setConfigFromObjects() {
         // Miscellaneous
         Main.rm.config.setTimeout(Float.parseFloat(timeoutField.getText()));
-        Main.rm.config.setProfitCutOff(Integer.parseInt(profitCutOffField.getText()));
+        Main.rm.config.setAutoBond(autoBondCheckBox.isSelected());
         Main.rm.config.setSysExit(sysExitCheckBox.isSelected());
         Main.rm.config.setDiscordWebhook(discordWebhookField.getText().isEmpty() ? null : discordWebhookField.getText());
         Main.rm.config.setDebug(debugCheckBox.isSelected());
@@ -152,6 +152,9 @@ public class GUI extends JFrame {
                 break;
             case "Worst of Latest and 5 Minute Average":
                 Main.rm.config.setPricing("worstOfLatestFiveMinute");
+                break;
+            case "Best of Latest and 1 Hour Average":
+                Main.rm.config.setPricing("bestOfLatestOneHour");
                 break;
         }
         Main.rm.config.setPricingOffset((Integer) pricingOffsetSpinner.getValue());
@@ -211,7 +214,7 @@ public class GUI extends JFrame {
     private void populateObjectsFromConfig() {
         // Miscellaneous
         timeoutField.setText(String.valueOf(Main.rm.config.getTimeout()));
-        profitCutOffField.setText(String.valueOf(Main.rm.config.getProfitCutOff()));
+        autoBondCheckBox.setSelected(Main.rm.config.getAutoBond());
         sysExitCheckBox.setSelected(Main.rm.config.getSysExit());
         discordWebhookField.setText((Main.rm.config.getDiscordWebhook() == null) ? "" : Main.rm.config.getDiscordWebhook());
         debugCheckBox.setSelected(Main.rm.config.getDebug());
@@ -244,6 +247,9 @@ public class GUI extends JFrame {
                 break;
             case "worstOfLatestFiveMinute":
                 pricingComboBox.setSelectedItem("Worst of Latest and 5 Minute Average");
+                break;
+            case "bestOfLatestOneHour":
+                pricingComboBox.setSelectedItem("Best of Latest and 1 Hour Average");
                 break;
         }
         pricingOffsetSpinner.setValue(Main.rm.config.getPricingOffset());
@@ -289,6 +295,7 @@ public class GUI extends JFrame {
         comboBoxModel.addElement("1 Hour Average");
         comboBoxModel.addElement("Best of Latest and 5 Minute Average");
         comboBoxModel.addElement("Worst of Latest and 5 Minute Average");
+        comboBoxModel.addElement("Best of Latest and 1 Hour Average");
         pricingComboBox.setModel(comboBoxModel);
     }
 
@@ -502,8 +509,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel1.add(panel4, gbc);
-        profitCutOffField = new JTextField();
-        profitCutOffField.setText("");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -511,7 +516,6 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel4.add(profitCutOffField, gbc);
         final JPanel panel5 = new JPanel();
         panel5.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
@@ -587,10 +591,10 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel7.add(panel9, gbc);
-        profitCutoffTextField = new JTextField();
-        profitCutoffTextField.setEditable(false);
-        profitCutoffTextField.setText("Profit Cutoff");
-        profitCutoffTextField.setToolTipText("`profitCutOff` - profit after which to stop making buy offers, sell off remaining inventory, and exit");
+        autoBondTextField = new JTextField();
+        autoBondTextField.setEditable(false);
+        autoBondTextField.setText("Profit Cutoff");
+        autoBondTextField.setToolTipText("`profitCutOff` - profit after which to stop making buy offers, sell off remaining inventory, and exit");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -598,7 +602,7 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel9.add(profitCutoffTextField, gbc);
+        panel9.add(autoBondTextField, gbc);
         final JPanel panel10 = new JPanel();
         panel10.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();

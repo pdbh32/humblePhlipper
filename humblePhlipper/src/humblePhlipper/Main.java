@@ -14,6 +14,9 @@ import org.dreambot.api.utilities.Logger;
 import org.dreambot.api.methods.grandexchange.GrandExchange;
 import org.dreambot.api.utilities.Sleep;
 import org.dreambot.api.utilities.Timer;
+import org.dreambot.api.methods.settings.PlayerSettings;
+import org.dreambot.api.methods.bond.Bond;
+import org.dreambot.api.methods.tabs.Tabs;
 import static org.dreambot.core.Instance.getInstance;
 
 import javax.swing.*;
@@ -24,7 +27,7 @@ import java.util.*;
 
 import Gelox_.DiscordWebhook;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.75)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.76)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -90,11 +93,40 @@ public class Main extends AbstractScript {
 
     @Override
     public int onLoop() {
+        Logger.log(PlayerSettings.getConfig(1780));
         if (!rm.session.getRunning() || !Client.isLoggedIn()) {
             return SLEEP;
         }
 
         GrandExchange.open();
+
+        // Auto bond
+        if (rm.config.getAutoBond() && PlayerSettings.getConfig(1780) <= 1 && GrandExchange.isOpen()) {
+            GrandExchange.cancelAll();
+            for (int i=0; i<8; i++) {
+                try {
+                    trading.Collect(i);
+                } catch (Exception e) {
+                    if (!rm.config.getDebug()) {
+                        continue;
+                    }
+                    System.err.println("<ERROR>Collect("+i+")</ERROR>");
+                    e.printStackTrace();
+                }
+            }
+            if (!Sleep.sleepUntil(() -> GrandExchange.buyItem(13190, 1, (int) Math.round(1.2 * rm.items.get(13190).getLatest().getHigh())), 3000)) {
+                Logger.log("<ERROR>Cannot afford bond</ERROR>");
+                return -1;
+            }
+            Sleep.sleep(3000);
+            Sleep.sleepUntil(() -> GrandExchange.collect(), 3000);
+            Sleep.sleep(3000);
+            Sleep.sleepUntil(() -> Bond.redeem(1), 3000);
+            Sleep.sleep(3000);
+            Tabs.logout();
+            Sleep.sleep(3000);
+            return SLEEP;
+        }
 
         // Dynamic selection if auto,
         if (rm.config.getAuto()) {
@@ -167,8 +199,8 @@ public class Main extends AbstractScript {
             }
         }
 
-        // if ((Timeout reached) || (profit cutoff reached)) { stop bidding; }
-        if ((float) rm.session.getTimer().elapsed() /60000 >= rm.config.getTimeout() || rm.session.getProfit() >= rm.config.getProfitCutOff()) {
+        // if (Timeout reached) { stop bidding; }
+        if ((float) rm.session.getTimer().elapsed() /60000 >= rm.config.getTimeout()) {
             if (rm.session.getBidding()) {
                 Logger.log("Timeout or profit cutoff reached, cancelling bids...");
             }
