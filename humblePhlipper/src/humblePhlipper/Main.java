@@ -93,7 +93,6 @@ public class Main extends AbstractScript {
 
     @Override
     public int onLoop() {
-        Logger.log(PlayerSettings.getConfig(1780));
         if (!rm.session.getRunning() || !Client.isLoggedIn()) {
             return SLEEP;
         }
