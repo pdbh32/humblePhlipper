@@ -17,9 +17,9 @@ public class Config {
     @SerializedName("discordWebhook")
     @Expose
     private String discordWebhook;
-    @SerializedName("profitCutOff")
+    @SerializedName("autoBond")
     @Expose
-    private Integer profitCutOff;
+    private Boolean autoBond;
     @SerializedName("debug")
     @Expose
     private Boolean debug;
@@ -94,7 +94,7 @@ public class Config {
     public Config() {
         // Miscellaneous
         this.timeout = 240F;
-        this.profitCutOff = Integer.MAX_VALUE;
+        this.autoBond = false;
         this.sysExit = false;
         this.discordWebhook = null;
         this.debug = false;
@@ -136,7 +136,7 @@ public class Config {
     public Float getTimeout() {
         return timeout;
     }
-    public Integer getProfitCutOff() { return profitCutOff; }
+    public Boolean getAutoBond() { return autoBond; }
     public Boolean getSysExit() {
         return sysExit;
     }
@@ -212,7 +212,7 @@ public class Config {
 
     // Miscellaneous Setters
     public void setTimeout(Float timeout) { this.timeout = timeout; }
-    public void setProfitCutOff(Integer profitCutoff) { this.profitCutOff = profitCutoff; }
+    public void setAutoBond(Boolean autoBond) { this.autoBond = autoBond; }
     public void setSysExit(Boolean sysExit) { this.sysExit = sysExit; }
     public void setDiscordWebhook(String discordWebhook ) { this.discordWebhook = discordWebhook; }
     public void setDebug(Boolean debug) { this.debug = debug; }
