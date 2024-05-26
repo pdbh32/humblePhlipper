@@ -509,13 +509,15 @@ public class GUI extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel1.add(panel4, gbc);
+        autoBondCheckBox = new JCheckBox();
+        autoBondCheckBox.setText("True");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel4.add(autoBondCheckBox, gbc);
         final JPanel panel5 = new JPanel();
         panel5.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
@@ -593,7 +595,7 @@ public class GUI extends JFrame {
         panel7.add(panel9, gbc);
         autoBondTextField = new JTextField();
         autoBondTextField.setEditable(false);
-        autoBondTextField.setText("Profit Cutoff");
+        autoBondTextField.setText("Auto Bond");
         autoBondTextField.setToolTipText("`profitCutOff` - profit after which to stop making buy offers, sell off remaining inventory, and exit");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
