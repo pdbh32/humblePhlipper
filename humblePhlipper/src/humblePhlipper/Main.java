@@ -100,7 +100,8 @@ public class Main extends AbstractScript {
         GrandExchange.open();
 
         // Auto bond
-        if (rm.config.getAutoBond() && PlayerSettings.getConfig(1780) <= 1 && GrandExchange.isOpen()) {
+        int membershipDaysLeft = PlayerSettings.getConfig(1780);
+        if (rm.config.getAutoBond() && membershipDaysLeft <= 1 && GrandExchange.isOpen()) {
             GrandExchange.cancelAll();
             for (int i=0; i<8; i++) {
                 try {
@@ -118,9 +119,9 @@ public class Main extends AbstractScript {
                 return -1;
             }
             Sleep.sleep(3000);
-            Sleep.sleepUntil(() -> GrandExchange.collect(), 3000);
+            Sleep.sleepUntil(() -> GrandExchange.collect(), 20000);
             Sleep.sleep(3000);
-            Sleep.sleepUntil(() -> Bond.redeem(1), 3000);
+            Sleep.sleepUntil(() -> Bond.redeem(1), 20000);
             Sleep.sleep(3000);
             Tabs.logout();
             Sleep.sleep(3000);
