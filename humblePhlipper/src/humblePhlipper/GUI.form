@@ -200,7 +200,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Timeout (Minutes)"/>
-                              <toolTipText value="`timeout` - time in minutes after which to stop making buy offers, sell off remaining inventory, and exit (exit forced if timeout exceeded by 60 minutes)   "/>
+                              <toolTipText value="`timeout` - time in minutes after which to stop making buy offers, sell off remaining inventory, and exit (exit forced if timeout exceeded by 15 minutes)"/>
                             </properties>
                           </component>
                         </children>
@@ -223,7 +223,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Auto Bond"/>
-                              <toolTipText value="`profitCutOff` - profit after which to stop making buy offers, sell off remaining inventory, and exit"/>
+                              <toolTipText value="`autoBond` - whether to buy an old school bond and redeem it when there is less than 1 day of membership left"/>
                             </properties>
                           </component>
                         </children>
@@ -278,7 +278,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Discord Webhook"/>
-                              <toolTipText value="`discordWebhook` - discord webhook for on the hour and end of session notifications"/>
+                              <toolTipText value="`discordWebhook` - discord webhook url, like https://discord.com/api/webhooks/XXX/XXX, to send notifications to"/>
                             </properties>
                           </component>
                         </children>
@@ -293,6 +293,7 @@
                         <properties>
                           <editable value="false"/>
                           <text value="Debug Logging"/>
+                          <toolTipText value="`debug` - whether to log debugging output to console log"/>
                         </properties>
                       </component>
                     </children>
@@ -361,6 +362,29 @@
                           </component>
                         </children>
                       </grid>
+                      <grid id="5af9b" layout-manager="GridBagLayout">
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                          <gridbag weightx="1.0" weighty="1.0"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <component id="73c84" class="javax.swing.JTextField" binding="pricingOffsetAsPercentageTextField" default-binding="true">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                                <preferred-size width="150" height="-1"/>
+                              </grid>
+                              <gridbag weightx="1.0" weighty="1.0"/>
+                            </constraints>
+                            <properties>
+                              <editable value="false"/>
+                              <text value="Pricing Offset as Percentage"/>
+                              <toolTipText value="`pricingOffsetAsPercentage` - whether pricing offset should be calculated as a percentage of profit marign"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
                     </children>
                   </grid>
                   <grid id="42e19" layout-manager="GridBagLayout">
@@ -404,6 +428,25 @@
                               <gridbag weightx="1.0" weighty="1.0"/>
                             </constraints>
                             <properties/>
+                          </component>
+                        </children>
+                      </grid>
+                      <grid id="af351" layout-manager="GridBagLayout">
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                          <gridbag weightx="1.0" weighty="1.0"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <component id="8bafd" class="javax.swing.JCheckBox" binding="pricingOffsetAsPercentageCheckBox">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                              <gridbag weightx="1.0" weighty="1.0"/>
+                            </constraints>
+                            <properties>
+                              <text value="True"/>
+                            </properties>
                           </component>
                         </children>
                       </grid>
@@ -803,6 +846,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="No Self-Competing"/>
+                              <toolTipText value="`noSelfCompeting` - wmaximum quantity of any buy offer"/>
                             </properties>
                           </component>
                         </children>
@@ -825,6 +869,7 @@
                             <properties>
                               <editable value="false"/>
                               <text value="Cancel Partially Fulfilled Bids"/>
+                              <toolTipText value="`cancelPartialBids` - whether to cancel partially completed buy offers"/>
                             </properties>
                           </component>
                         </children>
@@ -846,7 +891,8 @@
                             </constraints>
                             <properties>
                               <editable value="false"/>
-                              <text value="Never Sell At Loss"/>
+                              <text value="Never Sell at a Loss"/>
+                              <toolTipText value="`neverSellAtLoss` - whether to never sell items at a loss"/>
                             </properties>
                           </component>
                         </children>
@@ -935,7 +981,7 @@
                               <gridbag weightx="1.0" weighty="1.0"/>
                             </constraints>
                             <properties>
-                              <toolTipText value=""/>
+                              <toolTipText value="`maxBidAskVolRatio` - maximum bid price of candaidate automatic selections"/>
                             </properties>
                             <border type="none" title="Max 1 Hour Bid/Ask Volume Ratio"/>
                             <children>
@@ -947,7 +993,7 @@
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
                                 <properties>
-                                  <toolTipText value="`maxBidAskVolRatio` - maximum (1_hour_bid_volume / 1_hour_ask_volume) of candidate automatic selections"/>
+                                  <toolTipText value="`maxBidAskVolRatio` - maximum 1_hour_bid_volume / 1_hour_ask_volume of candaidate automatic selections"/>
                                 </properties>
                               </component>
                             </children>
@@ -987,7 +1033,7 @@
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
                                 <properties>
-                                  <toolTipText value="`maxBidPrice` - maximum bid of candaidate automatic selections"/>
+                                  <toolTipText value="`maxBidPrice` - maximum bid price of candaidate automatic selections"/>
                                 </properties>
                               </component>
                             </children>
@@ -1018,7 +1064,7 @@
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
                                 <properties>
-                                  <toolTipText value="`minVol` - minimum 1 hour volume of candidate automatic selections"/>
+                                  <toolTipText value="`minVol` -  minimum 1 hour volume of candaidate automatic selections"/>
                                 </properties>
                               </component>
                             </children>
@@ -1039,7 +1085,7 @@
                                   <gridbag weightx="1.0" weighty="1.0"/>
                                 </constraints>
                                 <properties>
-                                  <toolTipText value="`minMargin` - minimum post-tax profit margin of candidate automatic selections"/>
+                                  <toolTipText value="`minMargin` - minimum post-tax profit margin of candaidate automatic selections"/>
                                 </properties>
                               </component>
                             </children>
@@ -1059,7 +1105,7 @@
                                 </constraints>
                                 <properties>
                                   <text value="Members Account"/>
-                                  <toolTipText value="`members` - whether the account is memebers"/>
+                                  <toolTipText value="`members` - whether the account is members"/>
                                 </properties>
                               </component>
                               <component id="e0769" class="javax.swing.JCheckBox" binding="tradeRestrictedCheckBox">

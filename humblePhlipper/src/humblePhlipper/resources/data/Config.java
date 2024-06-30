@@ -11,15 +11,15 @@ public class Config {
     @SerializedName("timeout")
     @Expose
     private Float timeout;
+    @SerializedName("autoBond")
+    @Expose
+    private Boolean autoBond;
     @SerializedName("sysExit")
     @Expose
     private Boolean sysExit;
     @SerializedName("discordWebhook")
     @Expose
     private String discordWebhook;
-    @SerializedName("autoBond")
-    @Expose
-    private Boolean autoBond;
     @SerializedName("debug")
     @Expose
     private Boolean debug;
@@ -59,6 +59,9 @@ public class Config {
     @SerializedName("pricingOffset")
     @Expose
     private Integer pricingOffset;
+    @SerializedName("pricingOffsetAsPercentage")
+    @Expose
+    private Boolean pricingOffsetAsPercentage;
 
     // Selections
     @SerializedName("selections")
@@ -113,7 +116,8 @@ public class Config {
 
         // Pricing
         this.pricing = "bestOfLatestFiveMinute";
-        this.pricingOffset = -1;
+        this.pricingOffset = 0;
+        this.pricingOffsetAsPercentage = false;
 
         // Selections
         this.selections = new LinkedHashSet<>();
@@ -125,9 +129,9 @@ public class Config {
         // Auto Selections
         this.auto = true;
         this.minVol = 10000;
-        this.minMargin = -10;
-        this.maxBidPrice = 20000;
         this.maxBidAskVolRatio = 3.0f;
+        this.minMargin = 2;
+        this.maxBidPrice = 20000;
         this.tradeRestricted = false;
         this.members = false;
     }
@@ -180,6 +184,7 @@ public class Config {
     public Integer getPricingOffset() {
         return pricingOffset;
     }
+    public Boolean getPricingOffsetAsPercentage() { return pricingOffsetAsPercentage; }
 
     // Selections Getters
     public Set<Integer> getSelections() {
@@ -248,6 +253,7 @@ public class Config {
     public void setPricingOffset(Integer pricingOffset) {
         this.pricingOffset = pricingOffset;
     }
+    public void setPricingOffsetAsPercentage(Boolean pricingOffsetAsPercentage) { this.pricingOffsetAsPercentage = pricingOffsetAsPercentage; }
 
     // Selections Setters
     public void setSelections(Set<Integer> selections) { this.selections = selections; }

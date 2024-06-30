@@ -1,55 +1,58 @@
 package humblePhlipper.resources;
 
+import humblePhlipper.ResourceManager;
+import humblePhlipper.resources.data.FourHourLimits;
+import humblePhlipper.resources.data.Trades;
+import humblePhlipper.resources.wikiObject.FiveMinute;
+import humblePhlipper.resources.wikiObject.Latest;
+import humblePhlipper.resources.wikiObject.Mapping;
+import humblePhlipper.resources.wikiObject.OneHour;
+
 import java.util.*;
 
 public class Items extends LinkedHashMap<Integer, Items.Item> {
-    humblePhlipper.ResourceManager rm;
-    public Items(humblePhlipper.ResourceManager rm) {
+    ResourceManager rm;
+    public Items(ResourceManager rm) {
         this.rm = rm;
         for (Integer ID : rm.mappingMap.keySet()) {
-            this.put(ID, new Items.Item(ID, rm));
+            this.put(ID, new Item(ID, rm));
         }
     }
     public void updateAllFourLimit() {
-        for (Items.Item item : this.values()) {
+        for (Item item : this.values()) {
             item.updateFourHourLimit();
         }
     }
     public void updateAllTargetVol() {
-        for (Items.Item item : this.values()) {
+        for (Item item : this.values()) {
             item.updateTargetVol();
         }
     }
     public void updateAllMapping() {
-        for (Items.Item item : this.values()) {
+        for (Item item : this.values()) {
             item.updateMapping();
         }
     }
 
     public void updateAllLatest() {
-        for (Items.Item item : this.values()) {
+        for (Item item : this.values()) {
             item.updateLatest();
         }
     }
 
     public void updateAllFiveMinute() {
-        for (Items.Item item : this.values()) {
+        for (Item item : this.values()) {
             item.updateFiveMinute();
         }
     }
 
     public void updateAllOneHour() {
-        for (Items.Item item : this.values()) {
+        for (Item item : this.values()) {
             item.updateOneHour();
         }
     }
-    public void setAllPricing() {
-        for (Items.Item item : this.values()) {
-            item.setPricing();
-        }
-    }
     public void updateAllPricing() {
-        for (Items.Item item : this.values()) {
+        for (Item item : this.values()) {
             item.updatePricing();
         }
     }
@@ -64,9 +67,9 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
     }
 
     public class Item {
-        private humblePhlipper.ResourceManager rm;
+        private ResourceManager rm;
         private int id;
-        private humblePhlipper.resources.data.FourHourLimits.FourHourLimit fourHourLimit;
+        private FourHourLimits.FourHourLimit fourHourLimit;
         private int targetVol;
         private double lastBuyPrice;
         private double profit;
@@ -75,13 +78,13 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         private Integer bid;
         private Integer ask;
 
-        private humblePhlipper.resources.wikiObject.Mapping mapping;
-        private humblePhlipper.resources.wikiObject.Latest latest = new humblePhlipper.resources.wikiObject.Latest();
-        private humblePhlipper.resources.wikiObject.FiveMinute fiveMinute = new humblePhlipper.resources.wikiObject.FiveMinute();
-        private humblePhlipper.resources.wikiObject.OneHour oneHour = new humblePhlipper.resources.wikiObject.OneHour();
-        public humblePhlipper.resources.data.Trades trades = new humblePhlipper.resources.data.Trades();
+        private Mapping mapping;
+        private Latest latest = new Latest();
+        private FiveMinute fiveMinute = new FiveMinute();
+        private OneHour oneHour = new OneHour();
+        public Trades trades = new Trades();
 
-        public Item(int id, humblePhlipper.ResourceManager rm) {
+        public Item(int id, ResourceManager rm) {
             this.id = id;
             this.rm = rm;
 
@@ -90,7 +93,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
             updateFiveMinute();
             updateOneHour();
 
-            setPricing();
+            updatePricing();
 
             updateFourHourLimit();
             updateTargetVol();
@@ -101,7 +104,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         }
         public int getId() {return id; }
 
-        public humblePhlipper.resources.data.FourHourLimits.FourHourLimit getFourHourLimit() { return fourHourLimit; }
+        public FourHourLimits.FourHourLimit getFourHourLimit() { return fourHourLimit; }
         public void updateFourHourLimit() { this.fourHourLimit = rm.fourHourLimits.get(this.id); }
         public int getTargetVol() { return targetVol; }
         public void updateTargetVol() {
@@ -136,105 +139,84 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         public void setSold(int sold) {
             this.sold = sold;
         }
-        public humblePhlipper.resources.data.Trades getTrades() { return trades; }
+        public Trades getTrades() { return trades; }
         public Integer getBid() { return bid; }
         public Integer getAsk() { return ask; }
 
-        public humblePhlipper.resources.wikiObject.Mapping getMapping() { return mapping; }
+        public Mapping getMapping() { return mapping; }
         private void updateMapping() { mapping = rm.mappingMap.get(id); }
 
-        public humblePhlipper.resources.wikiObject.Latest getLatest() { return latest; }
+        public Latest getLatest() { return latest; }
         private void updateLatest() {
             if (rm.latestMap.get(id) == null) {
                 return;
             }
-            /*if ((rm.latestMap.get(id).getLowTime() != null && this.latest.getLowTime() != null) && rm.latestMap.get(id).getLowTime() <  this.latest.getLowTime()) {
-                return;
-            }
-            if ((rm.latestMap.get(id).getHighTime() != null && this.latest.getHighTime() != null) && rm.latestMap.get(id).getHighTime() <  this.latest.getHighTime()) {
-                return;
-            }*/
             this.latest = rm.latestMap.get(id);
         }
 
-        public humblePhlipper.resources.wikiObject.FiveMinute getFiveMinute() { return fiveMinute; }
+        public FiveMinute getFiveMinute() { return fiveMinute; }
         private void updateFiveMinute() {
             if (rm.fiveMinuteMap.get(id) == null) {
                 return;
             }
             this.fiveMinute = rm.fiveMinuteMap.get(id);
         }
-        public humblePhlipper.resources.wikiObject.OneHour getOneHour() { return oneHour; }
+        public OneHour getOneHour() { return oneHour; }
         private void updateOneHour() {
             if (rm.oneHourMap.get(id) == null) {
-                this.oneHour = new humblePhlipper.resources.wikiObject.OneHour();
+                this.oneHour = new OneHour(); // update vol to default (zero)
                 return;
             }
             this.oneHour = rm.oneHourMap.get(id);
         }
-        private void setPricing() {
-            switch (rm.config.getPricing()) {
-                case "latest":
-                    this.bid = (this.latest.getLow() != null) ? this.latest.getLow() - rm.config.getPricingOffset() : null;
-                    this.ask = (this.latest.getHigh() != null) ? this.latest.getHigh() + rm.config.getPricingOffset() : null;
-                    break;
-                case "fiveMinute":
-                    this.bid = (this.fiveMinute.getAvgLowPrice() != null) ? this.fiveMinute.getAvgLowPrice() - rm.config.getPricingOffset() : null;
-                    this.ask = (this.fiveMinute.getAvgHighPrice() != null) ? this.fiveMinute.getAvgHighPrice() + rm.config.getPricingOffset() : null;
-                    break;
-                case "oneHour":
-                    this.bid = (this.oneHour.getAvgLowPrice() != null) ? this.oneHour.getAvgLowPrice() - rm.config.getPricingOffset() : null;
-                    this.ask = (this.oneHour.getAvgHighPrice() != null) ? this.oneHour.getAvgHighPrice() + rm.config.getPricingOffset() : null;
-                    break;
-                case "bestOfLatestFiveMinute":
-                    this.bid = (this.fiveMinute.getAvgLowPrice() != null) ? Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) - rm.config.getPricingOffset() : null;
-                    this.ask = (this.fiveMinute.getAvgHighPrice() != null) ? Math.max(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) + rm.config.getPricingOffset() : null;
-                    break;
-                case "worstOfLatestFiveMinute":
-                    this.bid = (this.fiveMinute.getAvgLowPrice() != null) ? Math.max(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) - rm.config.getPricingOffset() : null;
-                    this.ask = (this.fiveMinute.getAvgHighPrice() != null) ? Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) + rm.config.getPricingOffset() : null;
-                    break;
-                case "bestOfLatestOneHour":
-                    this.bid = (this.oneHour.getAvgLowPrice() != null) ? Math.min(this.latest.getLow(), this.oneHour.getAvgLowPrice()) - rm.config.getPricingOffset() : null;
-                    this.ask = (this.oneHour.getAvgHighPrice() != null) ? Math.max(this.latest.getHigh(), this.oneHour.getAvgHighPrice()) + rm.config.getPricingOffset() : null;
-                    break;
-            }
-            if (this.bid == null && this.latest.getLow() != null) { this.bid = this.latest.getLow() - rm.config.getPricingOffset(); }
-            if (this.ask == null && this.latest.getHigh() != null) { this.ask = this.latest.getHigh() + rm.config.getPricingOffset(); }
-            if (this.bid != null && this.bid < 0) { this.bid = null; }
-            if (this.ask != null && this.ask < 0) { this.ask = 1; }
-        }
         private void updatePricing() {
+            Integer bid = null;
+            Integer ask = null;
             switch (rm.config.getPricing()) {
                 case "latest":
-                    try { this.bid = this.latest.getLow() - rm.config.getPricingOffset(); } catch(Exception ignored) {}
-                    try { this.ask = this.latest.getHigh() + rm.config.getPricingOffset(); } catch(Exception ignored) {}
+                    bid = (this.latest.getLow() != null) ? this.latest.getLow() : null;
+                    ask = (this.latest.getHigh() != null) ? this.latest.getHigh() : null;
                     break;
                 case "fiveMinute":
-                    try { this.bid = this.fiveMinute.getAvgLowPrice() - rm.config.getPricingOffset(); } catch(Exception ignored) {}
-                    try { this.ask = this.fiveMinute.getAvgHighPrice() + rm.config.getPricingOffset(); } catch(Exception ignored) {}
+                    bid = (this.fiveMinute.getAvgLowPrice() != null) ? this.fiveMinute.getAvgLowPrice() : null;
+                    ask = (this.fiveMinute.getAvgHighPrice() != null) ? this.fiveMinute.getAvgHighPrice() : null;
                     break;
                 case "oneHour":
-                    try { this.bid = this.oneHour.getAvgLowPrice() - rm.config.getPricingOffset(); } catch(Exception ignored) {}
-                    try { this.ask = this.oneHour.getAvgHighPrice() + rm.config.getPricingOffset(); } catch(Exception ignored) {}
+                    bid = (this.oneHour.getAvgLowPrice() != null) ? this.oneHour.getAvgLowPrice() : null;
+                    ask = (this.oneHour.getAvgHighPrice() != null) ? this.oneHour.getAvgHighPrice() : null;
                     break;
                 case "bestOfLatestFiveMinute":
-                    try { this.bid = Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice())  - rm.config.getPricingOffset(); } catch(Exception ignored) {}
-                    try { this.ask = Math.max(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice())  + rm.config.getPricingOffset(); } catch(Exception ignored) {}
+                    bid = (this.latest.getLow() != null && this.fiveMinute.getAvgLowPrice() != null) ? Math.min(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) : null;
+                    ask = (this.latest.getHigh() != null && this.fiveMinute.getAvgHighPrice() != null) ? Math.max(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) : null;
                     break;
                 case "worstOfLatestFiveMinute":
-                    try { this.bid = Math.max(this.latest.getLow(), this.fiveMinute.getAvgLowPrice())  - rm.config.getPricingOffset(); } catch(Exception ignored) {}
-                    try { this.ask = Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice())  + rm.config.getPricingOffset(); } catch(Exception ignored) {}
+                    bid = (this.latest.getLow() != null && this.fiveMinute.getAvgLowPrice() != null) ? Math.max(this.latest.getLow(), this.fiveMinute.getAvgLowPrice()) : null;
+                    ask = (this.latest.getHigh() != null && this.fiveMinute.getAvgHighPrice() != null) ? Math.min(this.latest.getHigh(), this.fiveMinute.getAvgHighPrice()) : null;
                     break;
                 case "bestOfLatestOneHour":
-                    try { this.bid = Math.min(this.latest.getLow(), this.oneHour.getAvgLowPrice())  - rm.config.getPricingOffset(); } catch(Exception ignored) {}
-                    try { this.ask = Math.max(this.latest.getHigh(), this.oneHour.getAvgHighPrice())  + rm.config.getPricingOffset(); } catch(Exception ignored) {}
+                    bid = (this.latest.getLow() != null && this.oneHour.getAvgLowPrice() != null) ? Math.min(this.latest.getLow(), this.oneHour.getAvgLowPrice()) : null;
+                    ask = (this.latest.getHigh() != null && this.oneHour.getAvgHighPrice() != null) ? Math.max(this.latest.getHigh(), this.oneHour.getAvgHighPrice()) : null;
                     break;
             }
-            if (this.bid == null && this.latest.getLow() != null) { this.bid = this.latest.getLow() - rm.config.getPricingOffset(); }
-            if (this.ask == null && this.latest.getHigh() != null) { this.ask = this.latest.getHigh() + rm.config.getPricingOffset(); }
-            if (this.bid != null && this.bid < 0) { this.bid = null; }
-            if (this.ask != null && this.ask < 0) { this.ask = 1; }
+
+            if (bid == null && this.latest.getLow() != null) { bid = this.latest.getLow(); }
+            if (ask == null && this.latest.getHigh() != null) { ask = this.latest.getHigh(); }
+
+            if (bid == null || ask == null) { return; }
+
+            Integer pricingOffset;
+            if (rm.config.getPricingOffsetAsPercentage()) {
+                double profitMargin = Math.max(Math.ceil(0.99 * ask), ask - 5000000) - bid;
+                pricingOffset = (int) (0.01 * rm.config.getPricingOffset() * profitMargin);
+            } else {
+                pricingOffset = rm.config.getPricingOffset();
+            }
+
+            this.bid = bid - pricingOffset;
+            this.ask = ask + pricingOffset;
+
+            if (this.bid < 0) { this.bid = null; }
+            if (this.ask < 0) { this.ask = 1; }
         }
     }
 }
