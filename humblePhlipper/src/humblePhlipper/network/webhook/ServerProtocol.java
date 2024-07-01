@@ -6,13 +6,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.dreambot.core.Instance.getInstance;
 
 public class ServerProtocol extends humblePhlipper.network.Protocol {
-    private final DecimalFormat commaFormat = new DecimalFormat("#,###");
+    private static final DecimalFormatSymbols commaFormatSymbols = new DecimalFormatSymbols(new Locale("en", "US"));
+    private static final DecimalFormat commaFormat = new DecimalFormat("#,###", commaFormatSymbols);
     private final Map<String, Object[]> accountUsernameMap = new HashMap<>();
     public ServerProtocol(humblePhlipper.ResourceManager rm) {
         super(rm);

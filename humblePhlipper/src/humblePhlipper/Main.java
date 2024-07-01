@@ -22,12 +22,13 @@ import static org.dreambot.core.Instance.getInstance;
 import javax.swing.*;
 import java.awt.*;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import Gelox_.DiscordWebhook;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.77)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.78)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);
@@ -35,7 +36,8 @@ public class Main extends AbstractScript {
     private static GUI gui;
 
     public static final int SLEEP = 1000;
-    private static final DecimalFormat commaFormat = new DecimalFormat("#,###");
+    private static final DecimalFormatSymbols commaFormatSymbols = new DecimalFormatSymbols(new Locale("en", "US"));
+    private static final DecimalFormat commaFormat = new DecimalFormat("#,###", commaFormatSymbols);
 
     @Override
     public void onStart(java.lang.String... params) {
@@ -99,13 +101,36 @@ public class Main extends AbstractScript {
 
         GrandExchange.open();
 
+        // Dynamic selection if auto,
+        if (rm.config.getAuto()) {
+            trading.Select();
+        } else {
+            trading.Order();
+        }
+
+        // Update four hour limits data
+        rm.updateFourHourLimits();
+        rm.items.updateAllFourLimit();
+        rm.items.updateAllTargetVol();
+
+        // Go back if stuck
+        Boolean closedConvenienceFee = humblePhlipper.dbGE.OpenOffer.closeConvenienceFee();
+        if (closedConvenienceFee == null) {} // no convenience fee to close, continue
+        else if (!closedConvenienceFee) { return SLEEP; } // failed to close, retry
+        Boolean exitedOffer = humblePhlipper.dbGE.OpenOffer.goBack();
+        if (exitedOffer == null) {} // no offer to exit, continue
+        else if (!exitedOffer) { return SLEEP; } // failed to go back, retry
+
         // Auto bond
         int membershipDaysLeft = PlayerSettings.getConfig(1780);
         if (rm.config.getAutoBond() && membershipDaysLeft <= 1 && GrandExchange.isOpen()) {
             GrandExchange.cancelAll();
             for (int i=0; i<8; i++) {
                 try {
-                    trading.Collect(i);
+                    Boolean collected = trading.Collect(i);
+                    if (collected == null) {}
+                    else if (!collected) {return SLEEP; }
+
                 } catch (Exception e) {
                     if (!rm.config.getDebug()) {
                         continue;
@@ -128,29 +153,12 @@ public class Main extends AbstractScript {
             return SLEEP;
         }
 
-        // Dynamic selection if auto,
-        if (rm.config.getAuto()) {
-            trading.Select();
-        } else {
-            trading.Order();
-        }
-
-        // Update four hour limits data
-        rm.updateFourHourLimits();
-        rm.items.updateAllFourLimit();
-        rm.items.updateAllTargetVol();
-
-        // Go back if stuck
-        if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
-            if (Sleep.sleepUntil(GrandExchange::goBack,SLEEP)) {
-                Sleep.sleep(SLEEP);
-            }
-        }
-
         // Loop through slots and make cancellations
         for (int i=0; i<8; i++) {
             try {
-                if (trading.Cancel(i)) { return SLEEP; }
+                Boolean cancellation = trading.Cancel(i);
+                if (cancellation == null) {} // not eligible for cancellation, continue
+                else { return SLEEP; } // failed to cancel or successfully cancelled, restart loop
             } catch (Exception e) {
                 if (!rm.config.getDebug()) {
                     continue;
@@ -163,7 +171,9 @@ public class Main extends AbstractScript {
         // Loop through slots and make collections
         for (int i=0; i<8; i++) {
             try {
-                if (trading.Collect(i)) { return SLEEP; }
+                Boolean collection = trading.Collect(i);
+                if (collection == null) {} // not eligible for collection, continue
+                else {return SLEEP; } // failed to collect or successfully collected, restart loop
             } catch (Exception e) {
                 if (!rm.config.getDebug()) {
                     continue;
@@ -176,7 +186,9 @@ public class Main extends AbstractScript {
         // Loop through items and make asks
         for (Integer ID : rm.items.keySet()) {
             try {
-                if (trading.MakeAsk(ID)) { return SLEEP; }
+                Boolean madeAsk = trading.MakeAsk(ID);
+                if (madeAsk == null) {} // no ask to make, continue
+                else { return SLEEP; } // failed to make ask or successfully made ask, restart loop
             } catch (Exception e) {
                 if (!rm.config.getDebug()) {
                     continue;
@@ -189,7 +201,9 @@ public class Main extends AbstractScript {
         // Loop through items and make bids
         for (Integer ID : rm.config.getSelections()) {
             try {
-                if (trading.MakeBid(ID)) { return SLEEP; }
+                Boolean madeBid = trading.MakeBid(ID);
+                if (madeBid == null) {} // no bid to make, continue
+                else { return SLEEP; } // failed to make bid or successfully made bid, restart loop
             } catch (Exception e) {
                 if (!rm.config.getDebug()) {
                     continue;

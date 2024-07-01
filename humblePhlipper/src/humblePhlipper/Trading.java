@@ -9,7 +9,6 @@ import org.dreambot.api.utilities.Sleep;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Trading {
     private final ResourceManager rm;
@@ -99,19 +98,19 @@ public class Trading {
         }));
         rm.config.setSelections(new LinkedHashSet<>(orderedSelections));
     }
-    public boolean Cancel(int slotIndex) {
+    public Boolean Cancel(int slotIndex) {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
-            return false;
+            return null;
         }
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
-            return false;
+            return null;
         }
         humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
         if (geSlot.getType().equals("Empty") || geSlot.getItemId() == -1) {
-            return false;
+            return null;
         }
         if (geSlot.getTradeBarWidth() == humblePhlipper.dbGE.Slot.maxTradeBarWidth) {
-            return false;
+            return null;
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
         if (geSlot.isBuyOffer() && (
@@ -121,29 +120,29 @@ public class Trading {
                         (!rm.config.getCancelPartialBids() || geSlot.getTradeBarWidth() == 0) &&
                         rm.session.getBidding() )
         ) {
-            return false;
+            return null;
         }
         if (geSlot.isSellOffer() && (
                 geSlot.getPrice() == (rm.config.getNeverSellAtLoss() ? Math.max(item.getAsk(), getBreakEvenAsk(item.getLastBuyPrice())) : item.getAsk()))
         ) {
-            return false;
+            return null;
         }
-        return (Sleep.sleepUntil(() -> GrandExchange.cancelOffer(slotIndex), 1000));
+        return (Sleep.sleepUntil(() -> GrandExchange.cancelOffer(slotIndex), SLEEP));
     }
 
-    public boolean Collect(int slotIndex) {
+    public Boolean Collect(int slotIndex) {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
-            return false;
+            return null;
         }
         if (GrandExchange.isBuyOpen() || GrandExchange.isSellOpen()) {
-            return false;
+            return null;
         }
         humblePhlipper.dbGE.Slot geSlot = humblePhlipper.dbGE.Slot.get(slotIndex);
         if (geSlot.getType().equals("Empty") || geSlot.getItemId() == -1) {
-            return false;
+            return null;
         }
         if (!geSlot.isReadyToCollect()) {
-            return false;
+            return null;
         }
         humblePhlipper.resources.Items.Item item = rm.items.get(geSlot.getItemId());
 
@@ -157,8 +156,12 @@ public class Trading {
         }
 
         boolean collectionSuccess = false;
-        int vol = humblePhlipper.dbGE.OpenOffer.getTransferredAmount();
-        double price = (double) humblePhlipper.dbGE.OpenOffer.getTransferredValue()/vol;
+        Integer vol = humblePhlipper.dbGE.OpenOffer.getTransferredAmount();
+        Integer transferredValue = humblePhlipper.dbGE.OpenOffer.getTransferredValue();
+        if (vol == null || transferredValue == null) {
+            return false;
+        }
+        double price = (double) humblePhlipper.dbGE.OpenOffer.getTransferredValue() / vol;
         price = (isBuyOffer) ? -1 * price : price;
 
         if (!GrandExchange.getOfferSecondItemWidget().isHidden()) {
@@ -176,8 +179,11 @@ public class Trading {
             }
         }
 
-        if (!collectionSuccess || vol == 0) {
+        if (!collectionSuccess) {
             return false;
+        }
+        if (vol == 0) {
+            return true;
         }
 
         if (isBuyOffer) {
@@ -212,19 +218,19 @@ public class Trading {
 
     public Boolean MakeAsk(Integer ID) {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
-            return false;
+            return null;
         }
 
         humblePhlipper.resources.Items.Item item = rm.items.get(ID);
 
         if (GrandExchange.getFirstOpenSlot() == -1) {
-            return false;
+            return null;
         }
         if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId() || geItem.getName().equals(item.getMapping().getName()))) {
-            return false;
+            return null;
         }
         if (Inventory.count(item.getMapping().getName()) == 0 && Inventory.count(item.getMapping().getId()) == 0) {
-            return false;
+            return null;
         }
         //if (item.getSold() >= item.getBought()) {
         //    return false;
@@ -241,33 +247,33 @@ public class Trading {
 
     public Boolean MakeBid(Integer ID) {
         if (!Client.isLoggedIn() || !GrandExchange.isOpen()) {
-            return false;
+            return null;
         }
 
         humblePhlipper.resources.Items.Item item = rm.items.get(ID);
 
         if (GrandExchange.getFirstOpenSlot() == -1) {
-            return false;
+            return null;
         }
         if (Arrays.stream(GrandExchange.getItems()).anyMatch(geItem -> geItem.getID() == item.getMapping().getId() || geItem.getName().equals(item.getMapping().getName()))) {
-            return false;
+            return null;
         }
         if (item.getBid() == null) {
-            return false;
+            return null;
         }
         if (item.getTargetVol() == 0 || !rm.session.getBidding() || Inventory.count("Coins") < item.getBid() || getProfitMargin(item.getId()) <= 0) {
-            return false;
+            return null;
         }
         if (Inventory.count(item.getMapping().getName()) != 0 || Inventory.count(item.getMapping().getId()) != 0) {
-            return false;
+            return null;
         }
         if (rm.session.getNoCompetitionIds() != null) {
             if (rm.config.getNoSelfCompeting() && rm.session.getNoCompetitionIds().contains(item.getId())) {
-                return false;
+                return null;
             }
         }
         if (item.getBought() > item.getSold()) {
-            return false;
+            return null;
         }
         int vol = Math.min(item.getTargetVol(), (int) Math.floor((double) Inventory.count("Coins") / item.getBid()));
         vol = Math.min(vol, (int) Math.floor((double) rm.config.getMaxBidValue() / item.getBid()));
