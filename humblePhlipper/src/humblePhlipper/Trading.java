@@ -51,6 +51,10 @@ public class Trading {
                 rm.config.removeFromSelections(item.getId());
                 continue;
             }
+            if (item.getBid() < rm.config.getMinBidPrice()) {
+                rm.config.removeFromSelections(item.getId());
+                continue;
+            }
             if (rm.config.getTradeRestricted() && restrictedIdSet.contains(item.getId())) {
                 rm.config.removeFromSelections(item.getId());
                 continue;
@@ -70,9 +74,6 @@ public class Trading {
     private double getVol(int ID) {
         return rm.items.get(ID).getOneHour().getLowPriceVolume() + rm.items.get(ID).getOneHour().getHighPriceVolume();
     }
-    private Long getCapitalBinding(int ID) {
-        return (rm.items.get(ID).getBid() == null) ? null : -1L * rm.items.get(ID).getBid() * rm.items.get(ID).getTargetVol();
-    }
     public void Order() {
         List<Integer> profitOrderedSelection = new ArrayList<>(rm.config.getSelections());
         profitOrderedSelection.sort(Comparator.comparingDouble(id -> {
@@ -82,19 +83,13 @@ public class Trading {
         List<Integer> volOrderedSelection = new ArrayList<>(rm.config.getSelections());
         volOrderedSelection.sort(Comparator.comparingDouble(this::getVol));
 
-        List<Integer> capitalBindingOrderedSelection = new ArrayList<>(rm.config.getSelections());
-        capitalBindingOrderedSelection.sort(Comparator.comparingLong(id -> {
-            return (getCapitalBinding(id) != null) ? getCapitalBinding(id) : Long.MAX_VALUE;
-        }));
-
         List<Integer> orderedSelections = new ArrayList<>(rm.config.getSelections());
         orderedSelections.sort(Comparator.comparingInt(id -> {
             int profitIndex = profitOrderedSelection.indexOf(id);
             int volIndex = volOrderedSelection.indexOf(id);
-            int capitalBindingIndex = capitalBindingOrderedSelection.indexOf(id);
 
             // Calculate the average of the indices
-            return -1 * (rm.config.getPriorityProfit() * profitIndex + rm.config.getPriorityVol() * volIndex + rm.config.getPriorityCapitalBinding() * capitalBindingIndex);
+            return -1 * (rm.config.getPriorityProfit() * profitIndex + rm.config.getPriorityVol() * volIndex);
         }));
         rm.config.setSelections(new LinkedHashSet<>(orderedSelections));
     }
