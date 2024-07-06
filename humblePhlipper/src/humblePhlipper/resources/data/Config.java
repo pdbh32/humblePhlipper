@@ -48,9 +48,6 @@ public class Config {
     @SerializedName("priorityVol")
     @Expose
     private Integer priorityVol;
-    @SerializedName("priorityCapitalBinding")
-    @Expose
-    private Integer priorityCapitalBinding;
 
     // Pricing
     @SerializedName("pricing")
@@ -87,6 +84,9 @@ public class Config {
     @SerializedName("maxBidPrice")
     @Expose
     private Integer maxBidPrice;
+    @SerializedName("minBidPrice")
+    @Expose
+    private Integer minBidPrice;
     @SerializedName("tradeRestricted")
     @Expose
     private Boolean tradeRestricted;
@@ -112,7 +112,6 @@ public class Config {
         // Bid Priority
         this.priorityProfit = 100;
         this.priorityVol = 100;
-        this.priorityCapitalBinding = 0;
 
         // Pricing
         this.pricing = "bestOfLatestFiveMinute";
@@ -132,6 +131,7 @@ public class Config {
         this.maxBidAskVolRatio = 3.0f;
         this.minMargin = 2;
         this.maxBidPrice = 20000;
+        this.minBidPrice = 0;
         this.tradeRestricted = false;
         this.members = false;
     }
@@ -173,9 +173,6 @@ public class Config {
     public Integer getPriorityVol() {
         return priorityVol;
     }
-    public Integer getPriorityCapitalBinding() {
-        return priorityCapitalBinding;
-    }
 
     // Pricing Getters
     public String getPricing() {
@@ -210,6 +207,7 @@ public class Config {
     public Integer getMinMargin() { return minMargin; }
 
     public Integer getMaxBidPrice() { return maxBidPrice; }
+    public Integer getMinBidPrice() { return minBidPrice; }
 
     public Boolean getTradeRestricted() { return tradeRestricted; }
 
@@ -240,11 +238,6 @@ public class Config {
             this.priorityVol = priorityVol;
         }
     }
-    public void setPriorityCapitalBinding(Integer priorityCapitalBinding) {
-        if(priorityCapitalBinding >= 0 && priorityCapitalBinding <= 100) {
-            this.priorityCapitalBinding = priorityCapitalBinding;
-        }
-    }
 
     // Pricing Setters
     public void setPricing(String pricing) {
@@ -269,6 +262,7 @@ public class Config {
     public void setMaxBidAskVolRatio(Float maxBidAskVolRatio) { this.maxBidAskVolRatio = maxBidAskVolRatio; }
     public void setMinMargin(Integer minMargin) { this.minMargin = minMargin; }
     public void setMaxBidPrice(Integer maxBidPrice) { this.maxBidPrice = maxBidPrice; }
+    public void setMinBidPrice(Integer minBidPrice) { this.minBidPrice = minBidPrice; }
     public void setTradeRestricted(Boolean tradeRestricted) { this.tradeRestricted = tradeRestricted; }
     public void setMembers(Boolean members) { this.members = members; }
 }

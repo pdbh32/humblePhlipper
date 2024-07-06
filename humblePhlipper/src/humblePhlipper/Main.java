@@ -28,7 +28,7 @@ import java.util.*;
 
 import Gelox_.DiscordWebhook;
 
-@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.78)
+@ScriptManifest(category = Category.MONEYMAKING, name = "humblePhlipper", author = "apnasus", version = 2.79)
 public class Main extends AbstractScript {
     public static final ResourceManager rm = new ResourceManager();
     public static final Trading trading = new Trading(rm);

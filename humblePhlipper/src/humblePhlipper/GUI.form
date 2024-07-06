@@ -486,22 +486,6 @@
                             <properties/>
                             <border type="none"/>
                             <children>
-                              <grid id="78015" layout-manager="BorderLayout" hgap="0" vgap="0">
-                                <constraints>
-                                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                                  <gridbag weightx="1.0" weighty="1.0"/>
-                                </constraints>
-                                <properties/>
-                                <border type="none"/>
-                                <children>
-                                  <component id="9785" class="javax.swing.JSlider" binding="priorityCapitalBindingSlider">
-                                    <constraints border-constraint="Center"/>
-                                    <properties>
-                                      <value value="50"/>
-                                    </properties>
-                                  </component>
-                                </children>
-                              </grid>
                               <grid id="4dabe" layout-manager="BorderLayout" hgap="0" vgap="0">
                                 <constraints>
                                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -563,29 +547,6 @@
                             <properties/>
                             <border type="none"/>
                             <children>
-                              <grid id="f2ee9" layout-manager="GridBagLayout">
-                                <constraints>
-                                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                                  <gridbag weightx="1.0" weighty="1.0"/>
-                                </constraints>
-                                <properties/>
-                                <border type="none"/>
-                                <children>
-                                  <component id="3aae7" class="javax.swing.JTextField" binding="capitalBindingVeTextField" default-binding="true">
-                                    <constraints>
-                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                                        <preferred-size width="150" height="-1"/>
-                                      </grid>
-                                      <gridbag weightx="1.0" weighty="1.0"/>
-                                    </constraints>
-                                    <properties>
-                                      <editable value="false"/>
-                                      <text value="Capital Binding (-ve)"/>
-                                      <toolTipText value="`priorityCapitalBinding` - relative weight assigned to ordinal rank of bid * target, where target is 4hr_GE_limit - used_limit,  in ordering selections"/>
-                                    </properties>
-                                  </component>
-                                </children>
-                              </grid>
                               <grid id="d3516" layout-manager="CardLayout" hgap="0" vgap="0">
                                 <constraints>
                                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -1000,7 +961,7 @@
                           </grid>
                           <grid id="c77d9" layout-manager="GridBagLayout">
                             <constraints>
-                              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                               <gridbag weightx="1.0" weighty="1.0"/>
                             </constraints>
                             <properties/>
@@ -1034,6 +995,28 @@
                                 </constraints>
                                 <properties>
                                   <toolTipText value="`maxBidPrice` - maximum bid price of candaidate automatic selections"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </grid>
+                          <grid id="34cad" layout-manager="GridBagLayout">
+                            <constraints>
+                              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                              <gridbag weightx="1.0" weighty="1.0"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none" title="Min Bid Price"/>
+                            <children>
+                              <component id="674f" class="javax.swing.JTextField" binding="minBidPriceField">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                                    <preferred-size width="150" height="-1"/>
+                                  </grid>
+                                  <gridbag weightx="1.0" weighty="1.0"/>
+                                </constraints>
+                                <properties>
+                                  <text value=""/>
+                                  <toolTipText value="`minBidPrice` - minimum bid price of candaidate automatic selections"/>
                                 </properties>
                               </component>
                             </children>
