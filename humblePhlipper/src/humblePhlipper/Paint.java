@@ -42,7 +42,10 @@ public class Paint {
             }
             // Draw table rows
             g.drawString(item.getMapping().getName(), tableX, tableY);
+            if (item.getProfit() > 0) { g.setColor(Color.GREEN); }
+            if (item.getProfit() < 0) { g.setColor(Color.RED); }
             try { g.drawString(commaFormat.format(Math.round(item.getProfit())), tableX + 150 + 0*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
+            g.setColor(Color.WHITE);
             try { g.drawString(commaFormat.format(item.getSold()), tableX + 150 + 1*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
             try { g.drawString(commaFormat.format(item.getTargetVol()), tableX + 150 + 2*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }
             try { g.drawString(commaFormat.format(item.getBid()), tableX + 150 + 3*85, tableY); } catch(Exception e) { if (rm.config.getDebug()) e.printStackTrace(); }

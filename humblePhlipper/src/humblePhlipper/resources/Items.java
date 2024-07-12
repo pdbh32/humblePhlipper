@@ -108,7 +108,12 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
         public void updateFourHourLimit() { this.fourHourLimit = rm.fourHourLimits.get(this.id); }
         public int getTargetVol() { return targetVol; }
         public void updateTargetVol() {
-            this.targetVol = (this.mapping.getLimit() != null) ? this.mapping.getLimit() - this.fourHourLimit.getUsedLimit() : Integer.MAX_VALUE;
+            try {
+                this.targetVol = (this.mapping.getLimit() != null) ? this.mapping.getLimit() - this.fourHourLimit.getUsedLimit() : Integer.MAX_VALUE;
+            } catch(NullPointerException nullPointerException) { // new item release
+                rm.fourHourLimits.put(this.id, new FourHourLimits.FourHourLimit());
+                this.targetVol = (this.mapping.getLimit() != null) ? this.mapping.getLimit() - this.fourHourLimit.getUsedLimit() : Integer.MAX_VALUE;
+            }
         }
         public double getLastBuyPrice() { return lastBuyPrice; }
 
