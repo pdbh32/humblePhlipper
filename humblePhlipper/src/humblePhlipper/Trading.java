@@ -69,7 +69,7 @@ public class Trading {
         //rm.config.setSelections(rm.config.getSelections().stream().limit(rm.config.getNumToSelect()).collect(Collectors.toCollection(LinkedHashSet::new))); // Keep first N selections
     }
     public Double getProfitMargin(int ID) {
-        return (rm.items.get(ID).getBid() == null || rm.items.get(ID).getAsk() == null) ? null : Math.max(Math.ceil(0.99 * rm.items.get(ID).getAsk()), rm.items.get(ID).getAsk() - 5000000) - rm.items.get(ID).getBid();
+        return (rm.items.get(ID).getBid() == null || rm.items.get(ID).getAsk() == null) ? null : Math.max(Math.ceil(0.98 * rm.items.get(ID).getAsk()), rm.items.get(ID).getAsk() - 5000000) - rm.items.get(ID).getBid();
     }
     private double getVol(int ID) {
         return rm.items.get(ID).getOneHour().getLowPriceVolume() + rm.items.get(ID).getOneHour().getHighPriceVolume();
@@ -286,6 +286,6 @@ public class Trading {
         return false;
     }
     private static int getBreakEvenAsk(double lastBuyPrice) {
-        return (int) Math.ceil(lastBuyPrice/0.99 - 1);
+        return (int) Math.ceil(lastBuyPrice/0.98 - 1);
     }
 }

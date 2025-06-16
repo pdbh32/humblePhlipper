@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/hpDreambot.iml" filepath="$PROJECT_DIR$/.idea/hpDreambot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/humblePhlipper/humblePhlipper.iml" filepath="$PROJECT_DIR$/humblePhlipper/humblePhlipper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/phinancialMule/phinancialMule.iml" filepath="$PROJECT_DIR$/phinancialMule/phinancialMule.iml" />
+    </modules>
+  </component>
+</project>

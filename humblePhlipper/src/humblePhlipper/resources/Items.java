@@ -211,7 +211,7 @@ public class Items extends LinkedHashMap<Integer, Items.Item> {
 
             Integer pricingOffset;
             if (rm.config.getPricingOffsetAsPercentage()) {
-                double profitMargin = Math.max(Math.ceil(0.99 * ask), ask - 5000000) - bid;
+                double profitMargin = Math.max(Math.ceil(0.98 * ask), ask - 5000000) - bid;
                 pricingOffset = (int) (0.01 * rm.config.getPricingOffset() * profitMargin);
             } else {
                 pricingOffset = rm.config.getPricingOffset();
