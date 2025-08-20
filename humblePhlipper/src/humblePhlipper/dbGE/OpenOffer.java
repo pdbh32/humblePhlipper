@@ -15,7 +15,7 @@ public class OpenOffer {
     }
     public static Integer getTransferredAmount() {
         Pattern pattern = Pattern.compile("<col=ffb83f>([,\\d]+)</col>");
-        Matcher matcher = pattern.matcher(Widgets.get(465, 23, 1).getText());
+        Matcher matcher = pattern.matcher(Widgets.get(465, 23, 2).getText());
         if (!matcher.find()) {
             return null;
         }
@@ -25,7 +25,7 @@ public class OpenOffer {
     // Post tax
     public static Integer getTransferredValue() {
         Pattern pattern = Pattern.compile("<col=ffb83f>([,\\d]+)</col>");
-        Matcher matcher = pattern.matcher(Widgets.get(465, 23, 1).getText());
+        Matcher matcher = pattern.matcher(Widgets.get(465, 23, 2).getText());
         if (!matcher.find()) {
             return null;
         }
